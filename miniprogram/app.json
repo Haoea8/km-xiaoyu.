@@ -1,0 +1,73 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/circle/circle",
+    "pages/message/message",
+    "pages/interaction/interaction",
+    "pages/profile/profile",
+    "pages/zone/zone",
+    "pages/detail/detail",
+    "pages/publish/publish",
+    "pages/order-confirm/order-confirm",
+    "pages/orders/orders",
+    "pages/order-detail/order-detail",
+    "pages/circle-detail/circle-detail",
+    "pages/post-detail/post-detail",
+    "pages/post-create/post-create",
+    "pages/group-detail/group-detail",
+    "pages/my-groups/my-groups",
+    "pages/wall/wall",
+    "pages/wall-detail/wall-detail",
+    "pages/resource/resource",
+    "pages/resource-detail/resource-detail",
+    "pages/resource-upload/resource-upload",
+    "pages/chat/chat",
+    "pages/user/user",
+    "pages/collection/collection",
+    "pages/my-dynamics/my-dynamics",
+    "pages/wallet/wallet",
+    "pages/address/address",
+    "pages/settings/settings",
+    "pages/login/login"
+  ],
+  "window": {
+    "navigationStyle": "custom",
+    "backgroundColor": "#F5F6F8",
+    "backgroundTextStyle": "dark",
+    "navigationBarTextStyle": "black"
+  },
+  "tabBar": {
+    "custom": true,
+    "color": "#9AA0A6",
+    "selectedColor": "#1FA45B",
+    "backgroundColor": "#FFFFFF",
+    "borderStyle": "white",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "首页"
+      },
+      {
+        "pagePath": "pages/circle/circle",
+        "text": "圈子"
+      },
+      {
+        "pagePath": "pages/message/message",
+        "text": "消息"
+      },
+      {
+        "pagePath": "pages/profile/profile",
+        "text": "我的"
+      }
+    ]
+  },
+  "usingComponents": {
+    "navbar": "/components/navbar/navbar",
+    "listing-card": "/components/listing-card/listing-card",
+    "post-card": "/components/post-card/post-card",
+    "empty": "/components/empty/empty"
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json",
+  "lazyCodeLoading": "requiredComponents"
+}

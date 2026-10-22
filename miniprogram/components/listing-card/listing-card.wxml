@@ -1,0 +1,29 @@
+<view wx:if="{{item}}" class="lc lc-{{mode}}" bindtap="onTap">
+  <view class="lc-img-wrap">
+    <image class="lc-img" src="{{cover}}" mode="aspectFill" lazy-load></image>
+    <view class="lc-mode" wx:if="{{modeText}}" style="background:{{zone ? zone.color : '#1FA45B'}}">{{modeText}}</view>
+    <view class="lc-sold" wx:if="{{soldOut}}">已出手</view>
+  </view>
+  <view class="lc-body">
+    <view class="lc-title ellipsis2">{{item.title}}</view>
+    <view class="lc-tags" wx:if="{{item.tags && item.tags.length && mode === 'row'}}">
+      <text class="tag tag-gray" wx:for="{{item.tags}}" wx:key="*this" wx:if="{{index < 2}}">{{item}}</text>
+    </view>
+    <view class="lc-foot">
+      <view class="price">
+        <text class="price-sym">¥</text><text class="price-num">{{priceText}}</text>
+        <text class="lc-unit">/{{item.priceUnit || '件'}}</text>
+      </view>
+      <text class="price-old" wx:if="{{item.originalPrice > item.price}}">¥{{item.originalPrice / 100}}</text>
+    </view>
+    <view class="lc-meta" wx:if="{{showSeller}}">
+      <image class="avatar avatar-40" src="{{sellerAvatar}}" mode="aspectFill"></image>
+      <text class="lc-seller ellipsis">{{item.seller.nickname}}</text>
+      <text class="lc-dot">·</text>
+      <text class="lc-time">{{item.timeText}}</text>
+      <view class="lc-want" wx:if="{{item.wantCount > 0}}">
+        <text>{{item.wantCount}}人想要</text>
+      </view>
+    </view>
+  </view>
+</view>

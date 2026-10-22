@@ -1,0 +1,200 @@
+/**
+ * 科贸小鱼 · 全局设计系统（黄绿双色版）
+ * 分工：黄色=氛围（头图/背景/高亮卡片），绿色=功能（按钮/价格/选中态）
+ * 主色：生态绿 #1FA45B   氛围黄：#FFC53D   背景：#FAF7EE（暖米灰）
+ */
+page {
+  --brand: #1FA45B;
+  --brand-dark: #178A4A;
+  --brand-2: #FFB300;
+  --brand-soft: #E4F6EC;
+  --brand-grad: linear-gradient(135deg, #4CD08A 0%, #1FA45B 60%, #128044 100%);
+  --ink: #1F2328;
+  --ink-2: #555E6B;
+  --ink-3: #929AA5;
+  --ink-4: #B9C0CA;
+  --line: #EFF1F4;
+  --bg: #FAF7EE;
+  --card: #FFFFFF;
+  --green: #22B573;
+  --blue: #2AA9E0;
+  --purple: #7A5AF8;
+  --gold: #FFB300;
+  --radius: 24rpx;
+  --radius-lg: 32rpx;
+  --shadow: 0 2rpx 6rpx rgba(31, 35, 40, 0.03), 0 8rpx 24rpx rgba(31, 35, 40, 0.06);
+  --shadow-hover: 0 4rpx 12rpx rgba(31, 35, 40, 0.06), 0 14rpx 36rpx rgba(31, 35, 40, 0.1);
+
+  background: var(--bg);
+  color: var(--ink);
+  font-size: 28rpx;
+  line-height: 1.55;
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", "Microsoft YaHei", sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---------- 布局 ---------- */
+.page-wrap { min-height: 100vh; box-sizing: border-box; }
+.row { display: flex; flex-direction: row; align-items: center; }
+.row-top { display: flex; flex-direction: row; align-items: flex-start; }
+.between { justify-content: space-between; }
+.center { justify-content: center; }
+.middle { align-items: center; }
+.flex1 { flex: 1; min-width: 0; }
+.wrap { flex-wrap: wrap; }
+.col { display: flex; flex-direction: column; }
+.gap8 { gap: 8rpx; }
+.gap12 { gap: 12rpx; }
+.gap16 { gap: 16rpx; }
+.gap20 { gap: 20rpx; }
+.gap24 { gap: 24rpx; }
+
+/* ---------- 文本 ---------- */
+.t-title { font-size: 40rpx; font-weight: 700; letter-spacing: 0.5rpx; }
+.t-sub { font-size: 32rpx; font-weight: 600; }
+.t-body { font-size: 28rpx; }
+.t-sm { font-size: 24rpx; }
+.t-xs { font-size: 22rpx; }
+.bold { font-weight: 600; }
+.muted { color: var(--ink-3); }
+.muted2 { color: var(--ink-2); }
+.ellipsis { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ellipsis2 { overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.ellipsis3 { overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; }
+
+/* ---------- 卡片 ---------- */
+.card {
+  background: var(--card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+.card-pad { padding: 28rpx; }
+.card-tap { transition: transform 0.15s ease, box-shadow 0.15s ease; }
+.card-tap:active { transform: scale(0.985); box-shadow: var(--shadow-hover); }.section { margin: 24rpx 24rpx 0; }
+.section-head { display: flex; align-items: center; justify-content: space-between; padding: 8rpx 0 20rpx; }
+.section-title { font-size: 34rpx; font-weight: 700; }
+.section-more { font-size: 24rpx; color: var(--ink-3); }
+
+/* ---------- 价格 ---------- */
+.price { color: var(--brand); font-weight: 700; font-family: "DIN Alternate", -apple-system, sans-serif; }
+.price-sym { font-size: 24rpx; margin-right: 2rpx; }
+.price-num { font-size: 38rpx; }
+.price-sm .price-num { font-size: 32rpx; }
+.price-old { color: var(--ink-4); text-decoration: line-through; font-size: 22rpx; margin-left: 8rpx; }
+
+/* ---------- 按钮 ---------- */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  height: 80rpx; padding: 0 40rpx; border-radius: 999rpx;
+  font-size: 28rpx; font-weight: 600; box-sizing: border-box;
+  border: none; line-height: 1;
+}
+.btn::after { border: none; }
+.btn-primary { background: var(--brand-grad); color: #fff; box-shadow: 0 8rpx 20rpx rgba(31, 164, 91, 0.28); }
+.btn-primary:active { opacity: 0.9; }
+.btn-dark { background: #23272E; color: #fff; }
+.btn-ghost { background: #fff; color: var(--ink); border: 2rpx solid var(--line); }
+.btn-soft { background: var(--brand-soft); color: var(--brand); }
+.btn-danger { background: #FFEBEE; color: #E53935; }
+.btn-block { width: 100%; }
+.btn-lg { height: 92rpx; font-size: 30rpx; }
+.btn-sm { height: 60rpx; padding: 0 28rpx; font-size: 24rpx; }
+.btn-disabled { opacity: 0.45; }
+.btn-plain { background: transparent; color: var(--ink-2); height: auto; padding: 0; }
+
+/* ---------- 标签 ---------- */
+/* 标签统一胶囊形（纯视觉调整，padding 不变，不影响布局关键尺寸） */
+.tag {
+  display: inline-flex; align-items: center;
+  padding: 4rpx 16rpx; border-radius: 999rpx;
+  font-size: 22rpx; line-height: 1.6; margin-right: 12rpx;
+}
+.tag-brand { background: var(--brand-soft); color: var(--brand); }
+.tag-blue { background: #E8F5FE; color: var(--blue); }
+.tag-green { background: #E6F8F0; color: var(--green); }
+.tag-purple { background: #F1EDFE; color: var(--purple); }
+.tag-gold { background: #FFF6E0; color: #D99400; }
+.tag-gray { background: #F2F4F7; color: var(--ink-2); }
+.tag-line { border: 2rpx solid var(--line); color: var(--ink-2); background: #fff; }
+
+/* ---------- 徽标 ---------- */
+.badge {
+  min-width: 32rpx; height: 32rpx; padding: 0 8rpx;
+  background: #FF3B30; color: #fff; border-radius: 999rpx;
+  font-size: 20rpx; display: inline-flex; align-items: center; justify-content: center;
+  box-sizing: border-box;
+}
+.dot { width: 14rpx; height: 14rpx; border-radius: 50%; background: #FF3B30; }
+
+/* ---------- 头像 ---------- */
+.avatar { border-radius: 50%; background: #EDEFF2; flex-shrink: 0; }
+.avatar-40 { width: 40rpx; height: 40rpx; }
+.avatar-56 { width: 56rpx; height: 56rpx; }
+.avatar-72 { width: 72rpx; height: 72rpx; }
+.avatar-96 { width: 96rpx; height: 96rpx; }
+.avatar-120 { width: 120rpx; height: 120rpx; }
+
+/* ---------- 分区圆标 ---------- */
+.zone-ico {
+  width: 96rpx; height: 96rpx; border-radius: 30rpx;
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-size: 38rpx; font-weight: 700;
+  box-shadow: 0 4rpx 10rpx rgba(31, 35, 40, 0.06), 0 10rpx 22rpx rgba(31, 35, 40, 0.1);
+}
+.zone-ico-sm { width: 64rpx; height: 64rpx; border-radius: 20rpx; font-size: 28rpx; }
+
+/* ---------- 分割线 ---------- */
+.divider { height: 2rpx; background: var(--line); }
+.divider-16 { height: 16rpx; background: var(--bg); }
+
+/* ---------- 表单 ---------- */
+.field { display: flex; align-items: center; padding: 28rpx 0; border-bottom: 2rpx solid var(--line); }
+.field:last-child { border-bottom: none; }
+.field-label { width: 160rpx; color: var(--ink-2); font-size: 28rpx; flex-shrink: 0; }
+.field-input { flex: 1; font-size: 28rpx; color: var(--ink); }
+.field-textarea { width: 100%; min-height: 180rpx; font-size: 28rpx; line-height: 1.6; }
+.placeholder { color: var(--ink-4); }
+
+/* ---------- 底部浮动操作栏 ---------- */
+.footer-bar {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 50;
+  background: #fff; padding: 16rpx 24rpx calc(16rpx + env(safe-area-inset-bottom));
+  display: flex; align-items: center; gap: 16rpx;
+  box-shadow: 0 -6rpx 24rpx rgba(31, 35, 40, 0.06);
+}
+.footer-pad { height: calc(140rpx + env(safe-area-inset-bottom)); }
+
+/* ---------- 悬浮发布按钮 ---------- */
+.fab {
+  position: fixed; right: 32rpx; bottom: calc(160rpx + env(safe-area-inset-bottom));
+  width: 108rpx; height: 108rpx; border-radius: 50%;
+  background: var(--brand-grad); color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 56rpx; font-weight: 300;
+  box-shadow: 0 12rpx 28rpx rgba(23, 138, 74, 0.35);
+  z-index: 40;
+}
+.fab:active { transform: scale(0.94); }
+
+/* ---------- 骨架屏 ---------- */
+.skeleton {
+  background: linear-gradient(90deg, #F1F3F5 25%, #E9ECEF 37%, #F1F3F5 63%);
+  background-size: 400% 100%;
+  animation: skeleton-loading 1.2s ease infinite;
+  border-radius: 12rpx;
+}
+@keyframes skeleton-loading {
+  0% { background-position: 100% 50%; }
+  100% { background-position: 0 50%; }
+}
+
+/* ---------- 动画 ---------- */
+.fade-in { animation: fadeIn 0.28s ease both; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(16rpx); } to { opacity: 1; transform: none; } }
+.pop-in { animation: popIn 0.24s ease both; }
+@keyframes popIn { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: scale(1); } }
+
+/* ---------- 安全区 ---------- */
+.safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
+.hairline-top { border-top: 2rpx solid var(--line); }

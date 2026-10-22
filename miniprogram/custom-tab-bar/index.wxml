@@ -1,0 +1,22 @@
+<view class="tb">
+  <view
+    wx:for="{{list}}" wx:key="key"
+    class="tb-item {{item.key === 'publish' ? 'tb-publish' : ''}} {{selected === index ? 'tb-active' : ''}}"
+    data-index="{{index}}" data-item="{{item}}"
+    bindtap="onTap"
+  >
+    <block wx:if="{{item.key === 'publish'}}">
+      <view class="tb-plus">
+        <view class="tb-plus-h"></view>
+        <view class="tb-plus-v"></view>
+      </view>
+      <view class="tb-pub-text">发布</view>
+    </block>
+    <block wx:else>
+      <view class="tb-ico tb-ico-{{item.key}}">
+        <view class="tb-badge" wx:if="{{item.key === 'message' && unread > 0}}">{{unread > 99 ? '99+' : unread}}</view>
+      </view>
+      <view class="tb-text">{{item.text}}</view>
+    </block>
+  </view>
+</view>

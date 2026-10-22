@@ -1,0 +1,33 @@
+.lc {
+  background: #fff; border-radius: 24rpx; overflow: hidden;
+  box-shadow: 0 6rpx 24rpx rgba(31, 35, 40, 0.06);
+}
+.lc:active { transform: scale(0.985); }
+.lc-img-wrap { position: relative; background: #F1F3F5; }
+.lc-img { width: 100%; display: block; }
+.lc-grid .lc-img { height: 340rpx; }
+.lc-row { display: flex; padding: 0; }
+.lc-row .lc-img-wrap { width: 220rpx; flex-shrink: 0; }
+.lc-row .lc-img { width: 220rpx; height: 220rpx; }
+.lc-mode {
+  position: absolute; left: 0; top: 16rpx;
+  color: #fff; font-size: 20rpx; padding: 4rpx 14rpx;
+  border-radius: 0 10rpx 10rpx 0; font-weight: 500;
+}
+.lc-sold {
+  position: absolute; inset: 0; background: rgba(20, 22, 26, 0.45);
+  color: #fff; font-size: 28rpx; display: flex; align-items: center; justify-content: center;
+  letter-spacing: 4rpx;
+}
+.lc-body { padding: 20rpx 22rpx 24rpx; display: flex; flex-direction: column; flex: 1; min-width: 0; }
+.lc-row .lc-body { padding: 24rpx; justify-content: space-between; }
+.lc-title { font-size: 28rpx; line-height: 1.45; color: #1F2328; }
+.lc-tags { display: flex; margin-top: 12rpx; }
+.lc-foot { display: flex; align-items: baseline; margin-top: 16rpx; }
+.lc-row .lc-foot { margin-top: 8rpx; }
+.lc-unit { font-size: 22rpx; color: #929AA5; font-weight: 400; margin-left: 4rpx; }
+.lc-meta { display: flex; align-items: center; margin-top: 16rpx; }
+.lc-seller { font-size: 22rpx; color: #555E6B; max-width: 140rpx; margin-left: 8rpx; }
+.lc-dot { color: #C6CCD4; margin: 0 8rpx; font-size: 22rpx; }
+.lc-time { font-size: 22rpx; color: #929AA5; }
+.lc-want { margin-left: auto; font-size: 20rpx; color: #1FA45B; background: #E4F6EC; padding: 2rpx 12rpx; border-radius: 6rpx; }

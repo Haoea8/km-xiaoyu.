@@ -1,0 +1,48 @@
+<view wx:if="{{post}}" class="pc" bindtap="onTap">
+  <view class="pc-head">
+    <!-- 点头像 → 作者主页。用 catchtap 阻止冒泡，否则会连带触发整卡的「进详情」。
+         头像是「字标 + 图片」两层：图片为空或加载失败时露出昵称首字，不会是白圆。 -->
+    <view class="pc-av" style="background:{{authorBg}};color:{{authorFg}}" catchtap="onTapAuthor">
+      <text class="pc-av-txt">{{authorLetter}}</text>
+      <image wx:if="{{authorAvatar}}" class="pc-av-img" src="{{authorAvatar}}" mode="aspectFill"></image>
+    </view>
+    <view class="pc-head-main">
+      <view class="pc-name" catchtap="onTapAuthor">{{post.author.nickname}}</view>
+      <view class="pc-sub">
+        <text>{{post.timeText}}</text>
+        <text wx:if="{{showCircle && post.circle}}" class="pc-circle" style="color:{{post.circle.color}}"> · {{post.circle.name}}</text>
+      </view>
+    </view>
+    <view class="pc-topics" wx:if="{{post.topics && post.topics.length}}">
+      <text class="pc-topic">#{{post.topics[0]}}</text>
+    </view>
+  </view>
+
+  <view class="pc-content ellipsis3" wx:if="{{post.content}}">{{post.content}}</view>
+
+  <view class="pc-imgs" wx:if="{{images.length}}">
+    <image
+      wx:for="{{images}}" wx:key="*this"
+      class="pc-img"
+      style="width:{{gridSize[index].w}}px;height:{{gridSize[index].h}}px;"
+      src="{{item}}" mode="aspectFill" lazy-load
+    ></image>
+  </view>
+
+  <!-- 点赞 / 评论。
+       原来这两个图标是用 CSS 边框拼出来的「水滴形 + 小圆」，看上去就是两个
+       莫名其妙的空心轮廓（用户反馈「图标缺失」）；而且**没有绑定点击事件**，
+       组件里写好的 onLike 从来不会被触发。
+       现在改用与详情页一致的字符图标（♡/♥ + 💬），并让点赞可真点。 -->
+  <view class="pc-foot">
+    <view class="pc-act {{post.liked ? 'on' : ''}}" catchtap="onLike">
+      <view class="pc-ico">{{post.liked ? '♥' : '♡'}}</view>
+      <text>{{post.likeCount || 0}}</text>
+    </view>
+    <view class="pc-act" catchtap="onTapCmt">
+      <view class="pc-ico">💬</view>
+      <text>{{post.commentCount || 0}}</text>
+    </view>
+    <view class="pc-share">分享</view>
+  </view>
+</view>

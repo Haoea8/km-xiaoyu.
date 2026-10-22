@@ -1,0 +1,33 @@
+.pc { background: #fff; border-radius: 24rpx; padding: 28rpx; box-shadow: 0 6rpx 24rpx rgba(31, 35, 40, 0.06); }
+.pc:active { transform: scale(0.99); }
+.pc-head { display: flex; align-items: center; }
+/* 头像：字标在底、图片盖在上面（图片空/失败就露出字标，避免白圆） */
+.pc-av { position: relative; overflow: hidden; flex-shrink: 0; width: 56rpx; height: 56rpx; border-radius: 50%; }
+.pc-av-txt {
+  position: absolute; left: 0; top: 0; right: 0; bottom: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 26rpx; font-weight: 600; line-height: 1;
+}
+.pc-av-img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; }
+.pc-head-main { margin-left: 16rpx; flex: 1; min-width: 0; }
+.pc-name { font-size: 28rpx; font-weight: 600; color: #1F2328; }
+.pc-sub { font-size: 22rpx; color: #929AA5; margin-top: 4rpx; }
+.pc-circle { font-weight: 500; }
+.pc-topics { flex-shrink: 0; }
+.pc-topic {
+  font-size: 22rpx; color: #1FA45B; background: #E4F6EC;
+  padding: 4rpx 14rpx; border-radius: 999rpx;
+}
+.pc-content { margin-top: 20rpx; font-size: 28rpx; line-height: 1.6; color: #333941; }
+.pc-imgs { display: flex; flex-wrap: wrap; gap: 10rpx; margin-top: 20rpx; }
+.pc-img { border-radius: 14rpx; background: #F1F3F5; }
+.pc-foot { display: flex; align-items: center; gap: 40rpx; margin-top: 24rpx; }
+/* 点击区域用小内边距放大，避免细图标难点中 */
+.pc-act { display: flex; align-items: center; font-size: 24rpx; color: #7A828E; gap: 8rpx; padding: 6rpx 4rpx; }
+/* 图标改用字符（♡/♥/💬）后，这里只负责字号与颜色。
+   （原实现用 border-radius: 50% 50% 50% 0 + rotate(-45deg) 拼"水滴"，
+     视觉上完全不像点赞/评论，被当成"图标缺失"。） */
+.pc-ico { width: 32rpx; height: 32rpx; line-height: 32rpx; text-align: center; font-size: 28rpx; color: #B9C0CA; }
+.pc-act.on .pc-ico { color: #1FA45B; }
+.pc-act.on { color: #1FA45B; }
+.pc-share { margin-left: auto; font-size: 24rpx; color: #929AA5; }

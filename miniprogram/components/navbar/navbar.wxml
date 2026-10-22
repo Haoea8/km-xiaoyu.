@@ -1,0 +1,15 @@
+<view class="nb {{transparent ? 'nb-transparent' : ''}} {{line ? 'nb-line' : ''}}" style="padding-top:{{statusBarHeight}}px;">
+  <view class="nb-inner" style="height:{{navBarHeight}}px;">
+    <view class="nb-left">
+      <view wx:if="{{back}}" class="nb-back" bindtap="onBack">
+        <view class="nb-arrow"></view>
+      </view>
+      <slot name="left"></slot>
+    </view>
+    <view class="nb-title {{light ? 'nb-title-light' : ''}}">{{title}}</view>
+    <view class="nb-right" style="right:{{rightPad}}px;">
+      <slot name="right"></slot>
+    </view>
+  </view>
+</view>
+<view class="nb-holder" style="height:{{statusBarHeight + navBarHeight}}px;" wx:if="{{!transparent}}"></view>

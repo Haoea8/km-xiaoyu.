@@ -1,0 +1,9 @@
+<view class="empty-wrap">
+  <view class="empty-art empty-art-{{icon}}">
+    <view class="ea-body"></view>
+    <view class="ea-deco"></view>
+  </view>
+  <view class="empty-text">{{text}}</view>
+  <view class="empty-tip" wx:if="{{tip}}">{{tip}}</view>
+  <view class="empty-action" wx:if="{{action}}" bindtap="onAction">{{action}}</view>
+</view>
