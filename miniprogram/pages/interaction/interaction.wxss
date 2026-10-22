@@ -1,0 +1,78 @@
+.head {
+  display: flex; align-items: baseline; justify-content: space-between;
+  padding: 20rpx 32rpx 12rpx;
+}
+.head-t { font-size: 26rpx; font-weight: 600; color: var(--ink-2); }
+.head-s { font-size: 21rpx; color: var(--ink-4); }
+
+.list { padding: 8rpx 24rpx 0; }
+
+.it-row {
+  display: flex; align-items: center; gap: 20rpx;
+  background: #fff; border-radius: var(--radius);
+  padding: 24rpx; margin-bottom: 16rpx;
+  box-shadow: var(--shadow);
+}
+.it-row:active { background: #FAFBFC; }
+/* 本次进入页面时才看到的未读：淡品牌色底 + 左侧竖条 */
+.it-row.is-new {
+  background: var(--brand-soft);
+  box-shadow: 0 6rpx 24rpx rgba(31, 164, 91, 0.12);
+}
+.it-row.is-new:active { background: #FFE8E0; }
+
+/* ---------- 头像（字标 + 图片 + 类型角标） ---------- */
+.it-av { position: relative; width: 92rpx; height: 92rpx; flex-shrink: 0; }
+.it-av-bg {
+  width: 92rpx; height: 92rpx; border-radius: 30rpx;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 36rpx; font-weight: 700;
+}
+.it-av-img {
+  position: absolute; left: 0; top: 0;
+  width: 92rpx; height: 92rpx; border-radius: 30rpx;
+  background: #EDEFF2;
+}
+.it-ico {
+  position: absolute; right: -8rpx; bottom: -8rpx;
+  width: 40rpx; height: 40rpx; border-radius: 50%;
+  background: #fff; border: 2rpx solid var(--line);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22rpx; line-height: 1;
+  box-shadow: 0 2rpx 8rpx rgba(31, 35, 40, 0.08);
+}
+
+/* ---------- 正文 ---------- */
+.it-main { flex: 1; min-width: 0; }
+.it-line { display: flex; align-items: center; gap: 8rpx; }
+.it-name {
+  font-size: 28rpx; font-weight: 600; color: var(--ink);
+  max-width: 300rpx; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.it-type { font-size: 25rpx; color: var(--ink-2); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.it-time { font-size: 21rpx; color: var(--ink-4); flex-shrink: 0; }
+.it-preview { font-size: 25rpx; color: var(--ink-2); margin-top: 8rpx; line-height: 1.44; }
+.it-sub { font-size: 22rpx; color: var(--ink-4); margin-top: 6rpx; }
+
+/* ---------- 右侧缩略图 / 箭头 ---------- */
+.it-thumb { width: 104rpx; height: 104rpx; border-radius: 16rpx; background: #F1F3F5; flex-shrink: 0; }
+.it-arrow { font-size: 36rpx; color: var(--ink-4); flex-shrink: 0; padding-right: 6rpx; }
+
+.list-end { text-align: center; font-size: 22rpx; color: var(--ink-4); padding: 24rpx 0 8rpx; }
+
+/* ---------- 未登录 ---------- */
+.guest { padding: 220rpx 60rpx 0; text-align: center; }
+.guest-ico { font-size: 96rpx; }
+.guest-title { font-size: 34rpx; font-weight: 700; margin-top: 28rpx; }
+.guest-sub { font-size: 25rpx; color: var(--ink-3); margin-top: 12rpx; }
+.guest-btn {
+  margin-top: 48rpx; height: 88rpx; border-radius: 999rpx;
+  background: var(--brand-grad); color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 30rpx; font-weight: 600;
+  box-shadow: 0 10rpx 26rpx rgba(31, 164, 91, 0.3);
+}
+
+.skeleton-wrap { padding: 8rpx 24rpx 0; }
+.sk-row { height: 140rpx; margin-bottom: 16rpx; border-radius: var(--radius); }
+.bottom-pad { height: 60rpx; }

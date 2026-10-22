@@ -1,0 +1,84 @@
+<view class="page-wrap">
+  <navbar title="墙详情" back="{{true}}"></navbar>
+
+  <block wx:if="{{!loading && wall}}">
+    <!-- 内容 -->
+    <view class="card">
+      <view class="w-head">
+        <view class="w-avatar">{{wall.anonName[0]}}</view>
+        <view class="w-main">
+          <view class="w-name">
+            {{wall.anonName}}
+            <text class="w-badge {{wall.type}}">{{wall.type === 'love' ? '表白墙' : '万能墙'}}</text>
+          </view>
+          <view class="w-time">{{wall.timeText}}</view>
+        </view>
+        <view class="w-more" bindtap="onReport">{{wall.isMine ? '删除' : '···'}}</view>
+      </view>
+
+      <view class="w-content">
+        <text wx:if="{{wall.toName}}" class="w-to">致 {{wall.toName}}：</text>{{wall.content}}
+      </view>
+
+      <view class="w-images" wx:if="{{images.length}}">
+        <image
+          wx:for="{{images}}"
+          wx:key="*this"
+          class="w-img {{images.length === 1 ? 'single' : ''}}"
+          src="{{item}}"
+          mode="aspectFill"
+          data-index="{{index}}"
+          bindtap="previewImage"></image>
+      </view>
+
+      <view class="w-actions">
+        <view class="wa {{wall.liked ? 'on' : ''}}" bindtap="onLike">
+          <text class="wa-ico">♥</text><text>{{wall.likeCount || 0}} 赞</text>
+        </view>
+        <view class="wa"><text class="wa-ico">💬</text><text>{{comments.length}} 评论</text></view>
+      </view>
+    </view>
+
+    <!-- 评论 -->
+    <view class="card">
+      <view class="card-title">全部评论（{{comments.length}}）</view>
+      <view class="c-empty" wx:if="{{!comments.length}}">还没有人评论，来说两句吧</view>
+      <view class="c-item" wx:for="{{comments}}" wx:key="id">
+        <view class="c-avatar">{{item.anonName[0]}}</view>
+        <view class="c-main">
+          <view class="c-name">{{item.anonName}}</view>
+          <view class="c-text">{{item.content}}</view>
+          <view class="c-meta">
+            <text class="c-time">{{item.timeText}}</text>
+            <view class="c-like {{item.liked ? 'on' : ''}}" data-id="{{item.id}}" catchtap="likeComment">
+              <text class="c-like-ico">♥</text><text>{{item.likeCount || 0}}</text>
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <view class="footer-pad"></view>
+
+    <!-- 评论输入 -->
+    <view class="c-bar">
+      <view class="c-anon" bindtap="toggleAnon">
+        <view class="checkbox {{anonymous?'on':''}}"><view class="tick"></view></view>
+      </view>
+      <input
+        class="c-input"
+        value="{{input}}"
+        placeholder="{{anonymous ? '匿名评论…' : '实名评论…'}}"
+        placeholder-class="c-ph"
+        confirm-type="send"
+        bindinput="onInput"
+        bindconfirm="onSend" />
+      <view class="c-send {{input ? 'on' : ''}}" bindtap="onSend">发送</view>
+    </view>
+  </block>
+
+  <view wx:else class="skeleton-wrap">
+    <view class="skeleton" style="height:400rpx;margin:24rpx;border-radius:32rpx"></view>
+    <view class="skeleton" style="height:300rpx;margin:24rpx;border-radius:32rpx"></view>
+  </view>
+</view>

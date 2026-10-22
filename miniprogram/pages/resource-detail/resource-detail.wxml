@@ -1,0 +1,88 @@
+<view class="page-wrap">
+  <navbar title="资料详情" back="{{true}}"></navbar>
+
+  <block wx:if="{{!loading && r}}">
+    <!-- 头部 -->
+    <view class="hero">
+      <view class="h-type" style="background:{{r.typeColor}}1A;color:{{r.typeColor}}">
+        <text class="h-ext">{{r.typeText}}</text>
+        <text class="h-size">{{r.sizeText}}</text>
+      </view>
+      <view class="h-main">
+        <view class="h-title">{{r.title}}</view>
+        <view class="h-meta">
+          <text wx:if="{{r.course}}" class="h-course">{{r.course}}</text>
+          <text class="h-stat">⬇ {{r.downloads || 0}} 次下载</text>
+          <text class="h-stat">♥ {{r.likeCount || 0}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 信息 -->
+    <view class="card">
+      <view class="row"><text class="row-l">文件名</text><text class="row-r ellipsis">{{r.fileName || r.title}}</text></view>
+      <view class="row" wx:if="{{r.course}}"><text class="row-l">所属课程</text><text class="row-r">{{r.course}}</text></view>
+      <view class="row"><text class="row-l">文件大小</text><text class="row-r">{{r.sizeText || '未知'}}</text></view>
+      <view class="row"><text class="row-l">上传时间</text><text class="row-r">{{r.timeText}}</text></view>
+    </view>
+
+    <!-- 描述 -->
+    <view class="card">
+      <view class="card-title">资料简介</view>
+      <view class="desc">{{r.desc || '上传者没有填写简介，可以直接下载查看～'}}</view>
+      <view class="tags" wx:if="{{r.tags.length}}">
+        <text class="tag" wx:for="{{r.tags}}" wx:key="*this">#{{item}}</text>
+      </view>
+    </view>
+
+    <!-- 上传者 -->
+    <view class="card uploader-card" bindtap="chatUploader">
+      <image class="u-avatar" src="{{uploaderAvatar}}" mode="aspectFill"></image>
+      <view class="u-main">
+        <view class="u-name">{{r.uploader.nickname}}</view>
+        <view class="u-sub">{{r.uploader.college || '校园同学'}}</view>
+      </view>
+      <view class="u-chat" wx:if="{{!r.isMine}}">私信 TA</view>
+      <view class="u-mine" wx:else>我上传的</view>
+    </view>
+
+    <!-- 安全提示 -->
+    <view class="tip">
+      <text class="tip-ico">!</text>
+      <text>资料由同学自愿分享，仅供学习交流使用，请勿用于商业用途。</text>
+    </view>
+
+    <!-- 相关推荐 -->
+    <view wx:if="{{related.length}}">
+      <view class="rel-head">相关推荐</view>
+      <view class="rel-list">
+        <view class="rel-item" wx:for="{{related}}" wx:key="id" data-id="{{item.id}}" bindtap="goRelated">
+          <view class="rel-type" style="background:{{item.typeColor}}1A;color:{{item.typeColor}}">{{item.typeText}}</view>
+          <view class="rel-main">
+            <view class="rel-title ellipsis">{{item.title}}</view>
+            <view class="rel-meta">{{item.course || '通用'}} · ⬇ {{item.downloads || 0}}</view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <view class="footer-pad"></view>
+
+    <!-- 底部 -->
+    <view class="footer">
+      <view class="f-btn" bindtap="onPreview">复制链接</view>
+      <view class="f-btn" bindtap="onReport">{{r.isMine ? '删除' : '举报'}}</view>
+      <view class="f-like {{r.liked ? 'on' : ''}}" bindtap="onLike">
+        <text class="fl-ico">♥</text>
+      </view>
+      <view class="f-main {{downloading ? 'disabled' : ''}}" bindtap="onDownload">
+        {{downloading ? '下载中…' : '下载资料'}}
+      </view>
+    </view>
+  </block>
+
+  <view wx:else class="skeleton-wrap">
+    <view class="skeleton" style="height:220rpx;margin:24rpx;border-radius:32rpx"></view>
+    <view class="skeleton" style="height:280rpx;margin:24rpx;border-radius:24rpx"></view>
+  </view>
+</view>

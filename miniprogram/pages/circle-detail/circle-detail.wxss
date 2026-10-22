@@ -1,0 +1,49 @@
+.nb-post {
+  font-size: 24rpx; color: #fff; font-weight: 600;
+  background: var(--brand-grad); padding: 6rpx 24rpx; border-radius: 999rpx;
+}
+
+/* ---------- 圈子头 ---------- */
+.c-hero {
+  display: flex; gap: 22rpx;
+  margin: 8rpx 24rpx 0; padding: 30rpx 28rpx;
+  background: #fff; border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+}
+.c-ico {
+  width: 108rpx; height: 108rpx; border-radius: 32rpx; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 48rpx; font-weight: 700;
+}
+.c-main { flex: 1; min-width: 0; }
+.c-name { font-size: 36rpx; font-weight: 700; }
+.c-desc { font-size: 24rpx; color: var(--ink-3); margin-top: 8rpx; line-height: 1.5; }
+.c-meta { display: flex; align-items: center; gap: 8rpx; font-size: 21rpx; color: var(--ink-4); margin-top: 14rpx; }
+.c-dot { color: var(--ink-4); }
+
+/* ---------- 话题头 ---------- */
+.t-hero {
+  display: flex; align-items: center; gap: 20rpx;
+  margin: 8rpx 24rpx 0; padding: 32rpx 30rpx;
+  background: linear-gradient(120deg, #E4F6EC, #DFF4E7);
+  border-radius: var(--radius-lg);
+}
+.t-hash {
+  font-size: 60rpx; font-weight: 800; color: var(--brand); line-height: 1;
+}
+.t-name { font-size: 38rpx; font-weight: 700; }
+.t-sub { font-size: 22rpx; color: var(--ink-3); margin-top: 8rpx; }
+
+/* ---------- 排序 ---------- */
+.sort-bar { display: flex; align-items: center; gap: 44rpx; padding: 30rpx 32rpx 16rpx; }
+.sort-item { font-size: 30rpx; color: var(--ink-3); }
+.sort-item.on { color: var(--ink); font-weight: 700; font-size: 32rpx; }
+.sort-line { height: 6rpx; border-radius: 3rpx; margin-top: 8rpx; background: transparent; }
+.sort-item.on .sort-line { background: var(--brand-grad); }
+
+/* ---------- 列表 ---------- */
+.post-list { padding: 0 24rpx; }
+.more-tip { text-align: center; font-size: 22rpx; color: var(--ink-4); padding: 30rpx 0; }
+.skeleton-wrap { padding: 0 24rpx; }
+.sk-post { height: 360rpx; margin-bottom: 24rpx; border-radius: var(--radius); }
+.bottom-pad { height: calc(180rpx + env(safe-area-inset-bottom)); }

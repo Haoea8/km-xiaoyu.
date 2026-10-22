@@ -1,0 +1,60 @@
+<view class="page-wrap">
+  <navbar title="{{title}}" back="{{true}}"></navbar>
+
+  <!-- 圈子信息头 -->
+  <view class="c-hero" wx:if="{{circle}}">
+    <view class="c-ico" style="background:{{circle.color}}22;color:{{circle.color}}">{{initial}}</view>
+    <view class="c-main">
+      <view class="c-name">{{circle.name}}</view>
+      <view class="c-desc">{{circle.desc}}</view>
+      <view class="c-meta">
+        <text>{{circle.postCount}} 帖子</text>
+        <text class="c-dot">·</text>
+        <text>{{circle.memberCount}} 成员</text>
+        <text class="c-dot">·</text>
+        <text>{{circle.lastActiveText}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 话题头 -->
+  <view class="t-hero" wx:elif="{{topic}}">
+    <view class="t-hash">#</view>
+    <view class="t-main">
+      <view class="t-name">{{topic}}</view>
+      <view class="t-sub">话题聚合 · {{posts.length}} 条相关动态</view>
+    </view>
+  </view>
+
+  <!-- 排序 -->
+  <view class="sort-bar">
+    <view class="sort-item {{sort==='new'?'on':''}}" data-k="new" bindtap="onSort">
+      <text>最新</text><view class="sort-line"></view>
+    </view>
+    <view class="sort-item {{sort==='hot'?'on':''}}" data-k="hot" bindtap="onSort">
+      <text>热门</text><view class="sort-line"></view>
+    </view>
+  </view>
+
+  <!-- 帖子流 -->
+  <view class="post-list">
+    <post-card
+      wx:for="{{posts}}"
+      wx:key="id"
+      post="{{item}}"
+      showCircle="{{!circle}}"
+      bind:like="onLike" />
+  </view>
+
+  <view wx:if="{{loadingMore}}" class="more-tip">正在加载…</view>
+  <view wx:elif="{{!hasMore && posts.length}}" class="more-tip">— 到底啦 —</view>
+
+  <empty wx:if="{{!loading && !posts.length}}" text="这里还没有帖子" sub="来发第一条吧"></empty>
+
+  <view wx:if="{{loading}}" class="skeleton-wrap">
+    <view class="skeleton sk-post" wx:for="{{[1,2,3]}}" wx:key="*this"></view>
+  </view>
+
+  <view class="fab" bindtap="goCreate">＋</view>
+  <view class="bottom-pad"></view>
+</view>

@@ -1,0 +1,64 @@
+<view class="page-wrap">
+  <navbar title="发布帖子" back="{{true}}"></navbar>
+
+  <view class="card">
+    <textarea
+      class="content"
+      placeholder="分享你的校园生活、学习心得，或者来一次求助…"
+      placeholder-class="ph"
+      maxlength="1000"
+      auto-height
+      value="{{content}}"
+      bindinput="onContent"></textarea>
+    <view class="count">{{content.length}}/1000</view>
+
+    <view class="img-grid">
+      <view class="img-cell" wx:for="{{images}}" wx:key="*this">
+        <image class="img" src="{{item}}" mode="aspectFill" data-index="{{index}}" bindtap="previewImage"></image>
+        <view class="img-del" data-index="{{index}}" catchtap="removeImage">×</view>
+      </view>
+      <view class="img-add" wx:if="{{images.length < maxImages}}" bindtap="chooseImage">
+        <view class="add-plus">＋</view>
+        <view class="add-text">{{images.length}}/{{maxImages}}</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 圈子 -->
+  <view class="card">
+    <picker mode="selector" range="{{circles}}" range-key="name" value="{{circleIndex}}" bindchange="onCircleChange">
+      <view class="row">
+        <text class="row-label">发布到圈子</text>
+        <view class="row-value">
+          {{circles[circleIndex].name || '加载中…'}}
+          <text class="arrow">›</text>
+        </view>
+      </view>
+    </picker>
+  </view>
+
+  <!-- 话题 -->
+  <view class="card">
+    <view class="card-title">话题标签 <text class="opt">选填，最多 4 个</text></view>
+    <view class="topic-selected" wx:if="{{topics.length}}">
+      <view class="ts-item" wx:for="{{topics}}" wx:key="*this" data-t="{{item}}" bindtap="removeTopic">
+        #{{item}} <text class="ts-del">×</text>
+      </view>
+    </view>
+    <view class="topic-input-row">
+      <input class="topic-input" value="{{topicInput}}" placeholder="自定义话题" placeholder-class="ph" bindinput="onTopicInput" bindconfirm="addTopic" />
+      <view class="topic-add" bindtap="addTopic">添加</view>
+    </view>
+    <view class="hot-topics">
+      <view class="ht" wx:for="{{hotTopics}}" wx:key="*this" data-t="{{item}}" bindtap="addTopic">#{{item}}</view>
+    </view>
+  </view>
+
+  <view class="tip">发布内容需遵守校园文明规范，违规内容将被下架并可能封禁账号</view>
+
+  <view class="footer-pad"></view>
+  <view class="footer">
+    <view class="btn-cancel" bindtap="onCancel">取消</view>
+    <view class="btn-submit {{submitting ? 'disabled' : ''}}" bindtap="onSubmit">{{submitting ? '发布中…' : '发布'}}</view>
+  </view>
+</view>

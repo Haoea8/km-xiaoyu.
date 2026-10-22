@@ -1,0 +1,73 @@
+<view class="page-wrap">
+  <navbar title="校园圈子"></navbar>
+
+  <!-- 搜索 -->
+  <view class="search-wrap">
+    <view class="search">
+      <view class="s-ico"></view>
+      <input
+        class="s-input"
+        value="{{keyword}}"
+        placeholder="搜索帖子内容 / 话题"
+        placeholder-class="s-ph"
+        confirm-type="search"
+        bindconfirm="onSearch" />
+      <view wx:if="{{keyword}}" class="s-clear" bindtap="clearSearch">×</view>
+    </view>
+  </view>
+
+  <!-- 圈子导航 -->
+  <view class="sec">
+    <view class="sec-head">
+      <text class="sec-title">校园圈子</text>
+      <text class="sec-sub">{{circles.length}} 个圈子</text>
+    </view>
+    <scroll-view class="circle-scroll" scroll-x enable-flex show-scrollbar="{{false}}">
+      <view class="circle-item" wx:for="{{circles}}" wx:key="id" data-id="{{item.id}}" bindtap="goCircle">
+        <view class="ci-ico" style="background:{{item.color}}22;color:{{item.color}}">{{item.initial}}</view>
+        <view class="ci-name">{{item.name}}</view>
+        <view class="ci-count">{{item.postCount}} 帖</view>
+      </view>
+    </scroll-view>
+  </view>
+
+  <!-- 话题 -->
+  <view class="topic-wrap" wx:if="{{topics.length}}">
+    <scroll-view class="topic-scroll" scroll-x enable-flex show-scrollbar="{{false}}">
+      <view class="topic" wx:for="{{topics}}" wx:key="name" data-name="{{item.name}}" bindtap="goTopic">
+        <text class="topic-hash">#</text>{{item.name}}
+        <text class="topic-count">{{item.count}}</text>
+      </view>
+    </scroll-view>
+  </view>
+
+  <!-- 排序 -->
+  <view class="sort-bar">
+    <view
+      wx:for="{{tabs}}"
+      wx:key="key"
+      class="sort-item {{sort===item.key?'on':''}}"
+      data-k="{{item.key}}"
+      bindtap="onSort">
+      <text>{{item.label}}</text>
+      <view class="sort-line"></view>
+    </view>
+  </view>
+
+  <!-- 帖子流 -->
+  <view class="post-list">
+    <post-card wx:for="{{posts}}" wx:key="id" post="{{item}}" bind:like="onLike" />
+  </view>
+
+  <view wx:if="{{loadingMore}}" class="more-tip">正在加载…</view>
+  <view wx:elif="{{!hasMore && posts.length}}" class="more-tip">— 到底啦，去发一条吧 —</view>
+
+  <empty wx:if="{{!loading && !posts.length}}" text="{{keyword ? '没有找到相关帖子' : '还没有帖子'}}" sub="{{keyword ? '换个关键词试试' : '来发布校园第一条动态'}}"></empty>
+
+  <view wx:if="{{loading}}" class="skeleton-wrap">
+    <view class="skeleton sk-post" wx:for="{{[1,2,3]}}" wx:key="*this"></view>
+  </view>
+
+  <view class="fab" bindtap="goCreate">＋</view>
+  <view class="bottom-pad"></view>
+</view>

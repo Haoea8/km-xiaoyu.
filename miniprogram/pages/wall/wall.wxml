@@ -1,0 +1,141 @@
+<view class="page-wrap">
+  <!-- 导航栏右侧不再放「写一条」：右下角已有悬浮 + 按钮，顶部那个既重复又被胶囊挤 -->
+  <navbar title="校园墙" back="{{true}}"></navbar>
+
+  <!-- 头部 -->
+  <view class="hero">
+    <view class="hero-glow"></view>
+    <view class="hero-title">校园墙</view>
+    <view class="hero-sub">匿名说出心里话 · 表白 · 求助 · 吐槽</view>
+    <view class="hero-actions">
+      <view class="ha-btn love" data-t="love" bindtap="openPostQuick">
+        <text class="ha-ico">💌</text>去表白
+      </view>
+      <view class="ha-btn ask" data-t="all" bindtap="openPostQuick">
+        <text class="ha-ico">🙋</text>万能求助
+      </view>
+    </view>
+  </view>
+
+  <!-- 筛选 -->
+  <view class="filter">
+    <view class="tabs">
+      <view
+        wx:for="{{tabs}}"
+        wx:key="key"
+        class="tab {{tabKey===item.key?'on':''}}"
+        data-k="{{item.key}}"
+        bindtap="onType">{{item.label}}</view>
+    </view>
+    <view class="sorts">
+      <view class="sort {{sort==='new'?'on':''}}" data-k="new" bindtap="onSort">最新</view>
+      <view class="sort {{sort==='hot'?'on':''}}" data-k="hot" bindtap="onSort">最热</view>
+    </view>
+  </view>
+
+  <!-- 列表 -->
+  <view class="list">
+    <view class="w-card" wx:for="{{list}}" wx:key="id">
+      <view class="w-head">
+        <view class="w-avatar">{{item.initial}}</view>
+        <view class="w-main">
+          <view class="w-name">
+            {{item.anonName}}
+            <text class="w-badge {{item.type}}">{{item.typeText}}</text>
+          </view>
+          <view class="w-time">{{item.timeText}}</view>
+        </view>
+        <view class="w-more" data-id="{{item.id}}" catchtap="onReport">···</view>
+      </view>
+
+      <view class="w-content" data-id="{{item.id}}" bindtap="goDetail">
+        <text wx:if="{{item.toName}}" class="w-to">致 {{item.toName}}：</text>{{item.content}}
+      </view>
+
+      <view class="w-images" wx:if="{{item.images.length}}">
+        <image
+          wx:for="{{item.images}}"
+          wx:for-item="img"
+          wx:key="*this"
+          class="w-img {{item.images.length === 1 ? 'single' : ''}}"
+          src="{{img}}"
+          mode="aspectFill"
+          data-id="{{item.id}}"
+          data-index="{{index}}"
+          catchtap="previewImage"></image>
+      </view>
+
+      <view class="w-foot">
+        <view class="wf-act {{item.liked ? 'on' : ''}}" data-id="{{item.id}}" catchtap="onLike">
+          <text class="wf-ico">♥</text><text>{{item.likeCount || 0}}</text>
+        </view>
+        <view class="wf-act" data-id="{{item.id}}" bindtap="goDetail">
+          <text class="wf-ico">💬</text><text>{{item.commentCount || 0}}</text>
+        </view>
+        <view class="wf-act" data-id="{{item.id}}" catchtap="onReport">
+          <text class="wf-ico">!</text><text>举报</text>
+        </view>
+        <view class="wf-detail" data-id="{{item.id}}" bindtap="goDetail">查看详情 ›</view>
+      </view>
+    </view>
+  </view>
+
+  <view wx:if="{{loadingMore}}" class="more-tip">正在加载…</view>
+  <view wx:elif="{{!hasMore && list.length}}" class="more-tip">— 到底啦 —</view>
+
+  <empty wx:if="{{!loading && !list.length}}" text="墙上还什么都没有" sub="来写下校园墙的第一条"></empty>
+
+  <view wx:if="{{loading}}" class="skeleton-wrap">
+    <view class="skeleton sk-card" wx:for="{{[1,2,3]}}" wx:key="*this"></view>
+  </view>
+
+  <view class="bottom-pad"></view>
+  <view class="fab" bindtap="openPost">＋</view>
+</view>
+
+<!-- 发布面板 -->
+<view wx:if="{{showPost}}" class="mask" bindtap="closePost">
+  <view class="sheet" catchtap="noop">
+    <view class="sheet-head">
+      <text class="sheet-title">写一条校园墙</text>
+      <text class="sheet-close" bindtap="closePost">×</text>
+    </view>
+
+    <view class="type-row">
+      <view class="type-btn {{postType==='love'?'on':''}}" data-t="love" bindtap="setPostType">💌 表白墙</view>
+      <view class="type-btn {{postType==='all'?'on':''}}" data-t="all" bindtap="setPostType">🙋 万能墙</view>
+    </view>
+
+    <input
+      wx:if="{{postType==='love'}}"
+      class="to-input"
+      value="{{toName}}"
+      placeholder="TA 的名字 / 昵称（选填）"
+      placeholder-class="ph"
+      bindinput="onToName" />
+
+    <textarea
+      class="sheet-content"
+      value="{{content}}"
+      placeholder="{{postType==='love' ? '想对 TA 说的话…' : '有什么想问的、想吐槽的？'}}"
+      placeholder-class="ph"
+      maxlength="800"
+      bindinput="onContent"></textarea>
+
+    <view class="sheet-imgs">
+      <view class="img-cell" wx:for="{{images}}" wx:key="*this">
+        <image class="img" src="{{item}}" mode="aspectFill"></image>
+        <view class="img-del" data-index="{{index}}" catchtap="removeImage">×</view>
+      </view>
+      <view class="img-add" wx:if="{{images.length < 9}}" bindtap="chooseImage">＋</view>
+    </view>
+
+    <view class="anon-row" bindtap="toggleAnon">
+      <view class="checkbox {{anonymous?'on':''}}"><view class="tick"></view></view>
+      <text class="anon-text">匿名发布（强烈推荐）</text>
+    </view>
+
+    <view class="sheet-submit {{submitting?'disabled':''}}" bindtap="submitPost">{{submitting?'发布中…':'匿名发布'}}</view>
+    <view class="sheet-tip">发布内容经 AI 审核，含违规信息将被下架</view>
+  </view>
+</view>

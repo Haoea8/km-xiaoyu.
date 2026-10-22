@@ -1,0 +1,188 @@
+<view class="page-wrap">
+  <navbar title="帖子详情" back="{{true}}"></navbar>
+
+  <block wx:if="{{!loading && post}}">
+    <!-- 作者 -->
+    <!-- 头像用「字标 + 图片」双层：图片为空或加载失败时露出昵称首字，永不出现白块 -->
+    <view class="p-head">
+      <view class="av av-lg" style="background:{{post.author.bg}};color:{{post.author.fg}}"
+        data-id="{{post.author.id}}" bindtap="goAuthor">
+        <text class="av-txt">{{post.author.letter}}</text>
+        <image wx:if="{{post.author.avatar}}" class="av-img" src="{{post.author.avatar}}" mode="aspectFill"></image>
+      </view>
+      <view class="p-author-main" bindtap="goAuthor">
+        <view class="p-name">
+          {{post.author.nickname}}
+          <text wx:if="{{post.author.cert === 'student'}}" class="p-cert">学生认证</text>
+        </view>
+        <view class="p-sub">
+          {{post.timeText}}
+          <text wx:if="{{post.circle}}" class="p-circle" style="color:{{post.circle.color}}" catchtap="goCircle"> · {{post.circle.name}}</text>
+        </view>
+      </view>
+      <view class="p-more" bindtap="onReport">{{isMine ? '删除' : '···'}}</view>
+    </view>
+
+    <!-- 内容 -->
+    <view class="p-body">
+      <view class="p-content">{{post.content}}</view>
+      <view class="p-images" wx:if="{{images.length}}">
+        <image
+          wx:for="{{images}}"
+          wx:key="*this"
+          class="p-img"
+          src="{{item}}"
+          mode="widthFix"
+          data-index="{{index}}"
+          bindtap="previewImage"
+          lazy-load></image>
+      </view>
+      <view class="p-topics" wx:if="{{post.topics.length}}">
+        <text
+          class="p-topic"
+          wx:for="{{post.topics}}"
+          wx:key="*this"
+          data-name="{{item}}"
+          bindtap="goTopic">#{{item}}</text>
+      </view>
+    </view>
+
+    <!-- 操作 -->
+    <!-- ⚠️ 点赞/收藏的图标必须**随状态切换**：
+         原来点赞只有颜色变化（空心/实心看不出），收藏更是图标和文案都写死，
+         收藏后完全没反馈 —— 用户的感觉就是「没有图标」「点了没反应」。
+         这里统一成「空心 ↔ 实心 + 变红」，一眼能看出当前状态。 -->
+    <view class="p-actions">
+      <view class="pa-item {{liked ? 'on' : ''}}" bindtap="onLike">
+        <text class="pa-ico">{{liked ? '♥' : '♡'}}</text>
+        <text>{{likeCount}}</text>
+      </view>
+      <view class="pa-item">
+        <text class="pa-ico">💬</text>
+        <!-- 用 commentTotal（含回复），与「全部评论（N）」一致；
+             原来用 comments.length，改成两级结构后会只剩顶层数 -->
+        <text>{{commentTotal}}</text>
+      </view>
+      <view class="pa-item {{fav ? 'on' : ''}}" bindtap="onFav">
+        <text class="pa-ico">{{fav ? '★' : '☆'}}</text>
+        <text>{{fav ? '已收藏' : '收藏'}}</text>
+      </view>
+      <view class="pa-item" bindtap="chatAuthor">
+        <text class="pa-ico">✉</text>
+        <text>私信</text>
+      </view>
+    </view>
+
+    <!-- 评论（两级：顶层评论 + 缩进在它下面的回复） -->
+    <view class="c-sec">
+      <view class="c-title">全部评论（{{commentTotal}}）</view>
+      <!-- 帖子卡片上显示有评论、进来却是空的：明确说明 + 给一个重试入口，
+           不要让用户以为评论被吞了（读数据偶尔会不完整） -->
+      <view class="c-hint" wx:if="{{commentHint}}" bindtap="reloadComments">{{commentHint}} · 点此重试</view>
+      <view class="c-empty" wx:if="{{!comments.length && !commentHint}}">还没有人评论，来说两句吧</view>
+
+      <view class="c-item" wx:for="{{comments}}" wx:key="id" wx:for-item="cmt">
+        <!-- 头像：字标兜底 + 图片覆盖。点它/昵称 → 对方主页 -->
+        <view class="av" style="background:{{cmt.author.bg}};color:{{cmt.author.fg}}"
+          data-id="{{cmt.author.id}}" bindtap="goUser">
+          <text class="av-txt">{{cmt.author.letter}}</text>
+          <image wx:if="{{cmt.author.avatar}}" class="av-img" src="{{cmt.author.avatar}}" mode="aspectFill"></image>
+        </view>
+        <view class="c-main">
+          <view class="c-name" data-id="{{cmt.author.id}}" bindtap="goUser">{{cmt.author.nickname}}</view>
+          <view class="c-text" data-id="{{cmt.id}}" bindtap="replyTo">{{cmt.content}}</view>
+          <!-- 评论配图（最多 3 张）：单击看大图 -->
+          <view wx:if="{{cmt.images.length}}" class="c-imgs">
+            <image wx:for="{{cmt.images}}" wx:key="*this" class="c-img" src="{{item}}"
+              mode="aspectFill" data-id="{{cmt.id}}" data-i="{{index}}" bindtap="previewCommentImage"></image>
+          </view>
+
+          <view class="c-meta">
+            <text class="c-time">{{cmt.timeText}}</text>
+            <text class="c-reply" data-id="{{cmt.id}}" bindtap="replyTo">回复</text>
+          </view>
+
+          <!-- 二级：缩进挂在这一楼下面；默认只露 2 条，多的折叠出「展开 N 条回复」 -->
+          <view class="c-replies" wx:if="{{cmt.replies.length}}">
+            <view class="c-reply-item" wx:for="{{cmt.visibleReplies}}" wx:key="id" wx:for-item="rp">
+              <view class="av av-sm" style="background:{{rp.author.bg}};color:{{rp.author.fg}}"
+                data-id="{{rp.author.id}}" bindtap="goUser">
+                <text class="av-txt">{{rp.author.letter}}</text>
+                <image wx:if="{{rp.author.avatar}}" class="av-img" src="{{rp.author.avatar}}" mode="aspectFill"></image>
+              </view>
+              <view class="c-main">
+                <view class="c-name" data-id="{{rp.author.id}}" bindtap="goUser">
+                  <text>{{rp.author.nickname}}</text>
+                  <!-- 「回复 某某」：点二级评论的回复时，要能看出在回谁 -->
+                  <text wx:if="{{rp.replyToName}}" class="c-reply-to">回复 {{rp.replyToName}}</text>
+                </view>
+                <view class="c-text" data-id="{{rp.id}}" bindtap="replyTo">{{rp.content}}</view>
+          <!-- 评论配图（最多 3 张）：单击看大图 -->
+          <view wx:if="{{rp.images.length}}" class="c-imgs">
+            <image wx:for="{{rp.images}}" wx:key="*this" class="c-img" src="{{item}}"
+              mode="aspectFill" data-id="{{rp.id}}" data-i="{{index}}" bindtap="previewCommentImage"></image>
+          </view>
+
+                <view class="c-meta">
+                  <text class="c-time">{{rp.timeText}}</text>
+                  <text class="c-reply" data-id="{{rp.id}}" bindtap="replyTo">回复</text>
+                </view>
+              </view>
+            </view>
+
+            <view class="c-more" wx:if="{{cmt.hiddenCount > 0}}" data-id="{{cmt.id}}" bindtap="toggleReplies">
+              <text class="c-more-ico">▾</text>展开 {{cmt.hiddenCount}} 条回复
+            </view>
+            <view class="c-more" wx:elif="{{cmt.replies.length > 2}}" data-id="{{cmt.id}}" bindtap="toggleReplies">
+              <text class="c-more-ico">▴</text>收起
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <view class="footer-pad"></view>
+
+    <!-- 评论输入 -->
+    <view class="c-bar">
+      <view wx:if="{{replyTo}}" class="c-reply-tip">
+        回复 {{replyTo.name}}
+        <text class="c-reply-cancel" bindtap="cancelReply">×</text>
+      </view>
+      <!-- 已选配图：发送前可删、可点开预览（都是本机临时图，发送时才上传云存储） -->
+      <view wx:if="{{cImages.length}}" class="c-picked">
+        <view class="cp-item" wx:for="{{cImages}}" wx:key="*this">
+          <image class="cp-img" src="{{item}}" mode="aspectFill" data-i="{{index}}" bindtap="previewPicked"></image>
+          <view class="cp-del" data-i="{{index}}" catchtap="removeCommentImage">×</view>
+        </view>
+        <text class="cp-count">{{cImages.length}}/{{maxCImages}}</text>
+      </view>
+      <view class="c-bar-row">
+        <view class="c-pick" bindtap="chooseCommentImage">＋图</view>
+        <input
+          class="c-input"
+          value="{{input}}"
+          focus="{{focusInput}}"
+          placeholder="友善评论，可配 3 张图"
+          placeholder-class="c-ph"
+          confirm-type="send"
+          bindinput="onInput"
+          bindconfirm="onSend" />
+        <view class="c-send {{input || cImages.length ? 'on' : ''}}" bindtap="onSend">发送</view>
+      </view>
+    </view>
+  </block>
+
+  <!-- 首屏加载失败：留在本页说明原因 + 重新加载 -->
+  <!-- 原来这里会 setTimeout(navigateBack) —— 用户看到的是"页面自己退回去了、评论也没了" -->
+  <view wx:elif="{{error}}" class="load-err">
+    <view class="le-ico">😕</view>
+    <view class="le-txt">{{error}}</view>
+    <view class="le-btn" bindtap="retry">重新加载</view>
+  </view>
+
+  <view wx:else class="skeleton-wrap">
+    <view class="skeleton" style="height:240rpx;margin:24rpx;border-radius:24rpx"></view>
+    <view class="skeleton" style="height:400rpx;margin:24rpx;border-radius:24rpx"></view>
+  </view>
+</view>

@@ -1,0 +1,95 @@
+.nb-up {
+  font-size: 24rpx; color: #fff; font-weight: 600;
+  background: linear-gradient(135deg, #4CD08A, #1FA45B);
+  padding: 6rpx 24rpx; border-radius: 999rpx;
+}
+
+/* ---------- 搜索 ---------- */
+.search-wrap { padding: 8rpx 24rpx 0; }
+.search {
+  display: flex; align-items: center; gap: 14rpx;
+  background: #fff; border-radius: 999rpx;
+  padding: 0 26rpx; height: 76rpx; box-shadow: var(--shadow);
+}
+.s-ico {
+  width: 26rpx; height: 26rpx; border-radius: 50%;
+  border: 4rpx solid var(--ink-4); position: relative; flex-shrink: 0;
+}
+.s-ico::after {
+  content: ''; position: absolute; right: -12rpx; bottom: -8rpx;
+  width: 14rpx; height: 4rpx; background: var(--ink-4); transform: rotate(45deg);
+}
+.s-input { flex: 1; font-size: 27rpx; }
+.s-ph { color: var(--ink-4); }
+.s-clear { font-size: 23rpx; color: #178A4A; }
+
+/* ---------- 分类 ---------- */
+.cat-scroll { white-space: nowrap; display: flex; padding: 24rpx 24rpx 0;
+  height: 92rpx;
+  box-sizing: border-box;
+}
+.cat {
+  flex-shrink: 0; margin-right: 14rpx;
+  font-size: 25rpx; color: var(--ink-2);
+  background: #fff; border: 2rpx solid var(--line);
+  padding: 12rpx 28rpx; border-radius: 999rpx;
+}
+.cat.on {
+  background: linear-gradient(135deg, #4CD08A, #1FA45B); color: #fff;
+  border-color: transparent; font-weight: 600;
+  box-shadow: 0 8rpx 18rpx rgba(29, 111, 208, 0.24);
+}
+
+/* ---------- 课程 ---------- */
+.course-scroll { white-space: nowrap; display: flex; padding: 18rpx 24rpx 0;
+  height: 78rpx;
+  box-sizing: border-box;
+}
+.course {
+  flex-shrink: 0; margin-right: 14rpx;
+  font-size: 23rpx; color: var(--ink-3);
+  background: #F4F6F8; padding: 10rpx 24rpx; border-radius: 999rpx;
+}
+.course.on { background: #E4F6EC; color: #178A4A; font-weight: 600; }
+.course-n { font-size: 19rpx; opacity: 0.7; }
+
+/* ---------- 排序 ---------- */
+.sort-bar { display: flex; gap: 36rpx; padding: 26rpx 32rpx 14rpx; }
+.sort { font-size: 26rpx; color: var(--ink-3); }
+.sort.on { color: var(--ink); font-weight: 700; }
+
+/* ---------- 卡片 ---------- */
+.list { padding: 0 24rpx; }
+.r-card {
+  display: flex; align-items: center; gap: 20rpx;
+  background: #fff; border-radius: var(--radius-lg);
+  padding: 24rpx; margin-bottom: 20rpx;
+  box-shadow: var(--shadow);
+}
+.r-card:active { background: #FAFBFC; }
+.r-type {
+  width: 128rpx; height: 128rpx; border-radius: 22rpx; flex-shrink: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6rpx;
+}
+.r-ext { font-size: 28rpx; font-weight: 800; letter-spacing: 1rpx; }
+.r-size { font-size: 18rpx; opacity: 0.8; }
+
+.r-main { flex: 1; min-width: 0; }
+.r-title { font-size: 29rpx; font-weight: 600; line-height: 1.42; }
+.r-desc { font-size: 23rpx; color: var(--ink-3); margin-top: 8rpx; }
+.r-meta { display: flex; align-items: center; gap: 16rpx; margin-top: 12rpx; flex-wrap: wrap; }
+.r-course {
+  font-size: 19rpx; color: #178A4A; background: #E4F6EC;
+  padding: 2rpx 12rpx; border-radius: 6rpx;
+}
+.r-stat { font-size: 20rpx; color: var(--ink-4); }
+.r-time { font-size: 20rpx; color: var(--ink-4); margin-left: auto; }
+.r-go {
+  flex-shrink: 0; font-size: 23rpx; color: #178A4A;
+  border: 2rpx solid #BEE8D2; padding: 10rpx 22rpx; border-radius: 999rpx;
+}
+
+.more-tip { text-align: center; font-size: 22rpx; color: var(--ink-4); padding: 30rpx 0; }
+.skeleton-wrap { padding: 0 24rpx; }
+.sk-card { height: 176rpx; margin-bottom: 20rpx; border-radius: var(--radius-lg); }
+.bottom-pad { height: calc(180rpx + env(safe-area-inset-bottom)); }

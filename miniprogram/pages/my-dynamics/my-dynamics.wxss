@@ -1,0 +1,35 @@
+.tabs {
+  display: flex; gap: 16rpx; padding: 20rpx 24rpx 8rpx;
+}
+.tab {
+  padding: 12rpx 28rpx; border-radius: 999rpx; font-size: 26rpx;
+  color: var(--ink-2); background: #fff;
+}
+.tab.on { color: #fff; background: var(--brand-grad); font-weight: 600; }
+
+.tip { padding: 80rpx 0; text-align: center; color: var(--ink-3); font-size: 26rpx; }
+
+.dyn {
+  margin: 16rpx 24rpx 0; padding: 22rpx 24rpx;
+  background: #fff; border-radius: var(--radius-lg, 24rpx);
+}
+.dy-head { display: flex; align-items: center; justify-content: space-between; }
+.dy-type {
+  font-size: 22rpx; padding: 4rpx 14rpx; border-radius: 8rpx;
+  background: rgba(255, 122, 69, 0.1); color: var(--brand);
+}
+/* 三种类型给一点色差，扫一眼能分清发的是什么 */
+.dy-type.t-wall { background: rgba(23, 138, 74, 0.1); color: #2FBE6E; }
+.dy-type.t-resource { background: rgba(58, 118, 212, 0.1); color: #3A76D4; }
+.dy-time { font-size: 22rpx; color: var(--ink-4); }
+
+.dy-body { display: flex; align-items: flex-start; gap: 18rpx; margin-top: 16rpx; }
+.dy-text { flex: 1; min-width: 0; }
+.dy-title { font-size: 29rpx; line-height: 1.5; color: var(--ink); }
+.dy-meta { margin-top: 12rpx; font-size: 22rpx; color: var(--ink-4); }
+.dy-cover {
+  width: 150rpx; height: 150rpx; border-radius: 16rpx;
+  background: #EDEFF2; flex-shrink: 0;
+}
+
+.pad { height: calc(40rpx + env(safe-area-inset-bottom)); }

@@ -1,0 +1,104 @@
+/* ---------- 头部 ---------- */
+.hero {
+  display: flex; gap: 24rpx;
+  margin: 8rpx 24rpx 0; padding: 32rpx 28rpx;
+  background: linear-gradient(135deg, #E4F6EC, #DCEBFF);
+  border-radius: var(--radius-lg);
+}
+.h-type {
+  width: 140rpx; height: 140rpx; border-radius: 26rpx; flex-shrink: 0;
+  background: #fff;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8rpx;
+}
+.h-ext { font-size: 32rpx; font-weight: 800; letter-spacing: 1rpx; }
+.h-size { font-size: 19rpx; opacity: 0.85; }
+.h-main { flex: 1; min-width: 0; }
+.h-title { font-size: 32rpx; font-weight: 700; line-height: 1.45; }
+.h-meta { display: flex; align-items: center; gap: 14rpx; margin-top: 16rpx; flex-wrap: wrap; }
+.h-course { font-size: 20rpx; color: #178A4A; background: #fff; padding: 3rpx 14rpx; border-radius: 6rpx; }
+.h-stat { font-size: 21rpx; color: var(--ink-3); }
+
+/* ---------- 卡片 ---------- */
+.card { margin: 20rpx 24rpx 0; padding: 28rpx; }
+.card-title { font-size: 30rpx; font-weight: 700; margin-bottom: 18rpx; }
+
+.row { display: flex; align-items: center; justify-content: space-between; padding: 12rpx 0; gap: 24rpx; }
+.row-l { font-size: 26rpx; color: var(--ink-3); flex-shrink: 0; }
+.row-r { font-size: 26rpx; color: var(--ink-2); text-align: right; max-width: 440rpx; }
+
+.desc { font-size: 28rpx; line-height: 1.72; color: var(--ink-2); white-space: pre-wrap; }
+.tags { display: flex; flex-wrap: wrap; gap: 14rpx; margin-top: 20rpx; }
+.tag { font-size: 23rpx; color: #178A4A; background: #E4F6EC; padding: 8rpx 20rpx; border-radius: 999rpx; }
+
+/* ---------- 上传者 ---------- */
+.uploader-card { display: flex; align-items: center; gap: 20rpx; }
+.u-avatar { width: 84rpx; height: 84rpx; border-radius: 26rpx; background: #EDEFF2; flex-shrink: 0; }
+.u-main { flex: 1; min-width: 0; }
+.u-name { font-size: 29rpx; font-weight: 600; }
+.u-sub { font-size: 22rpx; color: var(--ink-3); margin-top: 6rpx; }
+.u-chat {
+  font-size: 24rpx; color: #178A4A; border: 2rpx solid #BEE8D2;
+  padding: 10rpx 24rpx; border-radius: 999rpx; flex-shrink: 0;
+}
+.u-mine { font-size: 23rpx; color: var(--ink-4); flex-shrink: 0; }
+
+/* ---------- 提示 ---------- */
+.tip {
+  display: flex; gap: 14rpx; margin: 20rpx 24rpx 0;
+  padding: 22rpx 24rpx; background: #FFF8E6; border-radius: var(--radius);
+  font-size: 22rpx; color: #A36A00; line-height: 1.55;
+}
+.tip-ico {
+  width: 34rpx; height: 34rpx; border-radius: 50%; background: #FFB300; color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 21rpx; font-weight: 700; flex-shrink: 0;
+}
+
+/* ---------- 相关 ---------- */
+.rel-head { font-size: 30rpx; font-weight: 700; padding: 30rpx 32rpx 16rpx; }
+.rel-list { padding: 0 24rpx; }
+.rel-item {
+  display: flex; align-items: center; gap: 18rpx;
+  background: #fff; border-radius: var(--radius);
+  padding: 22rpx 24rpx; margin-bottom: 16rpx;
+  box-shadow: var(--shadow);
+}
+.rel-type {
+  width: 76rpx; height: 76rpx; border-radius: 18rpx; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 21rpx; font-weight: 700;
+}
+.rel-main { flex: 1; min-width: 0; }
+.rel-title { font-size: 27rpx; font-weight: 500; }
+.rel-meta { font-size: 21rpx; color: var(--ink-4); margin-top: 8rpx; }
+
+/* ---------- 底栏 ---------- */
+.footer-pad { height: calc(180rpx + env(safe-area-inset-bottom)); }
+.footer {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 50;
+  background: #fff; padding: 16rpx 20rpx calc(16rpx + env(safe-area-inset-bottom));
+  display: flex; align-items: center; gap: 14rpx;
+  box-shadow: 0 -6rpx 24rpx rgba(31, 35, 40, 0.06);
+}
+.f-btn {
+  height: 84rpx; padding: 0 26rpx; border-radius: 999rpx; flex-shrink: 0;
+  border: 2rpx solid var(--line); color: var(--ink-2); font-size: 25rpx;
+  display: flex; align-items: center; justify-content: center;
+}
+.f-like {
+  width: 84rpx; height: 84rpx; border-radius: 50%; flex-shrink: 0;
+  background: #F4F6F8; display: flex; align-items: center; justify-content: center;
+}
+.fl-ico { font-size: 34rpx; color: var(--ink-4); line-height: 1; }
+.f-like.on { background: #FFE9EF; }
+.f-like.on .fl-ico { color: #FF3B6B; }
+.f-main {
+  flex: 1; height: 84rpx; border-radius: 999rpx;
+  background: linear-gradient(135deg, #4CD08A, #1FA45B); color: #fff;
+  font-size: 29rpx; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 8rpx 20rpx rgba(29, 111, 208, 0.26);
+}
+.f-main.disabled { opacity: 0.6; }
+
+.skeleton-wrap { padding-top: 20rpx; }

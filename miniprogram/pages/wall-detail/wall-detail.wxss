@@ -1,0 +1,87 @@
+.card { margin: 20rpx 24rpx 0; padding: 28rpx; }
+
+/* ---------- 内容 ---------- */
+.w-head { display: flex; align-items: center; gap: 16rpx; }
+.w-avatar {
+  width: 76rpx; height: 76rpx; border-radius: 50%; flex-shrink: 0;
+  background: linear-gradient(135deg, #C9B6FF, #9C7BFF);
+  color: #fff; font-size: 30rpx; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+}
+.w-main { flex: 1; min-width: 0; }
+.w-name { font-size: 27rpx; font-weight: 600; display: flex; align-items: center; gap: 10rpx; }
+.w-badge { font-size: 18rpx; padding: 2rpx 12rpx; border-radius: 6rpx; font-weight: 400; background: #FFF3C4; color: #E09600; }
+.w-badge.all { background: #FFF6DE; color: #178A4A; }
+.w-time { font-size: 21rpx; color: var(--ink-4); margin-top: 4rpx; }
+.w-more { font-size: 26rpx; color: var(--ink-3); padding: 0 10rpx; flex-shrink: 0; }
+
+.w-content { font-size: 31rpx; line-height: 1.78; margin-top: 24rpx; word-break: break-all; white-space: pre-wrap; }
+.w-to { color: #E09600; font-weight: 600; }
+
+.w-images { display: flex; flex-direction: column; gap: 16rpx; margin-top: 22rpx; }
+.w-img { width: 100%; height: 380rpx; border-radius: 18rpx; background: #F1F3F5; }
+
+.w-actions {
+  display: flex; align-items: center; gap: 50rpx;
+  margin-top: 26rpx; padding-top: 24rpx; border-top: 2rpx solid var(--line);
+}
+.wa { display: flex; align-items: center; gap: 10rpx; font-size: 26rpx; color: var(--ink-3); }
+.wa-ico { font-size: 34rpx; color: var(--ink-4); line-height: 1; }
+.wa.on { color: #FF3B6B; }
+.wa.on .wa-ico { color: #FF3B6B; }
+
+/* ---------- 评论 ---------- */
+.card-title { font-size: 30rpx; font-weight: 700; margin-bottom: 24rpx; }
+.c-empty { font-size: 24rpx; color: var(--ink-4); text-align: center; padding: 40rpx 0; }
+.c-item { display: flex; gap: 18rpx; padding: 22rpx 0; border-bottom: 2rpx solid var(--line); }
+.c-item:last-child { border-bottom: none; }
+.c-avatar {
+  width: 64rpx; height: 64rpx; border-radius: 50%; flex-shrink: 0;
+  background: linear-gradient(135deg, #C9B6FF, #9C7BFF);
+  color: #fff; font-size: 26rpx; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+}
+.c-main { flex: 1; min-width: 0; }
+.c-name { font-size: 23rpx; color: var(--ink-3); }
+.c-text { font-size: 28rpx; line-height: 1.6; margin-top: 8rpx; word-break: break-all; }
+.c-meta { display: flex; align-items: center; justify-content: space-between; margin-top: 12rpx; }
+.c-time { font-size: 21rpx; color: var(--ink-4); }
+.c-like { display: flex; align-items: center; gap: 6rpx; font-size: 22rpx; color: var(--ink-4); }
+.c-like-ico { font-size: 26rpx; }
+.c-like.on { color: #FF3B6B; }
+.c-like.on .c-like-ico { color: #FF3B6B; }
+
+/* ---------- 底栏 ---------- */
+.footer-pad { height: calc(160rpx + env(safe-area-inset-bottom)); }
+.c-bar {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 60;
+  background: #fff; padding: 16rpx 24rpx calc(16rpx + env(safe-area-inset-bottom));
+  border-top: 2rpx solid var(--line);
+  display: flex; align-items: center; gap: 16rpx;
+}
+.c-anon { flex-shrink: 0; }
+.checkbox {
+  width: 40rpx; height: 40rpx; border-radius: 50%;
+  border: 3rpx solid var(--ink-4); box-sizing: border-box;
+  display: flex; align-items: center; justify-content: center;
+}
+.checkbox.on { background: #E09600; border-color: #E09600; }
+.tick {
+  width: 16rpx; height: 9rpx;
+  border-left: 3rpx solid #fff; border-bottom: 3rpx solid #fff;
+  transform: rotate(-45deg) translate(1rpx, -2rpx); opacity: 0;
+}
+.checkbox.on .tick { opacity: 1; }
+.c-input {
+  flex: 1; height: 72rpx; background: #F4F6F8; border-radius: 999rpx;
+  padding: 0 28rpx; font-size: 28rpx;
+}
+.c-ph { color: var(--ink-4); font-size: 26rpx; }
+.c-send {
+  height: 72rpx; padding: 0 34rpx; border-radius: 999rpx;
+  background: #C9CFD8; color: #fff; font-size: 27rpx;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.c-send.on { background: linear-gradient(135deg, #FFD24D, #F5A623); font-weight: 600; }
+
+.skeleton-wrap { padding-top: 20rpx; }
