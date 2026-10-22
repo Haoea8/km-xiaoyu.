@@ -1,0 +1,1345 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>科贸小鱼 · 管理后台</title>
+<style>
+  :root{
+    --brand:#FF7043; --brand-d:#E85A2C; --brand-l:#FFF1EC;
+    --bg:#F4F5F7; --card:#FFFFFF; --ink:#1F2937; --ink-2:#4B5563; --muted:#9099A8;
+    --line:#E8EAEE; --ok:#12A594; --warn:#E5A100; --danger:#E5484D; --info:#3B82F6;
+    --r:10px; --shadow:0 1px 2px rgba(16,24,40,.04),0 4px 14px rgba(16,24,40,.06);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{
+    background:var(--bg); color:var(--ink);
+    font:14px/1.55 -apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei","Hiragino Sans GB",sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  button,input,select,textarea{font:inherit;color:inherit}
+  button{cursor:pointer;border:0;background:none}
+  a{color:var(--brand-d);text-decoration:none}
+
+  /* ---------- 通用 ---------- */
+  .btn{padding:7px 14px;border-radius:8px;background:var(--brand);color:#fff;font-weight:500;transition:.15s}
+  .btn:hover{background:var(--brand-d)}
+  .btn:disabled{opacity:.5;cursor:not-allowed}
+  .btn.ghost{background:#fff;color:var(--ink-2);border:1px solid var(--line)}
+  .btn.ghost:hover{background:#F9FAFB;color:var(--ink)}
+  .btn.sm{padding:4px 10px;font-size:12.5px;border-radius:6px}
+  .btn.danger{background:#fff;color:var(--danger);border:1px solid #F5D0D1}
+  .btn.danger:hover{background:#FEF2F2}
+  .btn.ok{background:#fff;color:var(--ok);border:1px solid #C7E9E4}
+  .btn.ok:hover{background:#F0FBF9}
+  .inp,select.inp{padding:7px 11px;border:1px solid var(--line);border-radius:8px;background:#fff;outline:none;transition:.15s}
+  .inp:focus{border-color:var(--brand);box-shadow:0 0 0 3px var(--brand-l)}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow)}
+  .row{display:flex;align-items:center;gap:10px}
+  .wrap{display:flex;flex-wrap:wrap;gap:10px}
+  .muted{color:var(--muted)}
+  .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+  table{width:100%;border-collapse:collapse}
+  th{text-align:left;font-weight:600;color:var(--muted);font-size:12.5px;padding:10px 12px;border-bottom:1px solid var(--line);white-space:nowrap}
+  td{padding:11px 12px;border-bottom:1px solid #F1F3F6;vertical-align:middle}
+  tr:last-child td{border-bottom:0}
+  tbody tr:hover{background:#FBFBFC}
+  .tag{display:inline-block;padding:2px 8px;border-radius:20px;font-size:12px;font-weight:500;white-space:nowrap}
+  .t-on{background:#E9F9F5;color:#0E8A7B} .t-off{background:#F3F4F6;color:#6B7280}
+  .t-sold{background:#EEF2FF;color:#4F46E5} .t-reviewing{background:#FFF7E6;color:#B47800}
+  .t-pending{background:#FFF7E6;color:#B47800} .t-paid{background:#EEF2FF;color:#4F46E5}
+  .t-shipped{background:#E8F1FF;color:#1D4ED8} .t-done{background:#E9F9F5;color:#0E8A7B}
+  .t-canceled{background:#F3F4F6;color:#6B7280} .t-refunding{background:#FEF2F2;color:#C0362C}
+  .t-refunded{background:#F3F4F6;color:#6B7280} .t-handled{background:#E9F9F5;color:#0E8A7B}
+  .t-banned{background:#FEF2F2;color:#C0362C}
+  /* 内容侧（校园墙 / 学习资源 / 拼团）的状态标签 */
+  .t-hidden{background:#FEF2F2;color:#C0362C} .t-open{background:#E9F9F5;color:#0E8A7B}
+  .t-success{background:#EEF2FF;color:#4F46E5} .t-failed{background:#F3F4F6;color:#6B7280}
+  .t-deleted{background:#F3F4F6;color:#6B7280}
+  .thumb{width:56px;height:56px;border-radius:8px;object-fit:cover;background:#F3F4F6;flex:0 0 auto;cursor:zoom-in}
+  .empty{padding:56px 20px;text-align:center;color:var(--muted)}
+  .spin{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:sp .7s linear infinite}
+  @keyframes sp{to{transform:rotate(360deg)}}
+
+  /* ---------- 登录 ---------- */
+  #login{min-height:100%;display:flex;align-items:center;justify-content:center;padding:24px;
+    background:linear-gradient(135deg,#FFF6F2 0%,#F4F5F7 46%,#EEF2FF 100%)}
+  .login-card{width:380px;padding:34px 32px;background:#fff;border-radius:16px;
+    box-shadow:0 12px 40px rgba(16,24,40,.10),0 1px 2px rgba(16,24,40,.04);border:1px solid #fff}
+  .logo{width:46px;height:46px;border-radius:13px;background:linear-gradient(135deg,var(--brand),#FF9A6C);
+    display:flex;align-items:center;justify-content:center;font-size:24px;margin-bottom:16px;
+    box-shadow:0 6px 16px rgba(255,112,67,.32)}
+  .login-card h1{margin:0 0 4px;font-size:20px;letter-spacing:-.2px}
+  .login-card p.sub{margin:0 0 24px;color:var(--muted);font-size:13px}
+  .field{margin-bottom:14px}
+  .field label{display:block;font-size:12.5px;color:var(--ink-2);font-weight:500;margin-bottom:6px}
+  .field .inp{width:100%}
+  #loginErr{margin-top:12px;padding:9px 12px;border-radius:8px;background:#FEF2F2;color:#C0362C;font-size:13px}
+  .hint{margin-top:18px;font-size:12px;color:var(--muted);text-align:center}
+
+  /* ---------- 主框架 ---------- */
+  #app{display:flex;min-height:100%}
+  aside{width:212px;flex:0 0 212px;background:#fff;border-right:1px solid var(--line);
+    display:flex;flex-direction:column;position:sticky;top:0;height:100vh}
+  .brand{display:flex;align-items:center;gap:9px;padding:18px 18px 14px;font-weight:600;font-size:15px;letter-spacing:-.2px}
+  .brand .dot{width:26px;height:26px;border-radius:8px;background:linear-gradient(135deg,var(--brand),#FF9A6C);
+    display:flex;align-items:center;justify-content:center;font-size:14px}
+  nav{padding:6px 10px;overflow-y:auto;flex:1}
+  nav button{width:100%;display:flex;align-items:center;gap:9px;padding:9px 11px;border-radius:8px;
+    color:var(--ink-2);font-size:13.5px;text-align:left;margin-bottom:2px;transition:.13s}
+  nav button:hover{background:#F7F8FA;color:var(--ink)}
+  nav button.on{background:var(--brand-l);color:var(--brand-d);font-weight:600}
+  nav .ico{width:18px;text-align:center;font-size:15px}
+  nav .badge{margin-left:auto;background:var(--danger);color:#fff;font-size:11px;font-weight:600;
+    padding:1px 6px;border-radius:20px;line-height:1.5}
+  .side-foot{padding:12px 16px;border-top:1px solid var(--line);font-size:12.5px;color:var(--muted)}
+  .side-foot b{color:var(--ink-2);display:block;margin-bottom:2px}
+  .src-badge{display:inline-flex;align-items:center;gap:5px;margin-bottom:5px;
+    background:#FAEEDA;color:#854F0B;font-size:11.5px;font-weight:500;
+    padding:2px 8px;border-radius:20px;cursor:help}
+  .src-badge .dot2{width:6px;height:6px;border-radius:50%;background:#EF9F27;flex:0 0 6px}
+
+  main{flex:1;min-width:0;display:flex;flex-direction:column}
+  header{height:58px;flex:0 0 58px;background:rgba(255,255,255,.86);backdrop-filter:blur(8px);
+    border-bottom:1px solid var(--line);display:flex;align-items:center;gap:12px;padding:0 22px;
+    position:sticky;top:0;z-index:10}
+  header h2{margin:0;font-size:16.5px;letter-spacing:-.2px}
+  header .grow{flex:1}
+  /* 数据源徽标：云端=绿，本地=橙。让人一眼知道看的是不是线上真实数据 */
+  .src-badge{font-size:12px;padding:4px 10px;border-radius:999px;font-weight:600;
+    border:1px solid transparent;white-space:nowrap;cursor:default}
+  .src-badge.cloud{color:#0B7A46;background:#E7F8EF;border-color:#BFEAD3}
+  .src-badge.local{color:#A3651A;background:#FFF6E6;border-color:#F2DDB8}
+  .src-badge.loading{color:#697;background:#F2F4F7;border-color:#E3E6EA}
+  .upd{font-size:12px;color:#8A929C;white-space:nowrap}
+  .auto-tg{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:#5A626C;
+    cursor:pointer;user-select:none;white-space:nowrap}
+  .auto-tg input{margin:0;cursor:pointer}
+  #view{padding:20px 22px 40px}
+  .grid{display:grid;gap:14px}
+  .g4{grid-template-columns:repeat(auto-fit,minmax(190px,1fr))}
+  .g2{grid-template-columns:repeat(auto-fit,minmax(320px,1fr))}
+  .stat{padding:16px 18px}
+  .stat .k{color:var(--muted);font-size:12.5px;margin-bottom:7px;display:flex;align-items:center;gap:6px}
+  .stat .v{font-size:25px;font-weight:650;letter-spacing:-.6px;line-height:1.15}
+  .stat .v small{font-size:13px;font-weight:500;color:var(--muted);margin-left:3px}
+  .sec-h{display:flex;align-items:center;gap:10px;margin:22px 0 12px}
+  .sec-h h3{margin:0;font-size:14.5px;font-weight:600}
+  .sec-h .grow{flex:1}
+  .chart{display:flex;align-items:flex-end;gap:10px;height:150px;padding:16px 18px 10px}
+  .chart .col{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;height:100%;justify-content:flex-end}
+  .chart .bar{width:100%;max-width:34px;background:linear-gradient(180deg,#FF9066,var(--brand));
+    border-radius:5px 5px 2px 2px;min-height:3px;transition:.3s}
+  .chart .bar.zero{background:#EFF1F4}
+  .chart .lb{font-size:11.5px;color:var(--muted)}
+  .zone{display:flex;align-items:center;gap:10px;padding:8px 0}
+  .zone .n{width:78px;flex:0 0 78px;font-size:13px}
+  .zone .t{flex:1;height:7px;background:#F1F3F6;border-radius:20px;overflow:hidden}
+  .zone .t i{display:block;height:100%;background:linear-gradient(90deg,#FFA57C,var(--brand));border-radius:20px}
+  .zone .c{width:34px;text-align:right;font-size:12.5px;color:var(--muted)}
+  .page-foot{display:flex;align-items:center;gap:10px;padding:12px 2px 0;color:var(--muted);font-size:13px}
+  .page-foot .grow{flex:1}
+  #toast{position:fixed;left:50%;bottom:34px;transform:translateX(-50%);z-index:99;display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none}
+  #toast div{background:#1F2937;color:#fff;padding:9px 16px;border-radius:9px;font-size:13.5px;
+    box-shadow:0 8px 24px rgba(16,24,40,.2);animation:up .22s ease-out}
+  #toast div.err{background:#C0362C} #toast div.ok{background:#0E8A7B}
+  @keyframes up{from{opacity:0;transform:translateY(8px)}}
+  .form-row{display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end;margin-bottom:14px}
+  .form-row .f{display:flex;flex-direction:column;gap:6px}
+  .form-row label{font-size:12.5px;color:var(--ink-2);font-weight:500}
+  .issue{padding:14px 16px;border-bottom:1px solid #F1F3F6}
+  .issue:last-child{border-bottom:0}
+  .issue .top{display:flex;gap:10px;align-items:flex-start;margin-bottom:9px}
+  .issue .body{flex:1;min-width:0}
+  .issue .ttl{font-weight:600;font-size:13.5px;margin-bottom:2px}
+  .issue .why{font-size:13px;color:var(--ink-2)}
+  .switch{position:relative;width:42px;height:24px;flex:0 0 42px}
+  .switch input{opacity:0;width:0;height:0}
+  .switch i{position:absolute;inset:0;background:#D7DBE2;border-radius:20px;transition:.2s}
+  .switch i:before{content:"";position:absolute;width:18px;height:18px;left:3px;top:3px;background:#fff;
+    border-radius:50%;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+  .switch input:checked+i{background:var(--ok)}
+  .switch input:checked+i:before{transform:translateX(18px)}
+  @media(max-width:820px){
+    aside{position:fixed;left:0;top:0;z-index:20;transform:translateX(-100%);transition:.2s}
+    aside.open{transform:none;box-shadow:0 0 40px rgba(0,0,0,.16)}
+    #view{padding:16px 14px 40px} header{padding:0 14px}
+  }
+
+/* ---------- 图片预览 ---------- */
+#imgView {
+  position: fixed; inset: 0; z-index: 9999;
+  background: rgba(0, 0, 0, 0.86);
+  display: flex; align-items: center; justify-content: center;
+}
+#imgView[hidden] { display: none; }
+#imgView img {
+  max-width: 92vw; max-height: 86vh; object-fit: contain;
+  border-radius: 10px; background: #111;
+}
+.iv-btn {
+  position: fixed; border: 0; cursor: pointer;
+  background: rgba(255, 255, 255, 0.14); color: #fff;
+  border-radius: 999px; font-size: 22px; line-height: 1;
+  width: 44px; height: 44px;
+}
+.iv-btn:hover { background: rgba(255, 255, 255, 0.26); }
+.iv-close { top: 18px; right: 20px; font-size: 26px; }
+.iv-prev { left: 18px; top: 50%; transform: translateY(-50%); }
+.iv-next { right: 18px; top: 50%; transform: translateY(-50%); }
+.iv-count {
+  position: fixed; bottom: 22px; left: 0; right: 0;
+  text-align: center; color: rgba(255, 255, 255, 0.8); font-size: 13px;
+}
+</style>
+</head>
+<body>
+
+<!-- ========== 登录 ========== -->
+<div id="login">
+  <form class="login-card" id="loginForm">
+    <div class="logo">🏫</div>
+    <h1>科贸小鱼 · 管理后台</h1>
+    <p class="sub">校园生活服务与二手交易综合平台</p>
+    <div class="field">
+      <label>管理员账号</label>
+      <input class="inp" id="u" value="admin" autocomplete="username">
+    </div>
+    <div class="field">
+      <label>密码</label>
+      <input class="inp" id="p" type="password" value="admin" autocomplete="current-password">
+    </div>
+    <button class="btn" style="width:100%;padding:10px" id="loginBtn" type="submit">登录</button>
+    <div id="loginErr" hidden></div>
+    <div class="hint" id="loginHint">科贸小鱼运营管理端 · 仅授权管理员可登录</div>
+  </form>
+</div>
+
+<!-- ========== 主界面 ========== -->
+<div id="app" hidden>
+  <aside>
+    <div class="brand"><span class="dot">🏫</span><span>科贸小鱼后台</span></div>
+    <nav id="nav"></nav>
+    <div class="side-foot">
+      <b id="whoami">—</b>
+      <div class="src-badge" id="sideSource" title="当前数据来源">
+        <span class="dot2"></span><span class="txt">数据源：检测中…</span>
+      </div>
+      <span id="envInfo" class="muted"></span>
+      <button class="btn ghost sm" style="margin-top:8px;width:100%" id="logoutBtn">退出登录</button>
+    </div>
+  </aside>
+  <main>
+    <header>
+      <button class="btn ghost sm" id="menuBtn" style="display:none">☰</button>
+      <h2 id="title">仪表盘</h2>
+      <span class="src-badge" id="srcBadge" title="当前数据来源">数据源：…</span>
+      <span class="grow"></span>
+      <span class="upd" id="updAt"></span>
+      <label class="auto-tg" title="开启后每 5 秒自动刷新；你正在填写表单时会自动暂停">
+        <input type="checkbox" id="autoChk" checked><span>自动刷新</span>
+      </label>
+      <button class="btn ghost sm" id="reloadBtn">刷新</button>
+    </header>
+    <div id="view"></div>
+  </main>
+</div>
+
+<!-- 图片预览层：点缩略图后**在原地看大图**，不依赖浏览器打开新标签 -->
+<div id="imgView" hidden>
+  <img id="imgViewImg" alt="">
+  <button class="iv-btn iv-close" id="ivClose">×</button>
+  <button class="iv-btn iv-prev" id="ivPrev">‹</button>
+  <button class="iv-btn iv-next" id="ivNext">›</button>
+  <div class="iv-count" id="ivCount"></div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+'use strict';
+/* ==================== 基础工具 ==================== */
+const $  = (s, r) => (r || document).querySelector(s);
+const $$ = (s, r) => Array.prototype.slice.call((r || document).querySelectorAll(s));
+const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => (
+  { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]
+));
+/** 分 -> ¥字符串（后端金额单位是「分」） */
+const yuan = (fen) => '¥' + (Math.round(Number(fen) || 0) / 100).toFixed(2);
+const num  = (n) => (Number(n) || 0).toLocaleString('zh-CN');
+
+function toast(msg, kind) {
+  const d = document.createElement('div');
+  if (kind) d.className = kind;
+  d.textContent = msg;
+  $('#toast').appendChild(d);
+  setTimeout(() => { d.style.opacity = '0'; d.style.transition = '.3s'; }, 1900);
+  setTimeout(() => d.remove(), 2300);
+}
+
+
+/* ==================== 图片预览 ====================
+ * 为什么不用 window.open：云存储的临时链接响应头带了
+ * content-disposition: attachment，浏览器会把它当附件下载，
+ * 于是「点图就下载」而不是看图。<img> 渲染不受这个头影响，
+ * 所以在页内做个遮罩层展示，最稳、也不弹新标签。
+ */
+const ImgView = {
+  urls: [],
+  i: 0,
+  show(urls, i) {
+    this.urls = (urls || []).filter(Boolean);
+    if (!this.urls.length) return;
+    this.i = Math.max(0, Math.min(Number(i) || 0, this.urls.length - 1));
+    this.render();
+    document.getElementById('imgView').hidden = false;
+  },
+  render() {
+    const img = document.getElementById('imgViewImg');
+    img.src = this.urls[this.i] || '';
+    document.getElementById('ivCount').textContent =
+      this.urls.length > 1 ? (this.i + 1) + ' / ' + this.urls.length : '';
+    const multi = this.urls.length > 1;
+    document.getElementById('ivPrev').style.display = multi ? '' : 'none';
+    document.getElementById('ivNext').style.display = multi ? '' : 'none';
+  },
+  prev() { if (!this.urls.length) return; this.i = (this.i - 1 + this.urls.length) % this.urls.length; this.render(); },
+  next() { if (!this.urls.length) return; this.i = (this.i + 1) % this.urls.length; this.render(); },
+  hide() {
+    document.getElementById('imgView').hidden = true;
+    document.getElementById('imgViewImg').src = '';
+  }
+};
+
+document.addEventListener('DOMContentLoaded', () => {
+  const box = document.getElementById('imgView');
+  if (!box) return;
+  box.onclick = () => ImgView.hide();
+  document.getElementById('imgViewImg').onclick = (e) => e.stopPropagation();
+  document.getElementById('ivClose').onclick = (e) => { e.stopPropagation(); ImgView.hide(); };
+  document.getElementById('ivPrev').onclick = (e) => { e.stopPropagation(); ImgView.prev(); };
+  document.getElementById('ivNext').onclick = (e) => { e.stopPropagation(); ImgView.next(); };
+  document.addEventListener('keydown', (e) => {
+    if (box.hidden) return;
+    if (e.key === 'Escape') ImgView.hide();
+    if (e.key === 'ArrowLeft') ImgView.prev();
+    if (e.key === 'ArrowRight') ImgView.next();
+  });
+});
+
+
+/* ==================== 列表缩略图 ====================
+ * 所有列表里的图都走这里：最多 3 张、点开在页内看大图。
+ * 之前是「直接 window.open」→ 云存储响应头是 attachment，
+ * 浏览器当附件下载；<img> 不受影响，所以在页内预览最稳。
+ */
+const THUMB_MAP = {};
+function thumbRow(images, id) {
+  const imgs = (images || []).filter(Boolean);
+  if (!imgs.length) return '<span class="muted">—</span>';
+  THUMB_MAP[id] = imgs;
+  return imgs.slice(0, 3).map((u, i) =>
+    '<img class="thumb" src="' + esc(u) + '" data-cid="' + id + '" data-i="' + i + '"' +
+    ' style="margin-right:4px" onerror="this.style.visibility=\'hidden\'">'
+  ).join('');
+}
+/** 渲染完页面后统一绑定：有 data-cid 用整组图，没有就单图预览 */
+function bindThumbs() {
+  document.querySelectorAll('#view .thumb').forEach((im) => {
+    const cid = im.getAttribute('data-cid');
+    if (cid !== null) {
+      im.onclick = () => ImgView.show(THUMB_MAP[cid] || [], Number(im.getAttribute('data-i')) || 0);
+    } else {
+      const u = im.getAttribute('src');
+      if (u) im.onclick = () => ImgView.show([u], 0);
+    }
+  });
+}
+
+/* ==================== API ==================== */
+const API = {
+  token: '',
+  async req(method, path, body) {
+    const headers = { 'Content-Type': 'application/json' };
+    if (this.token) headers.Authorization = 'Bearer ' + this.token;
+    const res = await fetch(path, {
+      method,
+      headers,
+      body: body === undefined ? undefined : JSON.stringify(body)
+    });
+    let j = {};
+    try { j = await res.json(); } catch (e) { }
+    // ⚠️ 两种模式下「未登录/已过期」的表示方式不同：
+    //   本地模式 → 本地服务自己返回真 HTTP 401；
+    //   云端模式 → /admin-api/* 被透传给云函数，统一 json(res, 200, out)，
+    //              HTTP 恒为 200，业务结果全在 body.code 里（code:401）。
+    // 所以只判 res.status 的话，**云端模式下会话失效永远不会跳回登录页** ——
+    // 用户会停在满是旧数据的后台，反复点、反复弹「请先登录管理后台」却出不去。
+    //
+    // 但登录接口本身失败（密码错）也是 code:401，那不该被当成「会话过期」
+    // （否则会提示错误的文案并触发一次多余的 logout），所以按路径排除。
+    const isLogin = path.indexOf('/admin-api/login') === 0;
+    if (res.status === 401 || (!isLogin && j.code === 401)) {
+      App.logout(); throw new Error(j.message || '登录已过期，请重新登录');
+    }
+    if (!res.ok || j.code !== 0) throw new Error(j.message || ('请求失败（HTTP ' + res.status + '）'));
+    return j.data;
+  },
+  get(p) { return this.req('GET', p); },
+  post(p, b) { return this.req('POST', p, b || {}); },
+  put(p, b) { return this.req('PUT', p, b || {}); },
+  del(p) { return this.req('DELETE', p); }
+};
+
+/* ==================== 通用渲染件 ==================== */
+const STATUS_TXT = { on: '在售', off: '已下架', sold: '已售出', reviewing: '审核中' };
+const statusTag = (s) => '<span class="tag t-' + esc(s) + '">' + esc(STATUS_TXT[s] || s) + '</span>';
+
+function pager(p, onGo) {
+  const total = p.total || 0, size = p.pageSize || 12, cur = p.page || 1;
+  const pages = Math.max(1, Math.ceil(total / size));
+  if (pages <= 1) return '';
+  return '<div class="page-foot">共 ' + total + ' 条 · 第 ' + cur + '/' + pages + ' 页' +
+    '<span class="grow"></span>' +
+    '<button class="btn ghost sm" data-go="' + (cur - 1) + '"' + (cur <= 1 ? ' disabled' : '') + '>上一页</button>' +
+    '<button class="btn ghost sm" data-go="' + (cur + 1) + '"' + (cur >= pages ? ' disabled' : '') + '>下一页</button>' +
+    '</div>';
+}
+/** 给 pager 生成的按钮挂事件（因为 innerHTML 重建了 DOM） */
+function bindPager(fn) {
+  $$('#view [data-go]').forEach((b) => {
+    b.onclick = () => fn(Number(b.getAttribute('data-go')));
+  });
+}
+const loading = () => '<div class="empty">加载中…</div>';
+const failed = (e) => '<div class="empty">加载失败：' + esc(e.message) + '</div>';
+
+/* ==================== 应用 ==================== */
+const App = {
+  view: 'dashboard',
+  page: {},
+
+  async login(username, password) {
+    const d = await API.req('POST', '/admin-api/login', { username, password });
+    API.token = d.token;
+    try { localStorage.setItem('campus_admin_token', d.token); } catch (e) { }
+    await this.boot();
+    // 登录成功后才启动自动刷新（未登录时刷没意义，还会打一堆 401）
+    try { Auto.clearDirty(); Auto.init(); } catch (e) { }
+  },
+  async logout() {
+    API.token = '';
+    try { localStorage.removeItem('campus_admin_token'); } catch (e) { }
+    try { Auto.stop(); } catch (e) { }
+    $('#app').hidden = true;
+    $('#login').style.display = 'flex';
+    $('#loginErr').hidden = true;
+  },
+
+  async boot() {
+    let me;
+    try { me = await API.get('/admin-api/me'); }
+    catch (e) { API.token = ''; throw e; }
+    $('#login').style.display = 'none';
+    $('#app').hidden = false;
+    $('#whoami').textContent = '管理员：' + me.username;
+    $('#envInfo').textContent = location.host;    this.renderNav();
+    if (window.innerWidth <= 820) $('#menuBtn').style.display = '';
+    this.go(localStorage.getItem('campus_admin_view') || 'dashboard');
+  },
+
+  renderNav() {
+    const items = [
+      ['dashboard', '📊', '仪表盘'],
+      ['listings', '📦', '商品管理'],
+      ['users', '👤', '用户管理'],
+      ['orders', '🧾', '订单管理'],
+      ['reports', '🚩', '举报处理'],
+      ['posts', '💬', '圈子管理'],
+      ['comments', '💭', '评论管理'],
+      ['walls', '🧱', '校园墙'],
+      ['resources', '📚', '学习资源'],
+      ['groups', '🤝', '拼团管理'],
+      ['notices', '📢', '公告管理'],
+      ['settings', '⚙️', '系统设置']
+    ];
+    $('#nav').innerHTML = items.map((it) =>
+      '<button data-v="' + it[0] + '"><span class="ico">' + it[1] + '</span>' + it[2] + '</button>'
+    ).join('');
+    $$('#nav button').forEach((b) => {
+      b.onclick = () => { this.go(b.getAttribute('data-v')); $('#nav').classList.remove('open'); };
+    });
+  },
+  markNav() {
+    $$('#nav button').forEach((b) => b.classList.toggle('on', b.getAttribute('data-v') === this.view));
+  },
+
+  go(v) {
+    this.view = v;
+    this.page = {};
+    try { localStorage.setItem('campus_admin_view', v); } catch (e) { }
+    this.markNav();
+    const t = { dashboard: '仪表盘', listings: '商品管理', users: '用户管理', orders: '订单管理',
+      reports: '举报处理', posts: '圈子管理', comments: '评论管理', walls: '校园墙', resources: '学习资源',
+      groups: '拼团管理', notices: '公告管理', settings: '系统设置' };
+    $('#title').textContent = t[v] || '仪表盘';
+    // 换了视图＝换了一套表单，解除「正在填写」保护
+    try { Auto.clearDirty(); } catch (e) { }
+    this.reload();
+  },
+
+  /** 重新渲染当前视图。silent=true 时不显示「加载中」占位（供自动刷新用，避免每 5 秒闪一次） */
+  reload(silent) {
+    const v = this.view;
+    if (!silent) $('#view').innerHTML = loading();
+    return (this['render_' + v] || this.render_dashboard).call(this).then(() => {
+      try { bindThumbs(); } catch (e) { /* 不影响页面渲染 */ }
+      Auto.markRefreshed();
+    }).catch((e) => {
+      // 自动刷新失败时保留原画面（避免把用户正在看的内容替换成报错页）
+      if (!silent) $('#view').innerHTML = failed(e);
+      else console.warn('[auto] 自动刷新失败：', e && e.message);
+    });
+  },
+
+  /* ---------------- 仪表盘 ---------------- */
+  async render_dashboard() {
+    const d = await API.get('/admin-api/stats');
+    const t = d.totals || {};
+    const cards = [
+      ['用户数', num(t.users), '👥'], ['商品总数', num(t.listings), '📦'],
+      ['在售商品', num(t.onSale), '🏷️'], ['已成交', num(t.sold), '✅'],
+      ['订单总数', num(t.orders), '🧾'], ['完成订单', num(t.doneOrders), '🎉'],
+      ['成交额', yuan(t.gmv), '💰'], ['圈子帖子', num(t.posts), '💬'],
+      // 内容侧：首页那几个入口（校园墙 / 学习资源 / 拼团）与评论量 ——
+      // 以前一个数都不在后台，运营看不到「内容够不够」。
+      ['校园墙', num(t.walls), '🧱'], ['学习资源', num(t.resources), '📚'],
+      ['进行中拼团', num(t.groupsOpen), '🤝'], ['评论总数', num((t.comments || 0) + (t.wallComments || 0)), '💬']
+    ];
+    const maxOrd = Math.max(1, ...((d.days || []).map((x) => x.orders)));
+    const maxZone = Math.max(1, ...((d.zoneStat || []).map((x) => x.count)));
+    const pending = t.pendingReports || 0;
+
+    $('#view').innerHTML =
+      '<div class="grid g4">' + cards.map((c) =>
+        '<div class="card stat"><div class="k">' + c[2] + ' ' + c[0] + '</div><div class="v">' + c[1] + '</div></div>'
+      ).join('') + '</div>' +
+
+      '<div class="sec-h"><h3>近 7 天</h3><span class="muted" style="font-size:12.5px">柱高＝当日订单数</span></div>' +
+      '<div class="card"><div class="chart">' + (d.days || []).map((x) =>
+        '<div class="col" title="' + esc(x.label) + '　订单 ' + x.orders + ' 单 / 新增用户 ' + x.users + ' / 新增商品 ' + x.listings + ' / 成交 ' + yuan(x.amount) + '">' +
+        '<div class="bar' + (x.orders ? '' : ' zero') + '" style="height:' + Math.round(x.orders / maxOrd * 100) + '%"></div>' +
+        '<div class="lb">' + esc(x.label) + '</div></div>'
+      ).join('') + '</div></div>' +
+
+      '<div class="grid g2" style="margin-top:22px">' +
+        '<div><div class="sec-h"><h3>分区商品分布</h3></div><div class="card" style="padding:14px 18px">' +
+          (d.zoneStat || []).map((z) =>
+            '<div class="zone"><span class="n">' + esc(z.name) + '</span>' +
+            '<span class="t"><i style="width:' + Math.round(z.count / maxZone * 100) + '%"></i></span>' +
+            '<span class="c">' + z.count + '</span></div>'
+          ).join('') +
+        '</div></div>' +
+        '<div><div class="sec-h"><h3>最新订单</h3>' +
+          '<span class="grow"></span><button class="btn ghost sm" data-jump="orders">全部订单 →</button></div>' +
+          '<div class="card">' + ((d.recentOrders || []).length
+            ? '<table><tbody>' + d.recentOrders.map((o) =>
+                '<tr><td><div style="font-weight:500">' + esc((o.snapshot && o.snapshot.title) || o.orderNo) + '</div>' +
+                '<div class="muted" style="font-size:12px">' + esc(o.orderNo || '') + ' · ' + esc(o.timeText || '') + '</div></td>' +
+                '<td style="text-align:right;white-space:nowrap">' + yuan(o.payAmount) + '<br>' +
+                '<span class="tag t-' + esc(o.status) + '">' + esc(o.statusText || o.status) + '</span></td></tr>'
+              ).join('') + '</tbody></table>'
+            : '<div class="empty">暂无订单</div>') +
+          '</div></div>' +
+      '</div>' +
+
+      (pending ? '<div class="sec-h"><h3>待处理举报 <span class="tag t-pending">' + pending + '</span></h3>' +
+        '<span class="grow"></span><button class="btn ghost sm" data-jump="reports">去处理 →</button></div>' +
+        '<div class="card">' + (d.pendingReports || []).map((r) =>
+          '<div class="issue"><div class="top"><div class="body">' +
+          '<div class="ttl">' + esc((r.target && r.target.title) || '（内容已删除）') + '</div>' +
+          '<div class="why">' + esc(r.reason || '') + '</div>' +
+          '<div class="muted" style="font-size:12px;margin-top:3px">举报人：' +
+            esc((r.reporter && r.reporter.nickname) || '匿名') + ' · ' + esc(r.timeText || '') + '</div>' +
+          '</div></div></div>'
+        ).join('') + '</div>' : '');
+
+    $$('#view [data-jump]').forEach((b) => { b.onclick = () => this.go(b.getAttribute('data-jump')); });
+  },
+
+  /* ---------------- 商品管理 ---------------- */
+  async render_listings() {
+    const q = this.page.listings || (this.page.listings = { status: 'all', zone: '', keyword: '', page: 1 });
+    const url = '/admin-api/listings?status=' + encodeURIComponent(q.status) +
+      '&zone=' + encodeURIComponent(q.zone) + '&keyword=' + encodeURIComponent(q.keyword) + '&page=' + q.page;
+    const d = await API.get(url);
+    const zones = [['', '全部分区'], ['used', '二手闲置'], ['errand', '代拿代跑'], ['service', '校园服务'],
+      ['game', '游戏账号'], ['rental', '物品租借'], ['barter', '以物换物'], ['group', '校园拼团'],
+      ['graduation', '毕业季'], ['lost', '失物招领']];
+
+    $('#view').innerHTML =
+      '<div class="form-row">' +
+        '<div class="f"><label>状态</label><select class="inp" id="fStatus">' +
+          [['all', '全部'], ['on', '在售'], ['off', '已下架'], ['sold', '已售出'], ['reviewing', '审核中']]
+            .map((o) => '<option value="' + o[0] + '"' + (q.status === o[0] ? ' selected' : '') + '>' + o[1] + '</option>').join('') +
+        '</select></div>' +
+        '<div class="f"><label>分区</label><select class="inp" id="fZone">' +
+          zones.map((o) => '<option value="' + o[0] + '"' + (q.zone === o[0] ? ' selected' : '') + '>' + o[1] + '</option>').join('') +
+        '</select></div>' +
+        '<div class="f" style="flex:1;min-width:180px"><label>关键词</label>' +
+          '<input class="inp" id="fKw" placeholder="标题或描述" value="' + esc(q.keyword) + '"></div>' +
+        '<button class="btn" id="fGo">筛选</button>' +
+      '</div>' +
+      '<div class="card">' + (d.list && d.list.length
+        ? '<table><thead><tr><th>商品</th><th>分区</th><th>价格</th><th>卖家</th><th>状态</th><th style="text-align:right">操作</th></tr></thead><tbody>' +
+          d.list.map((l) =>
+            '<tr><td><div class="row">' +
+              thumbRow(l.images, l.id) +
+              '<div style="min-width:0"><div style="font-weight:500">' + esc(l.title) + '</div>' +
+              '<div class="muted" style="font-size:12px">' + esc(l.timeText || '') + ' · 浏览 ' + num(l.views) + ' · 想要 ' + num(l.wantCount) + '</div>' +
+              '</div></div></td>' +
+            '<td>' + esc(l.zoneName || l.zone) + '</td>' +
+            '<td class="mono" style="white-space:nowrap">' + yuan(l.price) + '</td>' +
+            '<td>' + esc((l.seller && l.seller.nickname) || '—') + '</td>' +
+            '<td>' + statusTag(l.status) + '</td>' +
+            '<td style="text-align:right;white-space:nowrap">' +
+              (l.status === 'on'
+                ? '<button class="btn ghost sm" data-op="off" data-id="' + l.id + '">下架</button> '
+                : '<button class="btn ok sm" data-op="on" data-id="' + l.id + '">上架</button> ') +
+              '<button class="btn ghost sm" data-op="sold" data-id="' + l.id + '">标记售出</button> ' +
+              '<button class="btn danger sm" data-op="delete" data-id="' + l.id + '">删除</button>' +
+            '</td></tr>'
+          ).join('') + '</tbody></table>' + pager(d, null)
+        : '<div class="empty">没有符合条件的商品</div>') + '</div>';
+
+    $('#fGo').onclick = () => {
+      q.status = $('#fStatus').value; q.zone = $('#fZone').value;
+      q.keyword = $('#fKw').value.trim(); q.page = 1; this.render_listings();
+    };
+    $('#fKw').onkeydown = (e) => { if (e.key === 'Enter') $('#fGo').click(); };
+    bindPager((p) => { q.page = p; this.render_listings(); });
+    this._bindListingOps(q);
+  },
+  _bindListingOps(q) {
+    $$('#view [data-op]').forEach((b) => {
+      b.onclick = async () => {
+        const id = b.getAttribute('data-id'), op = b.getAttribute('data-op');
+        if (op === 'delete' && !confirm('确定删除这件商品？该操作不可撤销。')) return;
+        b.disabled = true;
+        try {
+          await API.post('/admin-api/listings/' + id + '/status', { op });
+          toast(op === 'delete' ? '已删除' : '已更新为「' + (STATUS_TXT[op] || op) + '」', 'ok');
+          this.render_listings();
+        } catch (e) { toast(e.message, 'err'); b.disabled = false; }
+      };
+    });
+  },
+
+  /* ---------------- 用户管理 ---------------- */
+  async render_users() {
+    const q = this.page.users || (this.page.users = { keyword: '', page: 1 });
+    const d = await API.get('/admin-api/users?keyword=' + encodeURIComponent(q.keyword) + '&page=' + q.page);
+    $('#view').innerHTML =
+      '<div class="form-row">' +
+        '<div class="f" style="flex:1;min-width:200px"><label>搜索</label>' +
+          '<input class="inp" id="fKw" placeholder="昵称或学院" value="' + esc(q.keyword) + '"></div>' +
+        '<button class="btn" id="fGo">搜索</button></div>' +
+      '<div class="card">' + (d.list && d.list.length
+        ? '<table><thead><tr><th>用户</th><th>学院 / 校区</th><th>信用</th><th>发布 / 售出</th><th>余额</th><th>状态</th><th style="text-align:right">操作</th></tr></thead><tbody>' +
+          d.list.map((u) => {
+            const st = u.stats || {};
+            return '<tr><td><div class="row">' +
+              '<img class="thumb" style="border-radius:50%" src="' + esc(u.avatar || '') + '" onerror="this.style.visibility=\'hidden\'">' +
+              '<div><div style="font-weight:500">' + esc(u.nickname) + (u.cert ? ' <span class="tag t-on" style="font-size:11px">已认证</span>' : '') + '</div>' +
+              '<div class="muted" style="font-size:12px">ID ' + u.id + ' · ' + esc(u.timeText || '') + '</div></div></div></td>' +
+              '<td>' + esc(u.college || '—') + '<div class="muted" style="font-size:12px">' + esc(u.campus || '') + '</div></td>' +
+              '<td class="mono">' + num(u.credit) + '</td>' +
+              '<td class="mono">' + num(st.published) + ' / ' + num(st.sold) + '</td>' +
+              '<td class="mono">' + yuan(u.balance) + '</td>' +
+              '<td>' + (u.banned ? '<span class="tag t-banned">已封禁</span>' : '<span class="tag t-on">正常</span>') + '</td>' +
+              '<td style="text-align:right">' + (u.banned
+                ? '<button class="btn ok sm" data-ban="' + u.id + '" data-to="0">解封</button>'
+                : '<button class="btn danger sm" data-ban="' + u.id + '" data-to="1">封禁</button>') + '</td></tr>';
+          }).join('') + '</tbody></table>' + pager(d, null)
+        : '<div class="empty">没有找到用户</div>') + '</div>';
+
+    $('#fGo').onclick = () => { q.keyword = $('#fKw').value.trim(); q.page = 1; this.render_users(); };
+    $('#fKw').onkeydown = (e) => { if (e.key === 'Enter') $('#fGo').click(); };
+    bindPager((p) => { q.page = p; this.render_users(); });
+    $$('#view [data-ban]').forEach((b) => {
+      b.onclick = async () => {
+        const to = b.getAttribute('data-to') === '1';
+        if (to && !confirm('确定封禁该用户？TA 将无法登录和使用平台。')) return;
+        b.disabled = true;
+        try {
+          await API.post('/admin-api/users/' + b.getAttribute('data-ban') + '/ban', { banned: to });
+          toast(to ? '已封禁' : '已解封', 'ok');
+          this.render_users();
+        } catch (e) { toast(e.message, 'err'); b.disabled = false; }
+      };
+    });
+  },
+
+  /* ---------------- 订单管理 ---------------- */
+  async render_orders() {
+    const q = this.page.orders || (this.page.orders = { status: 'all', keyword: '', page: 1 });
+    const d = await API.get('/admin-api/orders?status=' + encodeURIComponent(q.status) +
+      '&keyword=' + encodeURIComponent(q.keyword) + '&page=' + q.page);
+    const sts = [['all', '全部'], ['pending', '待付款'], ['paid', '待发货'], ['shipped', '待收货'],
+      ['done', '已完成'], ['canceled', '已取消'], ['refunding', '退款中'], ['refunded', '已退款']];
+    $('#view').innerHTML =
+      '<div class="form-row">' +
+        '<div class="f"><label>状态</label><select class="inp" id="fStatus">' +
+          sts.map((o) => '<option value="' + o[0] + '"' + (q.status === o[0] ? ' selected' : '') + '>' + o[1] + '</option>').join('') +
+        '</select></div>' +
+        '<div class="f" style="flex:1;min-width:180px"><label>关键词</label>' +
+          '<input class="inp" id="fKw" placeholder="订单号或商品名" value="' + esc(q.keyword) + '"></div>' +
+        '<button class="btn" id="fGo">筛选</button></div>' +
+      '<div class="card">' + (d.list && d.list.length
+        ? '<table><thead><tr><th>订单</th><th>买家</th><th>卖家</th><th>金额</th><th>状态</th><th>时间</th></tr></thead><tbody>' +
+          d.list.map((o) =>
+            '<tr><td><div style="font-weight:500">' + esc((o.snapshot && o.snapshot.title) || '—') + '</div>' +
+            '<div class="muted mono" style="font-size:12px">' + esc(o.orderNo || '') + '</div></td>' +
+            '<td>' + esc((o.buyer && o.buyer.nickname) || '—') + '</td>' +
+            '<td>' + esc((o.seller && o.seller.nickname) || '—') + '</td>' +
+            '<td class="mono" style="white-space:nowrap">' + yuan(o.payAmount) + '</td>' +
+            '<td><span class="tag t-' + esc(o.status) + '">' + esc(o.statusText || o.status) + '</span></td>' +
+            '<td class="muted" style="white-space:nowrap">' + esc(o.timeText || '') + '</td></tr>'
+          ).join('') + '</tbody></table>' + pager(d, null)
+        : '<div class="empty">没有符合条件的订单</div>') + '</div>';
+
+    $('#fGo').onclick = () => {
+      q.status = $('#fStatus').value; q.keyword = $('#fKw').value.trim(); q.page = 1; this.render_orders();
+    };
+    $('#fKw').onkeydown = (e) => { if (e.key === 'Enter') $('#fGo').click(); };
+    bindPager((p) => { q.page = p; this.render_orders(); });
+  },
+
+  /* ---------------- 举报处理 ---------------- */
+  async render_reports() {
+    const q = this.page.reports || (this.page.reports = { status: 'pending' });
+    const d = await API.get('/admin-api/reports?status=' + encodeURIComponent(q.status));
+    const sts = [['pending', '待处理'], ['handled', '已处理'], ['all', '全部']];
+    $('#view').innerHTML =
+      '<div class="form-row"><div class="f"><label>状态</label><select class="inp" id="fStatus">' +
+        sts.map((o) => '<option value="' + o[0] + '"' + (q.status === o[0] ? ' selected' : '') + '>' + o[1] + '</option>').join('') +
+      '</select></div></div>' +
+      '<div class="card">' + (d.list && d.list.length
+        ? d.list.map((r) => {
+            const tg = r.target || {};
+            const act = r.action ? ({ 'ignore': '已忽略', 'remove': '已下架/删除' }[r.action] || r.action) : '';
+            return '<div class="issue"><div class="top">' +
+              (tg.image ? '<img class="thumb" src="' + esc(tg.image) + '" onerror="this.style.visibility=\'hidden\'">' : '') +
+              '<div class="body">' +
+                '<div class="ttl">' + esc(tg.title || '（内容已删除）') + '</div>' +
+                '<div class="why">🚩 ' + esc(r.reason || '') + '</div>' +
+                '<div class="muted" style="font-size:12px;margin-top:4px">' +
+                  '类型：' + esc({ listing: '商品', post: '帖子', user: '用户' }[r.targetType] || r.targetType) +
+                  ' · 举报人：' + esc((r.reporter && r.reporter.nickname) || '匿名') +
+                  ' · ' + esc(r.timeText || '') +
+                  ' · <span class="tag t-' + esc(r.status) + '">' + (r.status === 'pending' ? '待处理' : '已处理') + '</span>' +
+                  (act ? '　处理：' + esc(act) : '') +
+                '</div>' +
+                (tg.price !== undefined && tg.price !== null ? '<div class="muted" style="font-size:12px">商品价格 ' + yuan(tg.price) + '</div>' : '') +
+              '</div>' +
+              (r.status === 'pending'
+                ? '<div style="display:flex;flex-direction:column;gap:6px;flex:0 0 auto">' +
+                    '<button class="btn danger sm" data-h="remove" data-id="' + r.id + '">删除内容</button>' +
+                    '<button class="btn ghost sm" data-h="ignore" data-id="' + r.id + '">忽略</button>' +
+                  '</div>' : '') +
+            '</div></div>';
+          }).join('')
+        : '<div class="empty">没有举报记录</div>') + '</div>';
+
+    $('#fStatus').onchange = () => { q.status = $('#fStatus').value; this.render_reports(); };
+    $$('#view [data-h]').forEach((b) => {
+      b.onclick = async () => {
+        const act = b.getAttribute('data-h');
+        if (act === 'remove' && !confirm('确定删除/下架被举报的内容？')) return;
+        b.disabled = true;
+        try {
+          await API.post('/admin-api/reports/' + b.getAttribute('data-id') + '/handle', { action: act });
+          toast(act === 'remove' ? '已处理并删除内容' : '已忽略', 'ok');
+          this.render_reports();
+        } catch (e) { toast(e.message, 'err'); b.disabled = false; }
+      };
+    });
+  },
+
+  /* ---------------- 圈子管理 ---------------- */
+  async render_posts() {
+    const q = this.page.posts || (this.page.posts = { keyword: '', page: 1 });
+    const d = await API.get('/admin-api/posts?keyword=' + encodeURIComponent(q.keyword) + '&page=' + q.page);
+    $('#view').innerHTML =
+      '<div class="form-row">' +
+        '<div class="f" style="flex:1;min-width:200px"><label>搜索内容</label>' +
+          '<input class="inp" id="fKw" placeholder="帖子正文关键词" value="' + esc(q.keyword) + '"></div>' +
+        '<button class="btn" id="fGo">搜索</button></div>' +
+      '<div class="card">' + (d.list && d.list.length
+        ? '<table><thead><tr><th style="width:190px">图片</th><th>内容</th><th>作者</th><th>圈子</th><th>互动</th><th style="text-align:right">操作</th></tr></thead><tbody>' +
+          d.list.map((p) =>
+            '<tr><td>' + thumbRow(p.images, p.id) + '</td>' +
+            '<td style="max-width:420px">' + esc(String(p.content || '').slice(0, 90)) +
+              '<div class="muted" style="font-size:12px">' + esc(p.timeText || '') + '</div></td>' +
+            '<td>' + esc((p.author && p.author.nickname) || '—') + '</td>' +
+            '<td>' + esc((p.circle && p.circle.name) || '—') + '</td>' +
+            '<td class="muted" style="font-size:12.5px">赞 ' + num(p.likeCount) + '<br>评 ' + num(p.commentCount) + '</td>' +
+            '<td style="text-align:right"><button class="btn danger sm" data-del="' + p.id + '">删除</button></td></tr>'
+          ).join('') + '</tbody></table>' + pager(d, null)
+        : '<div class="empty">没有帖子</div>') + '</div>';
+
+    $('#fGo').onclick = () => { q.keyword = $('#fKw').value.trim(); q.page = 1; this.render_posts(); };
+    $('#fKw').onkeydown = (e) => { if (e.key === 'Enter') $('#fGo').click(); };
+    bindPager((p) => { q.page = p; this.render_posts(); });
+    document.querySelectorAll('#view [data-del]').forEach((b) => {
+      b.onclick = async () => {
+        if (!confirm('确定删除这条帖子？其评论也会一并删除。')) return;
+        b.disabled = true;
+        try {
+          await API.del('/admin-api/posts/' + b.getAttribute('data-del'));
+          toast('已删除', 'ok');
+          this.render_posts();
+        } catch (e) { toast(e.message, 'err'); b.disabled = false; }
+      };
+    });
+  },
+
+
+  /* ---------------- 评论管理 ----------------
+   * 帖子下的评论（含配图）：能看图、能删。
+   * 图片由云函数签发成 https（admin 作用域已签名），浏览器可直接显示。
+   */
+  async render_comments() {
+    const q = this.page.comments || (this.page.comments = { keyword: '', page: 1 });
+    const d = await API.get('/admin-api/comments?keyword=' + encodeURIComponent(q.keyword) + '&page=' + q.page);
+    // 预览要拿「这条评论的全部图」才能左右切，所以先建映射（id → 图片数组）
+    (d.list || []).forEach((c) => { THUMB_MAP[c.id] = (c.images || []).filter(Boolean); });
+    $('#view').innerHTML =
+      '<div class="form-row">' +
+        '<div class="f" style="flex:1;min-width:200px"><label>搜索评论</label>' +
+          '<input class="inp" id="fKw" placeholder="评论正文关键词" value="' + esc(q.keyword) + '"></div>' +
+        '<button class="btn" id="fGo">搜索</button></div>' +
+      '<div class="card">' + (d.list && d.list.length
+        ? '<table><thead><tr><th style="width:160px">配图</th><th>评论内容</th><th>作者</th><th>所属帖子</th><th style="text-align:right">操作</th></tr></thead><tbody>' +
+          d.list.map((c) => {
+            const imgs = (c.images || []).filter(Boolean);
+            const thumb = imgs.length
+              ? imgs.slice(0, 3).map((u) =>
+                  '<img class="thumb" src="' + esc(u) + '" data-cid="' + c.id + '" data-i="' + imgs.indexOf(u) + '" ' +
+                  'style="margin-right:4px;cursor:zoom-in" onerror="this.style.visibility=\'hidden\'">').join('')
+              : '<span class="muted">—</span>';
+            return '<tr>' +
+              '<td>' + thumb + '</td>' +
+              '<td style="max-width:420px">' +
+                (c.content ? esc(String(c.content).slice(0, 90)) : '<span class="muted">（纯图片）</span>') +
+                '<div class="muted" style="font-size:12px">' + esc(c.timeText || '') + '</div></td>' +
+              '<td>' + esc((c.author && c.author.nickname) || '用户') + '</td>' +
+              '<td class="muted" style="max-width:260px">' + esc(String(c.postText || '').slice(0, 30) || ('#' + c.postId)) + '</td>' +
+              '<td style="text-align:right"><button class="btn danger sm" data-del="' + c.id + '">删除</button></td></tr>';
+          }).join('') + '</tbody></table>' + pager(d, null)
+        : '<div class="empty">没有评论</div>') + '</div>';
+
+    $('#fGo').onclick = () => { q.keyword = $('#fKw').value.trim(); q.page = 1; this.render_comments(); };
+    $('#fKw').onkeydown = (e) => { if (e.key === 'Enter') $('#fGo').click(); };
+    bindPager((p) => { q.page = p; this.render_comments(); });
+
+
+
+    document.querySelectorAll('#view [data-del]').forEach((b) => {
+      b.onclick = async () => {
+        if (!confirm('确定删除这条评论？删除后帖子评论数会同步减一。')) return;
+        b.disabled = true;
+        try {
+          await API.del('/admin-api/comments/' + b.getAttribute('data-del'));
+          toast('已删除', 'ok');
+          this.render_comments();
+        } catch (e) { toast(e.message, 'err'); b.disabled = false; }
+      };
+    });
+  },
+
+  /* ---------------- 校园墙 ----------------
+   * 匿名内容最需要治理：用户看不到作者，后台必须能看到 authorId，
+   * 否则同一个人反复发违规内容，运营根本串不起来。这里只显示 id、不显示昵称。
+   */
+  async render_walls() {
+    const q = this.page.walls || (this.page.walls = { status: 'all', keyword: '', page: 1 });
+    const d = await API.get('/admin-api/walls?status=' + encodeURIComponent(q.status) +
+      '&keyword=' + encodeURIComponent(q.keyword) + '&page=' + q.page);
+    const sts = [['all', '全部'], ['on', '显示中'], ['hidden', '已隐藏']];
+    const rows = (d.list || []).map((w) => {
+      const imgs = (w.images || []).filter(Boolean);
+      return '<tr>' +
+        '<td style="width:160px">' + thumbRow(imgs, w.id) + '</td>' +
+        '<td style="max-width:460px"><div style="font-weight:500">' + esc(String(w.content || '').slice(0, 100)) + '</div>' +
+          '<div class="muted" style="font-size:12px">' + esc(w.typeText || '') + ' · ' + esc(w.timeText || '') + '</div></td>' +
+        '<td>' + esc(w.anonName || '匿名同学') +
+          '<div class="muted mono" style="font-size:12px" title="后台可见，用于风控；用户端不展示">作者 #' + esc(w.authorId || '—') + '</div></td>' +
+        '<td class="muted" style="font-size:12.5px">赞 ' + num(w.likeCount) + '<br>评 ' + num(w.commentCount) + '</td>' +
+        '<td><span class="tag t-' + esc(w.status === 'hidden' ? 'hidden' : 'on') + '">' +
+          (w.status === 'hidden' ? '已隐藏' : '显示中') + '</span></td>' +
+        '<td style="text-align:right;white-space:nowrap">' +
+          (w.status === 'hidden'
+            ? '<button class="btn ok sm" data-wop="show" data-id="' + w.id + '">恢复</button> '
+            : '<button class="btn ghost sm" data-wop="hide" data-id="' + w.id + '">隐藏</button> ') +
+          '<button class="btn danger sm" data-wop="delete" data-id="' + w.id + '">删除</button>' +
+        '</td></tr>';
+    }).join('');
+
+    $('#view').innerHTML =
+      '<div class="form-row">' +
+        '<div class="f"><label>状态</label><select class="inp" id="fStatus">' +
+          sts.map((o) => '<option value="' + o[0] + '"' + (q.status === o[0] ? ' selected' : '') + '>' + o[1] + '</option>').join('') +
+        '</select></div>' +
+        '<div class="f" style="flex:1;min-width:200px"><label>搜索</label>' +
+          '<input class="inp" id="fKw" placeholder="内容或收件人" value="' + esc(q.keyword) + '"></div>' +
+        '<button class="btn" id="fGo">筛选</button></div>' +
+      '<div class="card">' + (rows
+        ? '<table><thead><tr><th>图</th><th>内容</th><th>匿名昵称 / 作者</th><th>互动</th><th>状态</th><th style="text-align:right">操作</th></tr></thead><tbody>' +
+          rows + '</tbody></table>' + pager(d, null)
+        : '<div class="empty">没有符合条件的校园墙内容</div>') + '</div>';
+
+    $('#fGo').onclick = () => { q.status = $('#fStatus').value; q.keyword = $('#fKw').value.trim(); q.page = 1; this.render_walls(); };
+    $('#fKw').onkeydown = (e) => { if (e.key === 'Enter') $('#fGo').click(); };
+    $('#fStatus').onchange = () => { q.status = $('#fStatus').value; q.page = 1; this.render_walls(); };
+    bindPager((p) => { q.page = p; this.render_walls(); });
+    $$('#view [data-wop]').forEach((b) => {
+      b.onclick = async () => {
+        const op = b.getAttribute('data-wop');
+        if (op === 'delete' && !confirm('确定删除这条校园墙？该条下面的评论也会一并删除。')) return;
+        b.disabled = true;
+        try {
+          await API.post('/admin-api/walls/' + b.getAttribute('data-id') + '/status', { op });
+          toast(op === 'delete' ? '已删除' : (op === 'hide' ? '已隐藏' : '已恢复'), 'ok');
+          this.render_walls();
+        } catch (e) { toast(e.message, 'err'); b.disabled = false; }
+      };
+    });
+  },
+
+  /* ---------------- 学习资源 ---------------- */
+  async render_resources() {
+    const q = this.page.resources || (this.page.resources = { status: 'all', keyword: '', page: 1 });
+    const d = await API.get('/admin-api/resources?status=' + encodeURIComponent(q.status) +
+      '&keyword=' + encodeURIComponent(q.keyword) + '&page=' + q.page);
+    const sts = [['all', '全部（不含已删）'], ['on', '正常'], ['hidden', '已隐藏']];
+    const rows = (d.list || []).map((r) =>
+      '<tr><td style="max-width:380px"><div style="font-weight:500">' + esc(r.title) + '</div>' +
+        '<div class="muted" style="font-size:12px">' + esc(r.fileName || r.fileExt || '') +
+        (r.desc ? ' · ' + esc(String(r.desc).slice(0, 40)) : '') + '</div></td>' +
+      '<td>' + esc(r.course || '—') + '<div class="muted" style="font-size:12px">' + esc(r.category) + '</div></td>' +
+      '<td>' + esc((r.uploader && r.uploader.nickname) || ('#' + (r.uploaderId || '—'))) + '</td>' +
+      '<td class="muted" style="font-size:12.5px">下载 ' + num(r.downloads) + '<br>赞 ' + num(r.likeCount) + '</td>' +
+      '<td><span class="tag t-' + esc(r.status === 'hidden' ? 'hidden' : (r.status === 'deleted' ? 'deleted' : 'on')) + '">' +
+        (r.status === 'hidden' ? '已隐藏' : (r.status === 'deleted' ? '已删除' : '正常')) + '</span></td>' +
+      '<td style="text-align:right;white-space:nowrap">' +
+        '<button class="btn ghost sm" data-rop="' + (r.status === 'hidden' ? 'show' : 'hide') + '" data-id="' + r.id + '">' +
+          (r.status === 'hidden' ? '恢复' : '隐藏') + '</button> ' +
+        '<button class="btn danger sm" data-rop="delete" data-id="' + r.id + '">删除</button>' +
+      '</td></tr>').join('');
+
+    $('#view').innerHTML =
+      '<div class="form-row">' +
+        '<div class="f"><label>状态</label><select class="inp" id="fStatus">' +
+          sts.map((o) => '<option value="' + o[0] + '"' + (q.status === o[0] ? ' selected' : '') + '>' + o[1] + '</option>').join('') +
+        '</select></div>' +
+        '<div class="f" style="flex:1;min-width:200px"><label>搜索</label>' +
+          '<input class="inp" id="fKw" placeholder="标题 / 课程 / 简介" value="' + esc(q.keyword) + '"></div>' +
+        '<button class="btn" id="fGo">筛选</button></div>' +
+      '<div class="card">' + (rows
+        ? '<table><thead><tr><th>资料</th><th>课程 / 分类</th><th>上传者</th><th>数据</th><th>状态</th><th style="text-align:right">操作</th></tr></thead><tbody>' +
+          rows + '</tbody></table>' + pager(d, null)
+        : '<div class="empty">没有符合条件的资料</div>') + '</div>';
+
+    $('#fGo').onclick = () => { q.status = $('#fStatus').value; q.keyword = $('#fKw').value.trim(); q.page = 1; this.render_resources(); };
+    $('#fKw').onkeydown = (e) => { if (e.key === 'Enter') $('#fGo').click(); };
+    $('#fStatus').onchange = () => { q.status = $('#fStatus').value; q.page = 1; this.render_resources(); };
+    bindPager((p) => { q.page = p; this.render_resources(); });
+    $$('#view [data-rop]').forEach((b) => {
+      b.onclick = async () => {
+        const op = b.getAttribute('data-rop');
+        if (op === 'delete' && !confirm('确定删除这份资料？删除后用户端将不再展示（保留记录以便追溯）。')) return;
+        b.disabled = true;
+        try {
+          await API.post('/admin-api/resources/' + b.getAttribute('data-id') + '/status', { op });
+          toast(op === 'delete' ? '已删除' : (op === 'hide' ? '已隐藏' : '已恢复'), 'ok');
+          this.render_resources();
+        } catch (e) { toast(e.message, 'err'); b.disabled = false; }
+      };
+    });
+  },
+
+  /* ---------------- 拼团管理 ---------------- */
+  async render_groups() {
+    const q = this.page.groups || (this.page.groups = { status: 'all', page: 1 });
+    const d = await API.get('/admin-api/groups?status=' + encodeURIComponent(q.status) + '&page=' + q.page);
+    const sts = [['all', '全部'], ['open', '进行中'], ['success', '已成团'], ['failed', '已过期'], ['canceled', '已关闭']];
+    const GTXT = { open: '进行中', success: '已成团', failed: '已过期', canceled: '已关闭' };
+    const rows = (d.list || []).map((g) => {
+      const l = g.listing || {};
+      const pct = Math.round(((g.paidCount || 0) / Math.max(1, g.targetCount || 1)) * 100);
+      return '<tr><td>' + (l.image
+        ? '<div class="row"><img class="thumb" src="' + esc(l.image) + '" onerror="this.style.visibility=\'hidden\'">' +
+          '<div style="min-width:0"><div style="font-weight:500">' + esc(l.title || '（商品已删除）') + '</div>' +
+          '<div class="muted mono" style="font-size:12px">#' + g.id + ' · ' + esc(g.timeText || '') + '</div></div></div>'
+        : esc(l.title || '（商品已删除）')) + '</td>' +
+        '<td>' + esc(g.statusText || GTXT[g.status] || g.status) + '</td>' +
+        '<td style="min-width:120px"><div class="mono">' + num(g.paidCount) + ' / ' + num(g.targetCount) + '</div>' +
+          '<div style="height:6px;background:#F1F3F6;border-radius:4px;margin-top:4px;overflow:hidden">' +
+          '<i style="display:block;height:100%;width:' + Math.min(100, pct) + '%;background:#0E8A7B"></i></div></td>' +
+        '<td>' + esc(g.expireText || '—') + '</td>' +
+        '<td class="muted" style="font-size:12.5px">' + (g.members || []).slice(0, 3).map((m) => esc(m.nickname)).join('、') +
+          ((g.members || []).length > 3 ? ' 等 ' + g.members.length + ' 人' : '') + '</td>' +
+        '<td style="text-align:right">' + (g.status === 'open'
+          ? '<button class="btn danger sm" data-gclose="' + g.id + '">关团</button>'
+          : '<span class="muted">—</span>') + '</td></tr>';
+    }).join('');
+
+    $('#view').innerHTML =
+      '<div class="form-row"><div class="f"><label>状态</label><select class="inp" id="fStatus">' +
+        sts.map((o) => '<option value="' + o[0] + '"' + (q.status === o[0] ? ' selected' : '') + '>' + o[1] + '</option>').join('') +
+      '</select></div>' +
+      '<div class="muted" style="font-size:12.5px;align-self:flex-end;padding-bottom:9px">' +
+        '关团只对「还没人付款」的团开放 —— 已付款的团要走订单退款流程，后台不直接改钱的状态。</div></div>' +
+      '<div class="card">' + (rows
+        ? '<table><thead><tr><th>商品</th><th>进度</th><th>成团进度</th><th>截止</th><th>成员</th><th style="text-align:right">操作</th></tr></thead><tbody>' +
+          rows + '</tbody></table>' + pager(d, null)
+        : '<div class="empty">没有符合条件的拼团</div>') + '</div>';
+
+    $('#fStatus').onchange = () => { q.status = $('#fStatus').value; q.page = 1; this.render_groups(); };
+    bindPager((p) => { q.page = p; this.render_groups(); });
+    $$('#view [data-gclose]').forEach((b) => {
+      b.onclick = async () => {
+        if (!confirm('确定关闭这个拼团？未付款的成员会收到通知，且无法再参团。')) return;
+        b.disabled = true;
+        try {
+          await API.post('/admin-api/groups/' + b.getAttribute('data-gclose') + '/close', {});
+          toast('已关团', 'ok');
+          this.render_groups();
+        } catch (e) { toast(e.message, 'err'); b.disabled = false; }
+      };
+    });
+  },
+
+  /* ---------------- 公告管理 ---------------- */
+  async render_notices() {
+    const d = await API.get('/admin-api/notices');
+    const q = this.page.notices || (this.page.notices = { editId: 0 });
+    const editing = (d.list || []).find((n) => n.id === q.editId) || null;
+    if (q.editId && !editing) q.editId = 0;   // 编辑中的公告已被删掉
+    $('#view').innerHTML =
+      '<div class="card" style="padding:16px 18px;margin-bottom:18px">' +
+        '<div style="font-weight:600;margin-bottom:12px">' +
+          (editing ? '编辑公告 <span class="muted" style="font-weight:400">#' + editing.id + '</span>' : '发布新公告') + '</div>' +
+        '<div class="field"><label>标题</label><input class="inp" id="nTitle" placeholder="不超过 50 字" maxlength="50" value="' +
+          esc(editing ? editing.title : '') + '"></div>' +
+        '<div class="field"><label>内容</label>' +
+          '<textarea class="inp" id="nContent" rows="3" placeholder="不超过 1000 字" maxlength="1000" style="resize:vertical">' +
+          esc(editing ? editing.content : '') + '</textarea></div>' +
+        '<button class="btn" id="nAdd">' + (editing ? '保存修改' : '发布并推送') + '</button>' +
+        (editing
+          ? '<button class="btn ghost" id="nCancel" style="margin-left:8px">取消</button>' +
+            '<span class="muted" style="font-size:12.5px;margin-left:10px">编辑不会给用户重复推送通知</span>'
+          : '<span class="muted" style="font-size:12.5px;margin-left:10px">发布后会实时推送给在线用户</span>') +
+      '</div>' +
+      '<div class="card">' + (d.list && d.list.length
+        ? d.list.map((n) =>
+            '<div class="issue"><div class="top"><div class="body">' +
+              '<div class="ttl">' + esc(n.title) + '</div>' +
+              '<div class="why" style="color:var(--ink-2)">' + esc(n.content) + '</div>' +
+              '<div class="muted" style="font-size:12px;margin-top:4px">' + esc(n.timeText || '') + '</div>' +
+            '</div><div style="display:flex;gap:6px;flex:0 0 auto">' +
+              '<button class="btn ghost sm" data-edit="' + n.id + '">编辑</button>' +
+              '<button class="btn danger sm" data-del="' + n.id + '">删除</button>' +
+            '</div></div></div>'
+          ).join('')
+        : '<div class="empty">还没有公告</div>') + '</div>';
+
+    $('#nAdd').onclick = async () => {
+      const title = $('#nTitle').value.trim(), content = $('#nContent').value.trim();
+      if (!title || !content) return toast('标题和内容都不能为空', 'err');
+      const b = $('#nAdd'); b.disabled = true;
+      try {
+        if (editing) {
+          await API.put('/admin-api/notices/' + editing.id, { title, content });
+          toast('公告已更新', 'ok');
+        } else {
+          await API.post('/admin-api/notices', { title, content });
+          toast('公告已发布', 'ok');
+        }
+        q.editId = 0;
+        this.render_notices();
+      } catch (e) { toast(e.message, 'err'); b.disabled = false; }
+    };
+    if ($('#nCancel')) $('#nCancel').onclick = () => { q.editId = 0; this.render_notices(); };
+    $$('#view [data-edit]').forEach((b) => {
+      b.onclick = () => { q.editId = Number(b.getAttribute('data-edit')); this.render_notices(); window.scrollTo(0, 0); };
+    });
+    document.querySelectorAll('#view [data-del]').forEach((b) => {
+      b.onclick = async () => {
+        if (!confirm('确定删除这条公告？')) return;
+        b.disabled = true;
+        try {
+          await API.del('/admin-api/notices/' + b.getAttribute('data-del'));
+          toast('已删除', 'ok');
+          this.render_notices();
+        } catch (e) { toast(e.message, 'err'); b.disabled = false; }
+      };
+    });
+  },
+
+  /* ---------------- 系统设置 ---------------- */
+  async render_settings() {
+    const d = await API.get('/admin-api/config');
+    const c = d.config || {};
+    $('#view').innerHTML =
+      '<div class="card" style="padding:18px;max-width:720px">' +
+        '<div style="font-weight:600;margin-bottom:4px">平台设置</div>' +
+        '<div class="muted" style="font-size:12.5px;margin-bottom:16px">这些配置会下发给小程序端，保存后立即生效</div>' +
+        '<div class="field"><label>平台名称</label>' +
+          '<input class="inp" id="cPlatform" value="' + esc(c.platform || '') + '" disabled style="width:100%"></div>' +
+        '<div class="field"><label>副标题</label>' +
+          '<input class="inp" id="cSubtitle" value="' + esc(c.subtitle || '') + '" disabled style="width:100%"></div>' +
+        '<div class="form-row" style="margin-bottom:18px">' +
+          '<label class="switch"><input type="checkbox" id="cAuto"' + (c.autoApprove !== false ? ' checked' : '') + '><i></i></label>' +
+          '<div><div style="font-weight:500">商品自动过审</div>' +
+          '<div class="muted" style="font-size:12.5px">关闭后，用户新发布的商品需要人工审核</div></div>' +
+        '</div>' +
+        '<div style="height:1px;background:var(--line);margin:18px 0"></div>' +
+        '<div style="font-weight:600;margin-bottom:4px">AI 客服（大模型）</div>' +
+        '<div class="muted" style="font-size:12.5px;margin-bottom:16px">用于「小校助手」的智能回复。密钥保存在服务端，不会下发到客户端</div>' +
+        '<div class="field"><label>接口地址 baseUrl</label>' +
+          '<input class="inp" id="aiBase" placeholder="https://open.bigmodel.cn/api/paas/v4" value="' + esc((c.ai && c.ai.baseUrl) || '') + '" style="width:100%"></div>' +
+        '<div class="field"><label>模型名称</label>' +
+          '<input class="inp" id="aiModel" placeholder="glm-4-flash" value="' + esc((c.ai && c.ai.model) || '') + '" style="width:100%"></div>' +
+        '<div class="field"><label>API Key</label>' +
+          '<input class="inp" id="aiKey" type="password" style="width:100%" ' +
+            'placeholder="' + (c.ai && c.ai.hasKey ? '已配置（留空则不修改）' : '尚未配置') + '"></div>' +
+        '<div class="row" style="margin-top:18px">' +
+          '<button class="btn" id="cSave">保存设置</button>' +
+          '<span class="muted" style="font-size:12.5px" id="saveHint"></span>' +
+        '</div>' +
+      '</div>' +
+      '<div class="card" style="padding:16px 18px;max-width:720px;margin-top:18px">' +
+        '<div style="font-weight:600;margin-bottom:10px">当前状态</div>' +
+        '<div class="row" style="gap:22px;flex-wrap:wrap;font-size:13px">' +
+          '<span>平台名称：<b>' + esc(c.platform || '—') + '</b></span>' +
+          '<span>自动过审：<b>' + (c.autoApprove !== false ? '开启' : '关闭') + '</b></span>' +
+          '<span>AI 密钥：<b style="color:' + (c.ai && c.ai.hasKey ? 'var(--ok)' : 'var(--danger)') + '">' +
+            (c.ai && c.ai.hasKey ? '已配置' : '未配置') + '</b></span>' +
+        '</div>' +
+      '</div>' +
+
+      /* ---- 多设备访问：手机 / 别人的电脑怎么打开 ---- */
+      '<div class="card" style="padding:16px 18px;max-width:720px;margin-top:18px">' +
+        '<div style="font-weight:600;margin-bottom:6px">多设备访问</div>' +
+        (SITE_INFO.lanEnabled
+          ? '<div class="muted" style="font-size:12.5px;margin-bottom:10px">' +
+              '同一 WiFi 下的手机 / 平板 / 另一台电脑，用下面的地址就能打开后台（不用装任何东西）。</div>' +
+            '<div class="row" style="flex-wrap:wrap;gap:8px">' +
+              (SITE_INFO.lanUrls || []).map((u) =>
+                '<code style="background:#F3F4F6;padding:6px 10px;border-radius:8px;font-size:13px">' + esc(u) + '</code>'
+              ).join('') +
+              ((SITE_INFO.lanUrls || []).length ? '' : '<span class="muted">没检测到局域网地址（本机可能没连 WiFi）</span>') +
+            '</div>' +
+            '<div class="muted" style="font-size:12.5px;margin-top:10px">' +
+              '当前你用的是：<code>' + esc(location.origin) + '</code>' +
+              '（<code>127.0.0.1</code> / <code>localhost</code> 只有本机能打开，别人要用上面那串 IP 地址）</div>'
+          : '<div class="muted" style="font-size:12.5px">' +
+              '当前后台只监听本机（<code>127.0.0.1</code>），其它设备打不开。' +
+              '要允许同一 WiFi 下的设备访问：去掉环境变量 <code>ADMIN_HOST=127.0.0.1</code> 后重启（默认就是开放的）。</div>') +
+        '<div class="muted" style="font-size:12.5px;margin-top:10px">' +
+          '⚠️ 开放局域网后，同一 WiFi 内的任何人都能看到登录页 —— 请务必改掉默认密码。</div>' +
+      '</div>' +
+
+      /* ---- 管理员密码 ---- */
+      '<div class="card" style="padding:16px 18px;max-width:720px;margin-top:18px">' +
+        '<div style="font-weight:600;margin-bottom:6px">管理员密码</div>' +
+        '<div class="muted" style="font-size:12.5px;margin-bottom:14px">' +
+          '改完立即生效，其它设备上的登录会失效（当前这台保持登录）。</div>' +
+        '<div class="field"><label>原密码</label><input class="inp" id="pOld" type="password" style="width:100%" autocomplete="current-password"></div>' +
+        '<div class="field"><label>新密码（至少 6 位）</label><input class="inp" id="pNew" type="password" style="width:100%" autocomplete="new-password"></div>' +
+        '<div class="field"><label>确认新密码</label><input class="inp" id="pNew2" type="password" style="width:100%" autocomplete="new-password"></div>' +
+        '<div class="row" style="margin-top:16px">' +
+          '<button class="btn" id="pSave">修改密码</button>' +
+          '<span class="muted" style="font-size:12.5px" id="pwdHint"></span>' +
+        '</div>' +
+      '</div>';
+
+    $('#cSave').onclick = async () => {
+      const b = $('#cSave'); b.disabled = true;
+      try {
+        await API.post('/admin-api/config', {
+          autoApprove: $('#cAuto').checked,
+          ai: { baseUrl: $('#aiBase').value.trim(), model: $('#aiModel').value.trim(), apiKey: $('#aiKey').value.trim() }
+        });
+        toast('设置已保存', 'ok');
+        this.render_settings();
+      } catch (e) { toast(e.message, 'err'); b.disabled = false; }
+    };
+
+    $('#pSave').onclick = async () => {
+      const oldPwd = $('#pOld').value, pwd = $('#pNew').value, pwd2 = $('#pNew2').value;
+      if (!oldPwd) return toast('请输入原密码', 'err');
+      if (pwd.length < 6) return toast('新密码至少 6 位', 'err');
+      if (pwd !== pwd2) return toast('两次输入的新密码不一致', 'err');
+      const b = $('#pSave'); b.disabled = true;
+      try {
+        const r = await API.post('/admin-api/password', { oldPassword: oldPwd, newPassword: pwd });
+        toast('密码已修改' + (r && r.killed ? '，其它设备已退出登录' : ''), 'ok');
+        $('#pOld').value = $('#pNew').value = $('#pNew2').value = '';
+        $('#pwdHint').textContent = '下次登录请用新密码';
+        b.disabled = false;
+      } catch (e) { toast(e.message, 'err'); b.disabled = false; }
+    };
+  }
+};
+
+/* ==================== 启动 ==================== */
+$('#loginForm').onsubmit = async (e) => {
+  e.preventDefault();
+  const btn = $('#loginBtn'), err = $('#loginErr');
+  err.hidden = true; btn.disabled = true;
+  btn.innerHTML = '<span class="spin"></span>';
+  try {
+    await App.login($('#u').value.trim(), $('#p').value);
+  } catch (ex) {
+    err.textContent = ex.message || '登录失败';
+    err.hidden = false;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '登录';
+  }
+};
+$('#logoutBtn').onclick = () => App.logout();
+$('#reloadBtn').onclick = () => { Auto.clearDirty(); App.reload(); };
+$('#menuBtn').onclick = () => $('#nav').classList.toggle('open');
+
+/* ==================== 自动刷新 ==================== */
+/**
+ * 每 5 秒静默重拉当前视图。
+ *
+ * 三道保护，避免自动刷新帮倒忙：
+ *   1) 页面在后台（document.hidden）不刷 —— 省流量、省云函数调用
+ *   2) 未登录不刷
+ *   3) **用户正在填表单时不刷**：视图里有输入框（筛选关键词、公告标题/正文、
+ *      AI 配置等），无脑重渲染会把用户正在敲的内容冲掉。
+ *      用 dirty 标记（视图内发生过 input 事件）+ 焦点检测双重判断。
+ */
+const Auto = {
+  timer: null,
+  everyMs: 5000,
+  on: true,
+  dirty: false,
+
+  init() {
+    try { this.on = (localStorage.getItem('campus_admin_auto') || '1') === '1'; } catch (e) { }
+    const chk = $('#autoChk');
+    if (chk) {
+      chk.checked = this.on;
+      chk.onchange = () => {
+        this.on = chk.checked;
+        try { localStorage.setItem('campus_admin_auto', this.on ? '1' : '0'); } catch (e) { }
+        this.schedule();
+      };
+    }
+    // 视图内一有输入就标记 dirty（捕获阶段，任何输入框都算）
+    document.addEventListener('input', (e) => {
+      const v = $('#view');
+      if (v && v.contains(e.target)) this.dirty = true;
+    }, true);
+    // 回到前台立刻刷一次，用户切回来就能看到最新的
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) this.tick(true);
+    });
+    this.schedule();
+  },
+
+  schedule() {
+    if (this.timer) { clearInterval(this.timer); this.timer = null; }
+    if (!this.on) return;
+    this.timer = setInterval(() => this.tick(false), this.everyMs);
+  },
+
+  /** 退出登录时停掉（不要再打 401） */
+  stop() { if (this.timer) { clearInterval(this.timer); this.timer = null; } },
+
+  /** 手动刷新/切换视图后调用：解除 dirty，并立刻重排下一次自动刷新 */
+  clearDirty() { this.dirty = false; this.schedule(); },
+
+  markRefreshed() {
+    const d = new Date();
+    const p = (n) => String(n).padStart(2, '0');
+    const el = $('#updAt');
+    if (el) el.textContent = '更新于 ' + p(d.getHours()) + ':' + p(d.getMinutes()) + ':' + p(d.getSeconds());
+  },
+
+  async tick(force) {
+    if (!this.on) return;
+    if (document.hidden && !force) return;
+    if (!API.token) return;                       // 未登录
+    if (this.dirty && !force) return;             // 用户正在填表单
+    const ae = document.activeElement;
+    const v = $('#view');
+    if (ae && v && v.contains(ae) && /INPUT|TEXTAREA|SELECT/.test(ae.tagName) && !force) return;
+    if (!$('#app') || $('#login') && !$('#login').hidden && !force) return;  // 还在登录页
+    try { await App.reload(true); } catch (e) { /* 已有兜底 */ }
+  }
+};
+
+/* ==================== 数据源徽标 ==================== */
+/**
+ * 显示「云端 / 本地」——直接回答「为什么后台数据和小程序对不上」。
+ * 该接口由本地服务直接提供（不经过 /admin-api 代理），所以永远反映真实来源。
+ */
+let SITE_INFO = {};
+
+async function loadSource() {
+  const el = $('#srcBadge');
+  const side = $('#sideSource .txt');
+  try {
+    const r = await fetch('/admin-info');
+    const d = await r.json();
+    SITE_INFO = d || {};
+    if (d && d.source === 'cloud') {
+      if (el) {
+        el.className = 'src-badge cloud';
+        el.textContent = '数据源：云端（线上真实数据）';
+        el.title = '环境 ' + d.envId + ' · 云函数 ' + d.fn + (d.keyHint ? ' · Key ' + d.keyHint : '') +
+          '\n这里看到并操作的就是小程序线上数据。';
+      }
+      if (side) side.textContent = '云端 · 线上数据';
+    } else {
+      if (el) {
+        el.className = 'src-badge local';
+        el.textContent = '数据源：本地演示数据';
+        el.title = '当前读的是 server/data/db.json（本地种子数据），与小程序线上数据是两套。' +
+          '\n此处的操作不会影响线上。要接线上：在 server/.cloudbase.json 填入 API Key 后重启服务。';
+      }
+      if (side) side.textContent = '本地 · 演示数据';
+    }
+    // 登录页提示：顺手告诉用户「同一 WiFi 下用哪个地址进来」
+    const hint = $('#loginHint');
+    if (hint && d && d.lanEnabled && (d.lanUrls || []).length) {
+      hint.innerHTML = '科贸小鱼运营管理端 · 同一 WiFi 可用 ' +
+        d.lanUrls.map(function (u) { return '<code>' + esc(u) + '</code>'; }).join(' / ') + ' 打开';
+    }
+  } catch (e) {
+    if (el) { el.className = 'src-badge loading'; el.textContent = '数据源：未知'; }
+    if (side) side.textContent = '数据源未知';
+  }
+}
+
+// 已有 token 就直接进入（失效会自动退回登录页）
+(async () => {
+  await loadSource();
+  let t = '';
+  try { t = localStorage.getItem('campus_admin_token') || ''; } catch (e) { }
+  if (!t) return;
+  API.token = t;
+  try { await App.boot(); Auto.init(); } catch (e) { /* token 失效，保持登录页 */ }
+})();
+</script>
+</body>
+</html>

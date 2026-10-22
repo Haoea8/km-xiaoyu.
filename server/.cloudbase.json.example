@@ -1,0 +1,20 @@
+{
+  "_说明": [
+    "把这个文件复制成 server/.cloudbase.json，填入 apiKey 后重启本地服务，",
+    "管理后台（3100）就会显示并操作小程序【线上真实数据】。",
+    "",
+    "apiKey 从哪里拿：CloudBase 控制台 → 身份认证 → API Key 管理",
+    "  https://tcb.cloud.tencent.com/dev?#/identity/token-management",
+    "选「API Key」（管理员权限）创建并复制。",
+    "",
+    "⚠️ 这把 Key 拥有整个环境的管理员权限，等同于后台钥匙：",
+    "   · 只放在本机这个文件里（该文件已在 .gitignore 中，不会提交、不会进分享包）",
+    "   · 不要贴到聊天/文档/截图里",
+    "   · 泄露了就去控制台「删除」后重新创建一把"
+  ],
+
+  "apiKey": "在这里粘贴你的 API Key",
+  "envId": "cloud1-d1gm4yssj28112256",
+  "fn": "campus",
+  "timeoutMs": 15000
+}
