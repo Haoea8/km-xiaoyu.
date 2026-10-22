@@ -1,0 +1,80 @@
+<view class="page-wrap">
+  <navbar title="我的订单" back="{{true}}"></navbar>
+
+  <!-- 角色切换 -->
+  <view class="role-tabs">
+    <view
+      wx:for="{{roleTabs}}"
+      wx:key="key"
+      class="role-tab {{role===item.key?'on':''}}"
+      data-k="{{item.key}}"
+      bindtap="onRole">{{item.label}}</view>
+  </view>
+
+  <!-- 状态筛选：共 7 个标签（全部/进行中/待付款/待发货/待收货/退款/已完成），
+       合计宽度超过一屏，所以这里用**换行**布局让它们全部可见。
+       原来用横向 scroll-view + 隐藏滚动条：第 5 个被硬切一半、
+       后面 2 个完全看不到，用户以为「显示不全 / 坏了」。
+       rpx 等比缩放，所以每行放几个在所有机型上一致（第 1 行 5 个、第 2 行 2 个）。 -->
+  <view class="status-bar">
+    <view
+      wx:for="{{statusTabs}}"
+      wx:key="key"
+      class="status-chip {{status===item.key?'on':''}}"
+      data-k="{{item.key}}"
+      bindtap="onStatus">{{item.label}}</view>
+  </view>
+
+  <view class="list">
+    <view class="order-card" wx:for="{{list}}" wx:key="id" data-id="{{item.id}}" bindtap="goDetail">
+      <!-- 头部 -->
+      <view class="o-head">
+        <view class="o-shop">
+          <view class="o-shop-ico">{{item.counterpart.nickname[0]}}</view>
+          <text class="o-shop-name">{{item.counterpart.nickname}}</text>
+        </view>
+        <text class="o-status" style="color:{{item.statusColor}}">{{item.statusText2}}</text>
+      </view>
+
+      <!-- 商品 -->
+      <view class="o-goods">
+        <image class="o-img" src="{{item.cover}}" mode="aspectFill" catchtap="goListing" data-id="{{item.listingId}}"></image>
+        <view class="o-info">
+          <view class="o-title">{{item.snapshot.title}}</view>
+          <view class="o-spec">{{item.tradeMethod || '校内面交'}}<text wx:if="{{item.isGroupBuy}}"> · 拼团</text></view>
+          <view class="o-qty">×{{item.qty}}</view>
+        </view>
+        <view class="o-price-col">
+          <view class="o-price">¥{{item.priceText}}</view>
+        </view>
+      </view>
+
+      <!-- 金额 -->
+      <view class="o-amount">
+        <text class="o-amount-label">实付金额</text>
+        <view class="o-amount-val"><text class="o-yuan">¥</text>{{item.payText}}</view>
+      </view>
+      <view class="o-time">下单时间 {{item.timeText2}}</view>
+
+      <!-- 操作 -->
+      <view class="o-acts" wx:if="{{item.acts.length}}">
+        <view
+          wx:for="{{item.acts}}"
+          wx:for-item="a"
+          wx:key="act"
+          class="o-btn {{a.main?'o-btn-main':''}}"
+          data-act="{{a.act}}"
+          data-id="{{item.id}}"
+          catchtap="onAction">{{a.label}}</view>
+      </view>
+    </view>
+  </view>
+
+  <empty wx:if="{{!loading && !list.length}}" text="还没有相关订单" sub="去首页逛逛，发现校园好物"></empty>
+
+  <view wx:if="{{loading}}" class="skeleton-wrap">
+    <view class="skeleton sk-card" wx:for="{{[1,2,3]}}" wx:key="*this"></view>
+  </view>
+
+  <view class="footer-pad"></view>
+</view>

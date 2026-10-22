@@ -1,0 +1,67 @@
+<view class="page-wrap">
+  <navbar title="交易地点" back="{{true}}">
+    <view slot="right" class="nb-add" bindtap="openAdd">新增</view>
+  </navbar>
+
+  <view class="tip">
+    <text class="tip-ico">📍</text>
+    <text>校内交易建议约定公共场所（宿舍楼下 / 图书馆门口 / 食堂），更安全也更方便。</text>
+  </view>
+
+  <view class="list">
+    <view class="a-card" wx:for="{{list}}" wx:key="id">
+      <view class="a-main" data-id="{{item.id}}" bindtap="openEdit">
+        <view class="a-head">
+          <text class="a-name">{{item.name}}</text>
+          <text class="a-phone">{{item.phone}}</text>
+          <view wx:if="{{item.isDefault}}" class="a-default">默认</view>
+        </view>
+        <view class="a-detail">{{item.campus}}{{item.detail}}</view>
+      </view>
+      <view class="a-acts">
+        <view class="a-act" data-id="{{item.id}}" catchtap="copy">复制</view>
+        <view wx:if="{{!item.isDefault}}" class="a-act" data-id="{{item.id}}" catchtap="setDefault">设为默认</view>
+        <view class="a-act danger" data-id="{{item.id}}" catchtap="onDelete">删除</view>
+      </view>
+    </view>
+  </view>
+
+  <empty wx:if="{{!loading && !list.length}}" text="还没有保存交易地点" sub="添加后下单时可以一键选择"></empty>
+
+  <view class="bottom-pad"></view>
+  <view class="fab-text" bindtap="openAdd">＋ 新增交易地点</view>
+</view>
+
+<!-- 编辑面板 -->
+<view wx:if="{{showEdit}}" class="mask" bindtap="closeEdit">
+  <view class="sheet" catchtap="noop">
+    <view class="sheet-head">
+      <text class="sheet-title">{{editing ? '编辑' : '新增'}}交易地点</text>
+      <text class="sheet-close" bindtap="closeEdit">×</text>
+    </view>
+
+    <view class="field">
+      <text class="field-label">联系人</text>
+      <input class="field-input" value="{{form.name}}" placeholder="你的名字" placeholder-class="ph" maxlength="20" data-k="name" bindinput="onForm" />
+    </view>
+    <view class="field">
+      <text class="field-label">手机号</text>
+      <input class="field-input" type="number" value="{{form.phone}}" placeholder="方便卖家联系你" placeholder-class="ph" maxlength="11" data-k="phone" bindinput="onForm" />
+    </view>
+    <view class="field">
+      <text class="field-label">校区</text>
+      <input class="field-input" value="{{form.campus}}" placeholder="如：广东科贸职业学院（清远校区）" placeholder-class="ph" maxlength="40" data-k="campus" bindinput="onForm" />
+    </view>
+    <view class="field">
+      <text class="field-label">详细地点</text>
+      <input class="field-input" value="{{form.detail}}" placeholder="如：3 栋 502 / 图书馆一楼大厅" placeholder-class="ph" maxlength="60" data-k="detail" bindinput="onForm" />
+    </view>
+
+    <view class="default-row" bindtap="toggleDefault">
+      <view class="checkbox {{form.isDefault ? 'on' : ''}}"><view class="tick"></view></view>
+      <text class="default-text">设为默认交易地点</text>
+    </view>
+
+    <view class="sheet-submit {{saving ? 'disabled' : ''}}" bindtap="onSave">{{saving ? '保存中…' : '保存'}}</view>
+  </view>
+</view>

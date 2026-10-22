@@ -1,0 +1,70 @@
+<view class="page-wrap">
+  <navbar title="我的钱包" back="{{true}}"></navbar>
+
+  <!-- 余额卡 -->
+  <view class="balance-card">
+    <view class="bc-glow"></view>
+    <view class="bc-label">校园钱包余额（元）</view>
+    <view class="bc-amount">{{balanceText}}</view>
+    <view class="bc-actions">
+      <view class="bc-btn" bindtap="openRecharge">充值</view>
+      <view class="bc-btn ghost" bindtap="onWithdraw">提现</view>
+    </view>
+  </view>
+
+  <!-- 说明 -->
+  <view class="tip">
+    <text class="tip-ico">🛡</text>
+    <text>余额支付由平台担保，确认收货后货款才会打给卖家；退款将原路返回余额。</text>
+  </view>
+
+  <!-- 明细 -->
+  <view class="card">
+    <view class="card-title">交易明细</view>
+    <view wx:if="{{!loading && !transactions.length}}" class="empty-tx">还没有交易记录</view>
+    <view class="tx" wx:for="{{transactions}}" wx:key="id">
+      <view class="tx-left">
+        <view class="tx-note">{{item.note || item.typeText}}</view>
+        <view class="tx-time">{{item.timeText}}</view>
+      </view>
+      <view class="tx-right">
+        <view class="tx-amount {{item.positive ? 'in' : 'out'}}">{{item.sign}}{{item.amountText}}</view>
+        <view class="tx-balance">余额 {{item.balanceAfter / 100}}</view>
+      </view>
+    </view>
+  </view>
+
+  <view class="bottom-pad"></view>
+</view>
+
+<!-- 充值面板 -->
+<view wx:if="{{showRecharge}}" class="mask" bindtap="closeRecharge">
+  <view class="sheet" catchtap="noop">
+    <view class="sheet-head">
+      <text class="sheet-title">充值</text>
+      <text class="sheet-close" bindtap="closeRecharge">×</text>
+    </view>
+
+    <view class="amt-grid">
+      <view
+        wx:for="{{amounts}}"
+        wx:key="fen"
+        class="amt {{amountIndex===index && !customYuan ? 'on' : ''}}"
+        data-i="{{index}}"
+        bindtap="onAmount">
+        <text class="amt-yuan">¥{{item.yuan}}</text>
+      </view>
+    </view>
+
+    <view class="custom-row">
+      <text class="custom-label">其他金额</text>
+      <view class="custom-input-wrap">
+        <text class="yuan">¥</text>
+        <input class="custom-input" type="digit" value="{{customYuan}}" placeholder="输入金额" placeholder-class="ph" bindinput="onCustom" />
+      </view>
+    </view>
+
+    <view class="sheet-submit" bindtap="doRecharge">确认充值</view>
+    <view class="sheet-tip">演示环境，充值为模拟操作，不涉及真实支付</view>
+  </view>
+</view>

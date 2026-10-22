@@ -1,0 +1,105 @@
+/* ---------- 余额卡 ---------- */
+.balance-card {
+  position: relative; overflow: hidden;
+  margin: 8rpx 24rpx 0; padding: 40rpx 32rpx;
+  background: linear-gradient(130deg, #2B3242 0%, #3D3350 60%, #4A2E43 100%);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 14rpx 36rpx rgba(43, 50, 66, 0.28);
+}
+.bc-glow {
+  position: absolute; right: -70rpx; top: -70rpx;
+  width: 260rpx; height: 260rpx; border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 193, 120, 0.42), transparent 70%);
+}
+.bc-label { position: relative; font-size: 23rpx; color: rgba(255, 255, 255, 0.62); }
+.bc-amount {
+  position: relative; font-size: 70rpx; font-weight: 800; color: #FFD8A8;
+  margin-top: 10rpx; font-family: "DIN Alternate", -apple-system, sans-serif;
+}
+.bc-actions { position: relative; display: flex; gap: 18rpx; margin-top: 34rpx; }
+.bc-btn {
+  flex: 1; height: 76rpx; border-radius: 999rpx;
+  background: linear-gradient(135deg, #FFD24D, #F5A623); color: #fff;
+  font-size: 27rpx; font-weight: 600;
+  display: flex; align-items: center; justify-content: center;
+}
+.bc-btn.ghost {
+  background: rgba(255, 255, 255, 0.14); color: rgba(255, 255, 255, 0.86);
+}
+
+/* ---------- 提示 ---------- */
+.tip {
+  display: flex; gap: 14rpx; margin: 24rpx;
+  padding: 22rpx 24rpx; background: #FFF8E6; border-radius: var(--radius);
+  font-size: 22rpx; color: #A36A00; line-height: 1.55;
+}
+.tip-ico { font-size: 26rpx; flex-shrink: 0; }
+
+/* ---------- 明细 ---------- */
+.card { margin: 0 24rpx; padding: 28rpx; }
+.card-title { font-size: 30rpx; font-weight: 700; margin-bottom: 10rpx; }
+.empty-tx { font-size: 24rpx; color: var(--ink-4); text-align: center; padding: 50rpx 0; }
+
+.tx {
+  display: flex; align-items: center; justify-content: space-between; gap: 20rpx;
+  padding: 24rpx 0; border-bottom: 2rpx solid var(--line);
+}
+.tx:last-child { border-bottom: none; }
+.tx-left { flex: 1; min-width: 0; }
+.tx-note { font-size: 27rpx; }
+.tx-time { font-size: 21rpx; color: var(--ink-4); margin-top: 8rpx; }
+.tx-right { text-align: right; flex-shrink: 0; }
+.tx-amount { font-size: 32rpx; font-weight: 700; font-family: "DIN Alternate", sans-serif; }
+.tx-amount.in { color: var(--brand); }
+.tx-amount.out { color: var(--green); }
+.tx-balance { font-size: 20rpx; color: var(--ink-4); margin-top: 6rpx; }
+
+/* ---------- 充值面板 ---------- */
+.mask {
+  position: fixed; left: 0; right: 0; top: 0; bottom: 0; z-index: 200;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex; align-items: flex-end;
+}
+.sheet {
+  width: 100%; background: #fff;
+  border-radius: 36rpx 36rpx 0 0;
+  padding: 32rpx 28rpx calc(32rpx + env(safe-area-inset-bottom));
+  animation: slideUp 0.26s ease both;
+}
+@keyframes slideUp { from { transform: translateY(100%); } to { transform: none; } }
+.sheet-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 26rpx; }
+.sheet-title { font-size: 34rpx; font-weight: 700; }
+.sheet-close { font-size: 44rpx; color: var(--ink-4); line-height: 1; padding: 0 10rpx; }
+
+.amt-grid { display: flex; flex-wrap: wrap; gap: 16rpx; }
+.amt {
+  /* ⚠️ 14rpx 不能改小：3×(33.333%−14rpx) + 2×16rpx ≈ 100% − 8rpx，留 8rpx 余量。
+     原来写 -11rpx 时余量只有 1rpx，取整就会换行。
+     见 tools/check-adaptive.js。 */
+  width: calc(33.333% - 14rpx); box-sizing: border-box;
+  height: 104rpx; border-radius: 18rpx;
+  border: 2rpx solid var(--line); background: #FAFBFC;
+  display: flex; align-items: center; justify-content: center;
+}
+.amt.on { border-color: var(--brand); background: var(--brand-soft); }
+.amt-yuan { font-size: 30rpx; font-weight: 700; color: var(--ink); }
+.amt.on .amt-yuan { color: var(--brand); }
+
+.custom-row { display: flex; align-items: center; gap: 18rpx; margin-top: 24rpx; }
+.custom-label { font-size: 26rpx; color: var(--ink-3); flex-shrink: 0; }
+.custom-input-wrap {
+  flex: 1; display: flex; align-items: center; gap: 8rpx;
+  height: 84rpx; background: #F4F6F8; border-radius: 999rpx; padding: 0 26rpx;
+}
+.yuan { font-size: 28rpx; color: var(--brand); font-weight: 700; }
+.custom-input { flex: 1; font-size: 28rpx; }
+.ph { color: var(--ink-4); }
+
+.sheet-submit {
+  margin-top: 30rpx; height: 92rpx; border-radius: 999rpx;
+  background: var(--brand-grad); color: #fff; font-size: 31rpx; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 10rpx 26rpx rgba(31, 164, 91, 0.3);
+}
+.sheet-tip { text-align: center; font-size: 21rpx; color: var(--ink-4); margin-top: 16rpx; }
+.bottom-pad { height: 80rpx; }

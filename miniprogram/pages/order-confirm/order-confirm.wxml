@@ -1,0 +1,136 @@
+<view class="page-wrap">
+  <navbar title="确认订单" back="{{true}}"></navbar>
+
+  <block wx:if="{{!loading && listing}}">
+    <!-- 拼团提示 -->
+    <view class="group-banner" wx:if="{{isPreOrder}}">
+      <text class="gb-ico">🎉</text>
+      <view class="gb-main">
+        <view class="gb-title">已为你占好拼团位置</view>
+        <view class="gb-sub">付款后才算真正参团，{{groupInfo || '满员即成团'}}</view>
+      </view>
+    </view>
+
+    <!-- 交付方式 -->
+    <view class="card addr-card">
+      <view class="addr-icon">📍</view>
+      <view class="addr-main">
+        <view class="addr-title">{{tradeMethod || '校内面交'}}</view>
+        <view class="addr-sub">{{listing.location || '校内'}} · 拍下后卖家会与你约定具体地点时间</view>
+      </view>
+    </view>
+
+    <!-- 商品 -->
+    <view class="card">
+      <view class="shop-row">
+        <view class="shop-avatar">{{listing.seller.nickname[0]}}</view>
+        <text class="shop-name">{{listing.seller.nickname}}</text>
+        <view class="tag-zone">{{zoneText}}</view>
+      </view>
+      <view class="goods">
+        <image class="goods-img" src="{{images[0]}}" mode="aspectFill" bindtap="goDetail"></image>
+        <view class="goods-info">
+          <view class="goods-title">{{listing.title}}</view>
+          <view class="goods-tags">
+            <text class="mini-tag">{{modeText}}</text>
+            <text wx:if="{{listing.priceUnit}}" class="mini-tag">按{{listing.priceUnit}}</text>
+          </view>
+          <view class="goods-bottom">
+            <view class="price-wrap">
+              <text class="yuan">¥</text><text class="price">{{unitPriceText}}</text>
+              <text wx:if="{{originalText}}" class="origin">¥{{originalText}}</text>
+            </view>
+            <view class="stepper" wx:if="{{!isPreOrder}}">
+              <view class="step-btn {{qty<=1?'disabled':''}}" data-delta="-1" bindtap="onQty">−</view>
+              <input class="step-num" type="number" value="{{qty}}" bindinput="onQtyInput" />
+              <view class="step-btn" data-delta="1" bindtap="onQty">+</view>
+            </view>
+            <view wx:else class="qty-fixed">×{{qty}}</view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 交易方式 -->
+    <view class="card" wx:if="{{!isPreOrder}}">
+      <view class="card-title">交易方式</view>
+      <view class="method-list">
+        <view
+          wx:for="{{tradeMethods}}"
+          wx:key="*this"
+          class="method-item {{tradeMethod===item?'active':''}}"
+          data-v="{{item}}"
+          bindtap="onMethod">
+          <text class="method-name">{{item}}</text>
+          <view class="radio"><view class="radio-dot"></view></view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 留言 -->
+    <view class="card" wx:if="{{!isPreOrder}}">
+      <view class="card-title">买家留言</view>
+      <textarea
+        class="remark"
+        placeholder="和卖家约定时间地点，或补充说明（选填）"
+        placeholder-class="ph"
+        maxlength="100"
+        value="{{remark}}"
+        bindinput="onRemark"></textarea>
+      <view class="count">{{remark.length}}/100</view>
+    </view>
+
+    <!-- 金额 -->
+    <view class="card">
+      <view class="amount-row"><text class="row-l">商品金额</text><text class="row-r">¥{{goodsText}}</text></view>
+      <view class="amount-row"><text class="row-l">运费 / 服务费</text><text class="row-r free">校内交易 免费</text></view>
+      <view class="amount-row total"><text class="row-l">合计</text><text class="row-r big"><text class="yuan">¥</text>{{totalText}}</text></view>
+    </view>
+
+    <!-- 支付方式 -->
+    <view class="card">
+      <view class="card-title">支付方式</view>
+      <view class="pay-item {{payMethod==='balance'?'active':''}}" data-v="balance" bindtap="onPay">
+        <view class="pay-left">
+          <view class="pay-icon balance">余</view>
+          <view>
+            <view class="pay-name">校园钱包余额</view>
+            <view class="pay-sub">可用 ¥{{balanceText}}</view>
+          </view>
+        </view>
+        <view class="radio"><view class="radio-dot"></view></view>
+      </view>
+      <view class="pay-item {{payMethod==='wxpay'?'active':''}}" data-v="wxpay" bindtap="onPay">
+        <view class="pay-left">
+          <view class="pay-icon wx">微</view>
+          <view>
+            <view class="pay-name">微信支付</view>
+            <view class="pay-sub">演示环境，点击即视为支付成功</view>
+          </view>
+        </view>
+        <view class="radio"><view class="radio-dot"></view></view>
+      </view>
+    </view>
+
+    <view class="safe-tip">🛡 平台托管货款 · 确认收货后卖家才会收到钱</view>
+    <view class="footer-pad"></view>
+
+    <!-- 底部提交栏 -->
+    <view class="footer">
+      <view class="foot-total">
+        <text class="foot-label">实付</text>
+        <text class="foot-price"><text class="yuan-big">¥</text>{{totalText}}</text>
+      </view>
+      <view class="foot-btns">
+        <view class="btn-ghost" bindtap="goChat">聊一聊</view>
+        <view class="btn-main {{submitting?'disabled':''}}" bindtap="onSubmit">{{submitting?'处理中…':'立即支付'}}</view>
+      </view>
+    </view>
+  </block>
+
+  <view wx:else class="loading-wrap">
+    <view class="skeleton" style="height:200rpx;margin:24rpx;border-radius:24rpx"></view>
+    <view class="skeleton" style="height:300rpx;margin:24rpx;border-radius:24rpx"></view>
+    <view class="loading-text">加载中…</view>
+  </view>
+</view>

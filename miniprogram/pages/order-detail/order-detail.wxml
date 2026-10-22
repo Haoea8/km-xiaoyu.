@@ -1,0 +1,146 @@
+<view class="page-wrap">
+  <navbar title="订单详情" back="{{true}}"></navbar>
+
+  <block wx:if="{{!loading && order}}">
+    <!-- 状态头 -->
+    <view class="hero">
+      <view class="hero-status">{{statusText}}</view>
+      <view class="hero-sub" wx:if="{{order.status==='pending'}}">请尽快完成支付，超时订单将自动关闭</view>
+      <view class="hero-sub" wx:elif="{{order.status==='paid'}}">货款已托管在平台，等待卖家交付</view>
+      <view class="hero-sub" wx:elif="{{order.status==='shipped'}}">卖家已交付，确认无误后请点击确认收货</view>
+      <view class="hero-sub" wx:elif="{{order.status==='done'}}">交易已完成，货款已打给卖家</view>
+      <view class="hero-sub" wx:elif="{{order.status==='refunding'}}">退款申请处理中，货款仍在平台托管</view>
+      <view class="hero-sub" wx:else>订单已关闭</view>
+
+      <view class="steps" wx:if="{{stepIndex >= 0}}">
+        <view class="step" wx:for="{{steps}}" wx:key="key">
+          <view class="step-dot {{index <= stepIndex ? 'on' : ''}}"><view class="step-core"></view></view>
+          <view class="step-label {{index <= stepIndex ? 'on' : ''}}">{{item.label}}</view>
+          <view class="step-line" wx:if="{{index < steps.length - 1}}"></view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 平台担保 -->
+    <view class="card">
+      <view class="esc-head">
+        <view class="esc-title-row">
+          <view class="esc-shield">🛡</view>
+          <text class="esc-title">平台担保交易</text>
+        </view>
+        <view class="esc-status {{escrowStatus}}">{{escrowText}}</view>
+      </view>
+
+      <view class="esc-steps">
+        <view class="es-item" wx:for="{{escrowSteps}}" wx:key="key">
+          <view class="es-left">
+            <view class="es-dot {{item.done ? 'on' : ''}}"></view>
+            <view class="es-line" wx:if="{{index < escrowSteps.length - 1}}"></view>
+          </view>
+          <view class="es-body">
+            <view class="es-label {{item.done ? 'on' : ''}}">{{item.label}}</view>
+            <view class="es-sub">{{item.sub}}</view>
+          </view>
+        </view>
+      </view>
+
+      <view class="esc-amount">
+        <text class="ea-label">托管金额</text>
+        <text class="ea-val">¥{{payText}}</text>
+      </view>
+
+      <view class="esc-more" bindtap="toggleGuarantee">
+        {{showGuarantee ? '收起担保说明' : '担保规则说明'}} {{showGuarantee ? '︿' : '﹀'}}
+      </view>
+      <view class="esc-points" wx:if="{{showGuarantee}}">
+        <view class="ep-item" wx:for="{{guarantee}}" wx:key="*this">{{item}}</view>
+      </view>
+
+      <view class="esc-intervene" bindtap="onIntervene">遇到问题？申请平台介入</view>
+    </view>
+
+    <!-- 交付信息 -->
+    <view class="card addr-card">
+      <view class="addr-icon">📍</view>
+      <view class="addr-main">
+        <view class="addr-title">{{order.tradeMethod || '校内面交'}}</view>
+        <view class="addr-sub">{{order.location || '校内'}}{{order.remark ? ' · 留言：' + order.remark : ''}}</view>
+      </view>
+    </view>
+
+    <!-- 商品 -->
+    <view class="card goods-card" bindtap="goListing">
+      <image class="g-img" src="{{cover}}" mode="aspectFill"></image>
+      <view class="g-info">
+        <view class="g-title">{{order.snapshot.title}}</view>
+        <view class="g-meta">
+          <text class="mini-tag">{{modeText}}</text>
+          <text class="mini-tag">{{zoneText}}</text>
+          <text wx:if="{{order.isGroupBuy}}" class="mini-tag group">拼团</text>
+        </view>
+        <view class="g-bottom">
+          <text class="g-price">¥{{unitPriceText}}</text>
+          <text class="g-qty">×{{order.qty}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 金额明细 -->
+    <view class="card">
+      <view class="row"><text class="row-l">商品金额</text><text class="row-r">¥{{amountText}}</text></view>
+      <view class="row"><text class="row-l">运费 / 服务费</text><text class="row-r free">¥0.00</text></view>
+      <view class="row total"><text class="row-l">实付金额</text><text class="row-r big"><text class="yuan">¥</text>{{payText}}</text></view>
+      <view class="pay-type" wx:if="{{order.payType}}">支付方式：{{order.payType === 'balance' ? '校园钱包余额' : '微信支付（演示）'}}</view>
+    </view>
+
+    <!-- 订单信息 -->
+    <view class="card">
+      <view class="row"><text class="row-l">订单编号</text><text class="row-r mono" bindtap="copyNo">{{order.orderNo}} <text class="copy">复制</text></text></view>
+      <view class="row"><text class="row-l">下单时间</text><text class="row-r">{{createdText}}</text></view>
+      <view class="row" bindtap="goPeer">
+        <text class="row-l">{{isBuyer ? '卖家' : '买家'}}</text>
+        <text class="row-r link">{{peer.nickname}} ›</text>
+      </view>
+      <view class="row" wx:if="{{order.refundReason}}"><text class="row-l">退款原因</text><text class="row-r warn">{{order.refundReason}}</text></view>
+    </view>
+
+    <!-- 时间线 -->
+    <view class="card">
+      <view class="card-title">订单进度</view>
+      <view class="tl">
+        <view class="tl-item" wx:for="{{timeline}}" wx:key="time">
+          <view class="tl-left">
+            <view class="tl-ico">{{item.icon}}</view>
+            <view class="tl-line" wx:if="{{index < timeline.length - 1}}"></view>
+          </view>
+          <view class="tl-body">
+            <view class="tl-note">{{item.note}}</view>
+            <view class="tl-time">{{item.timeText}}</view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <view class="tip-card" bindtap="onReport">
+      <text class="tip-ico">!</text>
+      <text class="tip-text">交易中有问题？点击举报违规行为，或申请平台介入由客服处理</text>
+    </view>
+
+    <view class="footer-pad"></view>
+
+    <!-- 底部操作 -->
+    <view class="footer" wx:if="{{acts.length}}">
+      <view
+        wx:for="{{acts}}"
+        wx:key="act"
+        class="f-btn {{item.main?'f-main':'f-ghost'}}"
+        data-act="{{item.act}}"
+        bindtap="onAction">{{item.label}}</view>
+    </view>
+  </block>
+
+  <view wx:else class="loading-wrap">
+    <view class="skeleton" style="height:280rpx;margin:24rpx;border-radius:24rpx"></view>
+    <view class="skeleton" style="height:200rpx;margin:24rpx;border-radius:24rpx"></view>
+  </view>
+</view>
