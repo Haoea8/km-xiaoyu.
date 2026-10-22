@@ -1,0 +1,90 @@
+<view class="page-wrap">
+  <navbar title="拼团详情" back="{{true}}"></navbar>
+
+  <block wx:if="{{!loading && group}}">
+    <!-- 状态头 -->
+    <view class="hero {{group.status}}">
+      <view class="hero-status">{{group.status === 'open' ? '拼团中' : (group.status === 'success' ? '拼团成功' : '拼团失败')}}</view>
+      <view class="hero-msg">
+        <text wx:if="{{group.status === 'open'}}">还差 <text class="hl">{{group.needCount}}</text> 人成团，邀请同学一起拼</text>
+        <text wx:elif="{{group.status === 'success'}}">已凑满 {{group.targetCount}} 人，等待卖家发货</text>
+        <text wx:else>本团已到期未成团，款项将自动退回</text>
+      </view>
+
+      <!-- 进度 -->
+      <view class="progress">
+        <view class="pg-bar"><view class="pg-fill" style="width:{{percent}}%"></view></view>
+        <view class="pg-meta">
+          <text>已付款 {{group.paidCount}} / {{group.targetCount}} 人</text>
+          <text class="pg-time">{{group.expireLeft}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 商品 -->
+    <view class="card goods" bindtap="goListing">
+      <image class="g-img" src="{{cover}}" mode="aspectFill"></image>
+      <view class="g-main">
+        <view class="g-title ellipsis2">{{listing.title}}</view>
+        <view class="g-price"><text class="yuan">¥</text>{{priceText}}</view>
+      </view>
+      <view class="g-go">看详情 ›</view>
+    </view>
+
+    <!-- 成员 -->
+    <view class="card">
+      <view class="card-title">拼团成员（{{members.length}}）</view>
+      <view class="m-grid">
+        <view class="m-item" wx:for="{{members}}" wx:key="userId" data-uid="{{item.userId}}" bindtap="goUser">
+          <view class="m-avatar-wrap">
+            <image class="m-avatar" src="{{item.avatar}}" mode="aspectFill"></image>
+            <view wx:if="{{item.isLeader}}" class="m-crown">团长</view>
+          </view>
+          <view class="m-name ellipsis">{{item.nickname}}</view>
+          <view class="m-state {{item.paid ? 'paid' : ''}}">{{item.paid ? '已付款' : '待付款'}}</view>
+        </view>
+        <!-- 空位 -->
+        <view class="m-item empty" wx:for="{{group.needCount}}" wx:key="*this">
+          <view class="m-avatar-wrap">
+            <view class="m-avatar m-placeholder">＋</view>
+          </view>
+          <view class="m-name">待加入</view>
+          <view class="m-state">虚位以待</view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 规则 -->
+    <view class="card rule">
+      <view class="card-title">拼团规则</view>
+      <view class="rule-item">1. 参团后需完成付款才计入名额，未付款不占坑。</view>
+      <view class="rule-item">2. 满 {{group.targetCount}} 人即拼团成功，卖家统一发货 / 约定交付。</view>
+      <view class="rule-item">3. 到期未成团则自动全额退款，款项原路返回。</view>
+      <view class="rule-item">4. 货款由平台担保托管，确认收货后才打给卖家。</view>
+    </view>
+
+    <view class="footer-pad"></view>
+
+    <!-- 底部操作 -->
+    <view class="footer">
+      <view class="f-copy" bindtap="copyTip">复制文案</view>
+      <button class="f-share" open-type="share">邀请同学</button>
+      <block wx:if="{{canJoin}}">
+        <view class="f-main" bindtap="onJoin">参与拼团 ¥{{priceText}}</view>
+      </block>
+      <block wx:elif="{{isMine && !minePaid}}">
+        <view class="f-main" bindtap="onPay">去付款</view>
+      </block>
+      <block wx:elif="{{isMine && minePaid}}">
+        <view class="f-done">已参团 · {{group.status === 'success' ? '拼团成功' : '等待成团'}}</view>
+      </block>
+      <view wx:if="{{isMine && !minePaid}}" class="f-quit" bindtap="onQuit">退出</view>
+    </view>
+  </block>
+
+  <view wx:else class="skeleton-wrap">
+    <view class="skeleton" style="height:300rpx;margin:24rpx;border-radius:32rpx"></view>
+    <view class="skeleton" style="height:200rpx;margin:24rpx;border-radius:24rpx"></view>
+    <view class="skeleton" style="height:320rpx;margin:24rpx;border-radius:24rpx"></view>
+  </view>
+</view>

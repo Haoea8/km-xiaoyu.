@@ -1,0 +1,83 @@
+<view class="page-wrap">
+  <navbar title="消息">
+    <view slot="right" class="nb-dot {{connected ? 'on' : ''}}">{{connected ? '在线' : '离线'}}</view>
+  </navbar>
+
+  <block wx:if="{{logged}}">
+    <!-- 互动消息入口（点赞/评论/回复/收藏/想要/关注） -->
+    <view class="it-card" bindtap="openInteraction">
+      <view class="it-card-ico">
+        <text>🔔</text>
+        <view wx:if="{{interactionUnread}}" class="badge it-card-badge">{{interactionUnread > 99 ? '99+' : interactionUnread}}</view>
+      </view>
+      <view class="it-card-main">
+        <view class="it-card-title">互动消息</view>
+        <view class="it-card-desc">{{interactionUnread ? interactionUnread + ' 条新互动，点进去看看' : '谁赞了你、评论了你、收藏了你的东西'}}</view>
+      </view>
+      <view class="it-card-go">›</view>
+    </view>
+
+    <!-- AI 客服入口 -->
+    <view class="ai-card" bindtap="openAi">
+      <view class="ai-glow"></view>
+      <view class="ai-avatar">
+        <image wx:if="{{aiConv.peerAvatar}}" src="{{aiConv.peerAvatar}}" mode="aspectFill" class="ai-img"></image>
+        <text wx:else class="ai-txt">AI</text>
+      </view>
+      <view class="ai-main">
+        <view class="ai-name">
+          小校助手 · AI 客服
+          <text class="ai-badge">7×24 在线</text>
+        </view>
+        <view class="ai-desc">找货 · 下单 · 退款 · 拼团，有问题直接问</view>
+      </view>
+      <view wx:if="{{aiConv.unread}}" class="badge">{{aiConv.unread > 99 ? '99+' : aiConv.unread}}</view>
+      <view wx:else class="ai-go">问一问 ›</view>
+    </view>
+
+    <!-- 会话列表 -->
+    <view class="section-head2" wx:if="{{people.length}}">
+      <text class="sh-title">私信</text>
+      <text class="sh-sub">共 {{people.length}} 个会话</text>
+    </view>
+
+    <view class="conv-list">
+      <view
+        wx:for="{{people}}"
+        wx:key="id"
+        class="conv"
+        data-id="{{item.id}}"
+        bindtap="open"
+        bindlongpress="delConv">
+        <view class="conv-avatar-wrap">
+          <image wx:if="{{item.peerAvatar}}" class="conv-avatar" src="{{item.peerAvatar}}" mode="aspectFill"></image>
+          <view wx:else class="conv-avatar conv-initial">{{item.initial}}</view>
+          <view wx:if="{{item.unread}}" class="badge conv-badge">{{item.unread > 99 ? '99+' : item.unread}}</view>
+        </view>
+        <view class="conv-main">
+          <view class="conv-top">
+            <text class="conv-name">{{item.peerName}}</text>
+            <text class="conv-time">{{item.timeText}}</text>
+          </view>
+          <view class="conv-msg ellipsis">{{item.lastMessage}}</view>
+        </view>
+      </view>
+    </view>
+
+    <empty wx:if="{{!loading && !people.length}}" text="还没有私信" sub="去逛逛好物，和卖家聊一聊吧"></empty>
+  </block>
+
+  <!-- 未登录 -->
+  <view wx:else class="guest">
+    <view class="guest-ico">💬</view>
+    <view class="guest-title">登录后查看消息</view>
+    <view class="guest-sub">和同学实时聊天、咨询 AI 客服</view>
+    <view class="guest-btn" bindtap="goLogin">微信一键登录</view>
+  </view>
+
+  <view wx:if="{{loading && logged}}" class="skeleton-wrap">
+    <view class="skeleton sk-row" wx:for="{{[1,2,3,4]}}" wx:key="*this"></view>
+  </view>
+
+  <view class="bottom-pad"></view>
+</view>

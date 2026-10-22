@@ -1,0 +1,179 @@
+<view class="chat-page">
+  <!-- 顶部导航 -->
+  <view class="nav" style="padding-top:{{statusBar}}px;">
+    <view class="nav-inner" style="height:{{navBar}}px;">
+      <view class="nav-back" bindtap="goBack"><view class="nav-arrow"></view></view>
+      <view class="nav-title" bindtap="goPeer">
+        <text class="nav-name">{{name}}</text>
+        <text wx:if="{{isAI}}" class="nav-tag">AI 客服</text>
+        <text wx:elif="{{typing}}" class="nav-typing">正在输入…</text>
+      </view>
+      <view class="nav-right">
+        <view wx:if="{{!isAI}}" class="nav-more" bindtap="onReport">⋯</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 消息区 -->
+  <scroll-view
+    class="msgs"
+    scroll-y
+    scroll-into-view="{{scrollInto}}"
+    scroll-with-animation="{{true}}"
+    style="top:{{statusBar + navBar}}px;bottom:{{bottomPx}}px;"
+    bindscrolltoupper="loadMore"
+    upper-threshold="60">
+    <view class="msgs-pad"></view>
+
+    <view wx:if="{{loadingMore}}" class="more-tip">正在加载更早的消息…</view>
+    <view wx:elif="{{hasMore}}" class="more-tip">下拉查看更早的消息</view>
+    <view wx:else class="more-tip safe">请勿脱离平台交易 · 谨防诈骗</view>
+
+    <block wx:for="{{messages}}" wx:key="id">
+      <!-- 系统通知 -->
+      <view wx:if="{{item.isSystem}}" class="sys-row" id="msg-{{item.id}}">
+        <view class="sys-bubble">{{item.content}}</view>
+      </view>
+
+      <!-- 普通消息 -->
+      <view wx:else class="msg-row {{item.mine?'mine':''}}" id="msg-{{item.id}}">
+        <!-- 对方头像：有图用图，没图/加载失败落成字标（否则就是一个灰方块） -->
+        <block wx:if="{{!item.mine}}">
+          <image wx:if="{{peerAvatar && !peerAvatarErr}}" class="m-avatar" src="{{peerAvatar}}" mode="aspectFill" bindtap="goPeer" binderror="onPeerAvatarErr"></image>
+          <view wx:else class="m-avatar av-letter" style="background:{{peerAvatarBg}};color:{{peerAvatarFg}}" bindtap="goPeer">{{peerAvatarLetter}}</view>
+        </block>
+        <block wx:else>
+          <image wx:if="{{myAvatar && !myAvatarErr}}" class="m-avatar" src="{{myAvatar}}" mode="aspectFill" binderror="onMyAvatarErr"></image>
+          <view wx:else class="m-avatar av-letter" style="background:{{myAvatarBg}};color:{{myAvatarFg}}">{{myAvatarLetter}}</view>
+        </block>
+        <view class="m-body">
+          <view wx:if="{{item.isText}}" class="bubble {{item.mine?'b-mine':'b-peer'}}">{{item.content}}</view>
+
+          <view wx:elif="{{item.isImage}}" class="bubble-img {{item.uploading?'sending':''}}" data-url="{{item.content}}" bindtap="previewImg">
+            <image class="m-img" src="{{item.content}}" mode="widthFix"></image>
+          </view>
+
+          <view wx:elif="{{item.isListing}}" class="card-msg" data-id="{{item.card.listingId}}" bindtap="tapCard">
+            <image class="cm-img" src="{{item.cardImg}}" mode="aspectFill"></image>
+            <view class="cm-main">
+              <view class="cm-title">{{item.card.title}}</view>
+              <view class="cm-price">¥{{item.cardPrice}}<text wx:if="{{item.card.priceUnit}}" class="cm-unit">/{{item.card.priceUnit}}</text></view>
+            </view>
+            <view class="cm-badge">宝贝</view>
+          </view>
+
+          <view wx:elif="{{item.isOrder}}" class="card-msg" data-id="{{item.card.orderId}}" bindtap="tapCard">
+            <image class="cm-img" src="{{item.cardImg}}" mode="aspectFill"></image>
+            <view class="cm-main">
+              <view class="cm-title">{{item.card.title || item.content}}</view>
+              <view class="cm-price cm-order">订单金额 ¥{{item.cardPrice}}</view>
+            </view>
+            <view class="cm-badge cm-badge-order">订单</view>
+          </view>
+
+          <view wx:elif="{{item.isListings}}" class="reco-wrap">
+            <scroll-view class="reco" scroll-x enable-flex>
+              <view class="reco-item" wx:for="{{item.cards}}" wx:for-item="c" wx:key="listingId" data-id="{{c.listingId}}" bindtap="tapCard">
+                <image class="reco-img" src="{{c.cover}}" mode="aspectFill"></image>
+                <view class="reco-title ellipsis">{{c.title}}</view>
+                <view class="reco-price">¥{{c.priceText}}</view>
+              </view>
+            </scroll-view>
+          </view>
+
+          <view wx:if="{{item.quickReplies.length}}" class="qr-wrap">
+            <view
+              class="qr"
+              wx:for="{{item.quickReplies}}"
+              wx:for-item="q"
+              wx:key="*this"
+              data-w="{{q}}"
+              bindtap="tapQuick">{{q}}</view>
+          </view>
+
+          <view class="m-meta">
+            <text class="m-time">{{item.timeText}}</text>
+            <text wx:if="{{item.mine && item.read}}" class="m-read">已读</text>
+          </view>
+        </view>
+      </view>
+    </block>
+
+    <!-- 正在输入 -->
+    <view wx:if="{{typing}}" class="msg-row">
+      <image wx:if="{{peerAvatar && !peerAvatarErr}}" class="m-avatar" src="{{peerAvatar}}" mode="aspectFill" binderror="onPeerAvatarErr"></image>
+      <view wx:else class="m-avatar av-letter" style="background:{{peerAvatarBg}};color:{{peerAvatarFg}}">{{peerAvatarLetter}}</view>
+      <view class="m-body">
+        <view class="bubble b-peer typing-bubble">
+          <view class="dot-ani"></view><view class="dot-ani d2"></view><view class="dot-ani d3"></view>
+        </view>
+      </view>
+    </view>
+
+    <view class="msgs-bottom" id="msg-bottom"></view>
+  </scroll-view>
+
+  <!-- 底部：输入栏 + 面板 -->
+  <view class="bottom-wrap">
+    <view class="input-bar">
+      <view class="ib-more" bindtap="toggleMore">＋</view>
+      <input
+        class="ib-input"
+        value="{{input}}"
+        placeholder="{{isAI ? '问问小校助手，比如：怎么下单？' : '发消息，聊一聊…'}}"
+        placeholder-class="ib-ph"
+        confirm-type="send"
+        cursor-spacing="20"
+        bindinput="onInput"
+        bindconfirm="onSend"
+        bindblur="onBlur" />
+      <view class="ib-emoji" bindtap="toggleEmoji">☺</view>
+      <view class="ib-send {{input?'on':''}}" bindtap="onSend">发送</view>
+    </view>
+
+    <view wx:if="{{showMore || showEmoji || showQuick}}" class="panel">
+      <block wx:if="{{showEmoji}}">
+        <view class="panel-title">表情</view>
+        <view class="emoji-grid">
+          <view class="emoji" wx:for="{{emojis}}" wx:key="*this" data-e="{{item}}" bindtap="tapEmoji">{{item}}</view>
+        </view>
+      </block>
+
+      <block wx:elif="{{showQuick}}">
+        <view class="panel-title">{{isAI ? '你可能想问' : '常用短语'}}</view>
+        <view class="quick-list">
+          <view class="quick-item" wx:for="{{isAI ? aiQuick : quickWords}}" wx:key="*this" data-w="{{item}}" bindtap="tapQuick">{{item}}</view>
+        </view>
+      </block>
+
+      <block wx:else>
+        <view class="more-actions">
+          <view class="ma-item" bindtap="sendImage">
+            <view class="ma-ico ico-img">🖼</view>
+            <text class="ma-label">图片</text>
+          </view>
+          <view class="ma-item" bindtap="toggleQuick">
+            <view class="ma-ico ico-quick">💬</view>
+            <text class="ma-label">常用语</text>
+          </view>
+          <view class="ma-item" bindtap="goOrder">
+            <view class="ma-ico ico-order">📋</view>
+            <text class="ma-label">我的订单</text>
+          </view>
+          <view class="ma-item" bindtap="goMine">
+            <view class="ma-ico ico-mine">🧑</view>
+            <text class="ma-label">我的主页</text>
+          </view>
+        </view>
+
+        <view class="panel-title" wx:if="{{isAI && myListings.length}}">把我的宝贝发给 AI 问问</view>
+        <scroll-view wx:if="{{isAI && myListings.length}}" class="my-list" scroll-x enable-flex>
+          <view class="ml-item" wx:for="{{myListings}}" wx:key="id" data-id="{{item.id}}" bindtap="sendListing">
+            <image class="ml-img" src="{{item.cover}}" mode="aspectFill"></image>
+            <view class="ml-title ellipsis">{{item.title}}</view>
+          </view>
+        </scroll-view>
+      </block>
+    </view>
+  </view>
+</view>

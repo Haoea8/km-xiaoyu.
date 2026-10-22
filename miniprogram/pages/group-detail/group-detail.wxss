@@ -1,0 +1,93 @@
+/* ---------- 状态头 ---------- */
+.hero {
+  margin: 8rpx 24rpx 0; padding: 44rpx 32rpx 36rpx;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(135deg, #4CD08A, #1FA45B);
+  color: #fff;
+  box-shadow: 0 14rpx 34rpx rgba(23, 138, 74, 0.26);
+}
+.hero.success { background: linear-gradient(135deg, #5FD69B, #22B573); box-shadow: 0 14rpx 34rpx rgba(34, 181, 115, 0.26); }
+.hero.failed { background: linear-gradient(135deg, #A9B4C4, #8D9AA8); box-shadow: 0 14rpx 34rpx rgba(141, 154, 168, 0.24); }
+.hero-status { font-size: 48rpx; font-weight: 800; letter-spacing: 2rpx; }
+.hero-msg { font-size: 25rpx; opacity: 0.94; margin-top: 14rpx; }
+.hl { font-size: 40rpx; font-weight: 800; }
+
+.progress { margin-top: 40rpx; }
+.pg-bar { height: 16rpx; background: rgba(255, 255, 255, 0.3); border-radius: 999rpx; overflow: hidden; }
+.pg-fill { height: 100%; background: #fff; border-radius: 999rpx; transition: width 0.4s ease; }
+.pg-meta { display: flex; align-items: center; justify-content: space-between; margin-top: 14rpx; font-size: 23rpx; opacity: 0.94; }
+.pg-time { font-weight: 600; }
+
+/* ---------- 商品 ---------- */
+.card { margin: 20rpx 24rpx 0; padding: 28rpx; }
+.goods { display: flex; align-items: center; gap: 20rpx; }
+.g-img { width: 150rpx; height: 150rpx; border-radius: 18rpx; background: #F1F3F5; flex-shrink: 0; }
+.g-main { flex: 1; min-width: 0; }
+.g-title { font-size: 28rpx; font-weight: 600; line-height: 1.45; }
+.g-price { font-size: 38rpx; color: var(--brand); font-weight: 700; margin-top: 14rpx; }
+.yuan { font-size: 24rpx; }
+.g-go { font-size: 23rpx; color: var(--ink-3); flex-shrink: 0; }
+
+/* ---------- 成员 ---------- */
+.card-title { font-size: 30rpx; font-weight: 700; margin-bottom: 24rpx; }
+.m-grid { display: flex; flex-wrap: wrap; gap: 24rpx 0; }
+.m-item { width: 25%; display: flex; flex-direction: column; align-items: center; }
+.m-avatar-wrap { position: relative; }
+.m-avatar { width: 96rpx; height: 96rpx; border-radius: 28rpx; background: #EDEFF2; }
+.m-placeholder {
+  display: flex; align-items: center; justify-content: center;
+  border: 3rpx dashed var(--ink-4); color: var(--ink-4);
+  font-size: 42rpx; background: #FAFBFC; box-sizing: border-box;
+}
+.m-crown {
+  position: absolute; bottom: -12rpx; left: 50%; transform: translateX(-50%);
+  background: linear-gradient(135deg, #FFD24D, #F5A623); color: #fff;
+  font-size: 17rpx; padding: 2rpx 12rpx; border-radius: 999rpx;
+  white-space: nowrap;
+}
+.m-name { font-size: 22rpx; margin-top: 12rpx; max-width: 150rpx; text-align: center; }
+.m-state { font-size: 19rpx; color: var(--gold); margin-top: 4rpx; }
+.m-state.paid { color: var(--green); }
+.m-item.empty .m-name, .m-item.empty .m-state { color: var(--ink-4); }
+
+/* ---------- 规则 ---------- */
+.rule-item { font-size: 24rpx; color: var(--ink-2); line-height: 1.7; margin-bottom: 10rpx; }
+
+/* ---------- 底栏 ---------- */
+.footer-pad { height: calc(190rpx + env(safe-area-inset-bottom)); }
+.footer {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 50;
+  background: #fff; padding: 16rpx 20rpx calc(16rpx + env(safe-area-inset-bottom));
+  display: flex; align-items: center; gap: 14rpx;
+  box-shadow: 0 -6rpx 24rpx rgba(31, 35, 40, 0.06);
+}
+.f-copy {
+  height: 84rpx; padding: 0 26rpx; border-radius: 999rpx;
+  border: 2rpx solid var(--line); color: var(--ink-2);
+  font-size: 25rpx; display: flex; align-items: center; flex-shrink: 0;
+}
+.f-share {
+  height: 84rpx; padding: 0 26rpx; border-radius: 999rpx; margin: 0;
+  background: #E4F6EC; color: var(--brand); font-size: 25rpx; font-weight: 600;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  line-height: 1; border: none;
+}
+.f-share::after { border: none; }
+.f-main {
+  flex: 1; height: 84rpx; border-radius: 999rpx;
+  background: var(--brand-grad); color: #fff; font-weight: 700; font-size: 29rpx;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 8rpx 20rpx rgba(31, 164, 91, 0.26);
+}
+.f-done {
+  flex: 1; height: 84rpx; border-radius: 999rpx;
+  background: #E6F8F0; color: var(--green); font-size: 27rpx; font-weight: 600;
+  display: flex; align-items: center; justify-content: center;
+}
+.f-quit {
+  height: 84rpx; padding: 0 24rpx; border-radius: 999rpx;
+  color: var(--ink-3); font-size: 25rpx;
+  display: flex; align-items: center; flex-shrink: 0;
+}
+
+.skeleton-wrap { padding-top: 20rpx; }

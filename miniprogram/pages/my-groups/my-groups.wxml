@@ -1,0 +1,69 @@
+<view class="page-wrap">
+  <navbar title="我的拼团" back="{{true}}"></navbar>
+
+  <!-- 概览 -->
+  <view class="stat-row">
+    <view class="stat">
+      <view class="stat-num">{{stats.ongoing}}</view>
+      <view class="stat-label">拼团中</view>
+    </view>
+    <view class="stat-line"></view>
+    <view class="stat">
+      <view class="stat-num green">{{stats.success}}</view>
+      <view class="stat-label">已成团</view>
+    </view>
+  </view>
+
+  <!-- 筛选 -->
+  <view class="tabs">
+    <view
+      wx:for="{{tabs}}"
+      wx:key="key"
+      class="tab {{tab===item.key?'on':''}}"
+      data-k="{{item.key}}"
+      bindtap="onTab">{{item.label}}</view>
+  </view>
+
+  <!-- 列表 -->
+  <view class="list">
+    <view class="g-card" wx:for="{{filtered}}" wx:key="id" data-id="{{item.id}}" bindtap="goDetail">
+      <view class="g-head">
+        <view class="g-status {{item.status}}">
+          {{item.status === 'open' ? '拼团中' : (item.status === 'success' ? '已成团' : '已失败')}}
+        </view>
+        <view class="g-role">{{item.isLeader ? '我是团长' : '我是团员'}}</view>
+      </view>
+
+      <view class="g-body">
+        <image class="g-img" src="{{item.cover}}" mode="aspectFill" catchtap="goListing" data-id="{{item.listingId}}"></image>
+        <view class="g-main">
+          <view class="g-title ellipsis2">{{item.listing.title}}</view>
+          <view class="g-price"><text class="yuan">¥</text>{{item.priceText}}</view>
+          <view class="g-avatars">
+            <image class="g-av" wx:for="{{item.members}}" wx:for-item="m" wx:key="userId" src="{{m.avatar}}" mode="aspectFill"></image>
+            <text class="g-count">共 {{item.memberCount}} 人</text>
+          </view>
+        </view>
+      </view>
+
+      <view class="g-progress">
+        <view class="gp-bar"><view class="gp-fill" style="width:{{item.percent}}%"></view></view>
+        <view class="gp-meta">
+          <text>{{item.paidCount}}/{{item.targetCount}} 人已付款</text>
+          <text class="gp-need">{{item.status === 'open' ? ('还差 ' + item.needCount + ' 人') : item.statusText}}</text>
+        </view>
+      </view>
+
+      <view class="g-foot">
+        <text class="g-expire">{{item.expireLeft}}</text>
+        <text class="g-mine {{item.minePaid ? 'paid' : ''}}">{{item.minePaid ? '我已付款' : '我待付款'}}</text>
+      </view>
+    </view>
+  </view>
+
+  <empty wx:if="{{!loading && !filtered.length}}" text="还没有拼团记录" sub="去拼团专区看看，找人一起拼更便宜"></empty>
+
+  <view wx:if="{{!loading && !list.length}}" class="go-zone" bindtap="goZone">去逛拼团专区 ›</view>
+
+  <view class="bottom-pad"></view>
+</view>

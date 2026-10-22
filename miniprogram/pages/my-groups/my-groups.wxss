@@ -1,0 +1,80 @@
+/* ---------- 概览 ---------- */
+.stat-row {
+  display: flex; align-items: center;
+  margin: 8rpx 24rpx 0; padding: 32rpx 0;
+  background: #fff; border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+}
+.stat { flex: 1; text-align: center; }
+.stat-num { font-size: 52rpx; font-weight: 800; color: var(--brand); font-family: "DIN Alternate", sans-serif; }
+.stat-num.green { color: var(--green); }
+.stat-label { font-size: 23rpx; color: var(--ink-3); margin-top: 6rpx; }
+.stat-line { width: 2rpx; height: 60rpx; background: var(--line); }
+
+/* ---------- 筛选 ---------- */
+.tabs { display: flex; gap: 16rpx; padding: 26rpx 24rpx 8rpx; }
+.tab {
+  flex: 1; height: 68rpx; border-radius: 999rpx;
+  background: #fff; border: 2rpx solid var(--line);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 26rpx; color: var(--ink-2);
+}
+.tab.on {
+  background: var(--brand-grad); color: #fff; border-color: transparent;
+  font-weight: 600; box-shadow: 0 8rpx 18rpx rgba(31, 164, 91, 0.24);
+}
+
+/* ---------- 卡片 ---------- */
+.list { padding: 16rpx 24rpx 0; }
+.g-card {
+  background: #fff; border-radius: var(--radius-lg);
+  padding: 26rpx; margin-bottom: 22rpx;
+  box-shadow: var(--shadow);
+}
+.g-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20rpx; }
+.g-status {
+  font-size: 22rpx; padding: 5rpx 18rpx; border-radius: 8rpx;
+  background: var(--brand-soft); color: var(--brand); font-weight: 600;
+}
+.g-status.success { background: #E6F8F0; color: var(--green); }
+.g-status.failed { background: #F2F4F7; color: var(--ink-3); }
+.g-role { font-size: 21rpx; color: var(--ink-4); }
+
+.g-body { display: flex; gap: 20rpx; }
+.g-img { width: 150rpx; height: 150rpx; border-radius: 18rpx; background: #F1F3F5; flex-shrink: 0; }
+.g-main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.g-title { font-size: 28rpx; font-weight: 600; line-height: 1.45; }
+.g-price { font-size: 36rpx; color: var(--brand); font-weight: 700; margin-top: 10rpx; }
+.yuan { font-size: 22rpx; }
+.g-avatars { display: flex; align-items: center; margin-top: auto; padding-top: 12rpx; }
+.g-av {
+  width: 44rpx; height: 44rpx; border-radius: 50%;
+  border: 3rpx solid #fff; background: #EDEFF2; margin-left: -14rpx;
+}
+.g-av:first-child { margin-left: 0; }
+.g-count { font-size: 21rpx; color: var(--ink-4); margin-left: 12rpx; }
+
+.g-progress { margin-top: 22rpx; }
+.gp-bar { height: 12rpx; background: #EEF1F5; border-radius: 999rpx; overflow: hidden; }
+.gp-fill { height: 100%; background: var(--brand-grad); border-radius: 999rpx; }
+.gp-meta {
+  display: flex; align-items: center; justify-content: space-between;
+  font-size: 22rpx; color: var(--ink-3); margin-top: 10rpx;
+}
+.gp-need { color: var(--brand); font-weight: 600; }
+
+.g-foot {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-top: 18rpx; padding-top: 18rpx; border-top: 2rpx solid var(--line);
+}
+.g-expire { font-size: 21rpx; color: var(--ink-4); }
+.g-mine { font-size: 22rpx; color: var(--gold); }
+.g-mine.paid { color: var(--green); }
+
+.go-zone {
+  margin: 40rpx auto 0; width: 320rpx; height: 84rpx; border-radius: 999rpx;
+  background: var(--brand-soft); color: var(--brand);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 28rpx; font-weight: 600;
+}
+.bottom-pad { height: 80rpx; }

@@ -1,0 +1,110 @@
+.nb-dot {
+  font-size: 21rpx; color: var(--ink-3);
+  padding: 4rpx 16rpx; border-radius: 999rpx; background: #F2F4F7;
+}
+.nb-dot.on { color: var(--green); background: #E6F8F0; }
+
+/* ---------- 互动消息入口 ---------- */
+.it-card {
+  display: flex; align-items: center; gap: 20rpx;
+  margin: 24rpx 24rpx 0; padding: 26rpx 28rpx;
+  background: #fff; border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+}
+.it-card:active { background: #FAFBFC; }
+.it-card-ico {
+  position: relative; width: 84rpx; height: 84rpx; border-radius: 28rpx;
+  background: var(--brand-soft);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 40rpx; line-height: 1; flex-shrink: 0;
+}
+.it-card-badge { position: absolute; top: -10rpx; right: -10rpx; }
+.it-card-main { flex: 1; min-width: 0; }
+.it-card-title { font-size: 31rpx; font-weight: 700; color: var(--ink); }
+.it-card-desc {
+  font-size: 23rpx; color: var(--ink-3); margin-top: 6rpx;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.it-card-go { font-size: 36rpx; color: var(--ink-4); flex-shrink: 0; }
+
+/* ---------- AI 卡片 ---------- */
+.ai-card {
+  position: relative; overflow: hidden;
+  margin: 24rpx; padding: 32rpx 28rpx;
+  background: linear-gradient(120deg, #2B3242 0%, #3D3350 55%, #4A2E43 100%);
+  border-radius: var(--radius-lg);
+  display: flex; align-items: center; gap: 22rpx;
+  box-shadow: 0 14rpx 36rpx rgba(43, 50, 66, 0.28);
+}
+.ai-glow {
+  position: absolute; right: -60rpx; top: -60rpx;
+  width: 240rpx; height: 240rpx; border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 138, 60, 0.55), transparent 70%);
+}
+.ai-avatar {
+  width: 96rpx; height: 96rpx; border-radius: 30rpx;
+  background: linear-gradient(135deg, #4CD08A, #1FA45B);
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-size: 34rpx; font-weight: 700; flex-shrink: 0;
+  box-shadow: 0 8rpx 20rpx rgba(23, 138, 74, 0.4);
+  overflow: hidden;
+}
+.ai-img { width: 100%; height: 100%; }
+.ai-txt { letter-spacing: 1rpx; }
+.ai-main { flex: 1; min-width: 0; }
+.ai-name { font-size: 31rpx; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 12rpx; }
+.ai-badge {
+  font-size: 19rpx; font-weight: 500; color: #FFC178;
+  background: rgba(255, 193, 120, 0.16); padding: 2rpx 12rpx; border-radius: 999rpx;
+}
+.ai-desc { font-size: 23rpx; color: rgba(255, 255, 255, 0.62); margin-top: 8rpx; }
+.ai-go { font-size: 24rpx; color: #FFC178; flex-shrink: 0; }
+
+/* ---------- 会话列表 ---------- */
+.section-head2 {
+  display: flex; align-items: baseline; justify-content: space-between;
+  padding: 12rpx 32rpx 16rpx;
+}
+.sh-title { font-size: 27rpx; font-weight: 600; color: var(--ink-2); }
+.sh-sub { font-size: 22rpx; color: var(--ink-4); }
+
+.conv-list { padding: 0 24rpx; }
+.conv {
+  display: flex; align-items: center; gap: 22rpx;
+  background: #fff; border-radius: var(--radius);
+  padding: 26rpx 24rpx; margin-bottom: 16rpx;
+  box-shadow: var(--shadow);
+}
+.conv:active { background: #FAFBFC; }
+
+.conv-avatar-wrap { position: relative; flex-shrink: 0; }
+.conv-avatar { width: 92rpx; height: 92rpx; border-radius: 30rpx; background: #EDEFF2; display: block; }
+.conv-initial {
+  display: flex; align-items: center; justify-content: center;
+  background: linear-gradient(135deg, #A9B4C4, #8D9AA8);
+  color: #fff; font-size: 34rpx; font-weight: 600;
+}
+.conv-badge { position: absolute; top: -10rpx; right: -10rpx; }
+
+.conv-main { flex: 1; min-width: 0; }
+.conv-top { display: flex; align-items: center; justify-content: space-between; }
+.conv-name { font-size: 30rpx; font-weight: 600; }
+.conv-time { font-size: 21rpx; color: var(--ink-4); flex-shrink: 0; }
+.conv-msg { font-size: 25rpx; color: var(--ink-3); margin-top: 8rpx; }
+
+/* ---------- 未登录 ---------- */
+.guest { padding: 220rpx 60rpx 0; text-align: center; }
+.guest-ico { font-size: 96rpx; }
+.guest-title { font-size: 34rpx; font-weight: 700; margin-top: 28rpx; }
+.guest-sub { font-size: 25rpx; color: var(--ink-3); margin-top: 12rpx; }
+.guest-btn {
+  margin-top: 48rpx; height: 88rpx; border-radius: 999rpx;
+  background: var(--brand-grad); color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 30rpx; font-weight: 600;
+  box-shadow: 0 10rpx 26rpx rgba(31, 164, 91, 0.3);
+}
+
+.skeleton-wrap { padding: 24rpx; }
+.sk-row { height: 144rpx; margin-bottom: 16rpx; border-radius: var(--radius); }
+.bottom-pad { height: calc(180rpx + env(safe-area-inset-bottom)); }
