@@ -1,0 +1,136 @@
+<view class="page-wrap">
+  <navbar title="{{zoneName}}" back="{{true}}"></navbar>
+
+  <!-- 搜索 -->
+  <view class="search-wrap">
+    <view class="search">
+      <view class="s-ico"></view>
+      <input
+        class="s-input"
+        value="{{keyword}}"
+        focus="{{focus}}"
+        placeholder="搜索校园好物、代跑、拼团…"
+        placeholder-class="s-ph"
+        confirm-type="search"
+        bindinput="onSearchInput"
+        bindconfirm="onSearchConfirm" />
+      <view wx:if="{{keyword}}" class="s-clear" bindtap="clearKeyword">×</view>
+    </view>
+    <!-- 自然语言找货：把「200以内能打游戏的显示器」这种话交给后端解析 -->
+    <view class="ai-find {{aiBusy ? 'busy' : ''}}" bindtap="onAiSearch">
+      <text class="ai-spark">AI</text>找货
+    </view>
+  </view>
+
+  <!-- 未搜索时：历史 + 热搜 -->
+  <block wx:if="{{!keyword}}">
+    <view class="sec" wx:if="{{history.length}}">
+      <view class="sec-head">
+        <text class="sec-title">搜索历史</text>
+        <text class="sec-more" bindtap="clearHistory">清空</text>
+      </view>
+      <view class="words">
+        <view class="word" wx:for="{{history}}" wx:key="*this" data-w="{{item}}" bindtap="tapWord">{{item}}</view>
+      </view>
+    </view>
+
+    <view class="sec" wx:if="{{hotWords.length}}">
+      <view class="sec-head">
+        <text class="sec-title">🔥 校园热搜</text>
+      </view>
+      <view class="words">
+        <view class="word hot" wx:for="{{hotWords}}" wx:key="*this" data-w="{{item}}" bindtap="tapWord">{{item}}</view>
+      </view>
+    </view>
+  </block>
+
+  <!-- 分区切换 -->
+  <scroll-view class="zone-scroll" scroll-x enable-flex show-scrollbar="{{false}}">
+    <view class="zone-chip {{zone===''?'on':''}}" data-k="" bindtap="onZone">全部</view>
+    <view
+      wx:for="{{zones}}"
+      wx:key="code"
+      class="zone-chip {{zone===item.code?'on':''}}"
+      style="{{zone===item.code ? 'background:' + item.bg + ';border-color:transparent;color:#fff' : ''}}"
+      data-k="{{item.code}}"
+      bindtap="onZone">{{item.name}}</view>
+  </scroll-view>
+
+  <!-- 排序 -->
+  <view class="sort-bar">
+    <view class="sort-list">
+      <view
+        wx:for="{{sorts}}"
+        wx:key="key"
+        class="sort {{sort===item.key?'on':''}}"
+        data-k="{{item.key}}"
+        bindtap="onSort">{{item.label}}</view>
+    </view>
+    <text class="total">{{total}} 件</text>
+  </view>
+
+  <!-- AI 找货结果：只有当用户点「AI 找货」（或关键词搜索 0 结果时自动触发）才出现。
+       与下面的普通列表并存：AI 给的是「按语义挑出来的几件 + 为什么推荐」，
+       普通列表仍是完整结果，用户两种口径都能看。 -->
+  <view class="ai-panel" wx:if="{{aiOn}}">
+    <view class="ai-head">
+      <text class="ai-badge">AI</text>
+      <text class="ai-sum">{{aiSummary}}</text>
+      <text class="ai-close" bindtap="closeAi">收起</text>
+    </view>
+    <view class="ai-tip-line" wx:if="{{aiSource === 'rule'}}">离线规则引擎（大模型暂不可用，已自动降级）</view>
+    <scroll-view class="ai-scroll" scroll-x enable-flex show-scrollbar="{{false}}">
+      <view
+        class="ai-card"
+        wx:for="{{aiItems}}"
+        wx:key="listingId"
+        data-id="{{item.listingId}}"
+        bindtap="goDetail">
+        <image class="ai-img" src="{{item.cover}}" mode="aspectFill"></image>
+        <view class="ai-title ellipsis2">{{item.title}}</view>
+        <view class="ai-price"><text class="price-sym">¥</text>{{item.priceText}}</view>
+        <view class="ai-reason">{{item.reason}}</view>
+      </view>
+    </scroll-view>
+  </view>
+
+  <!-- 列表 -->
+  <view class="list">
+    <view class="l-card" wx:for="{{list}}" wx:key="id" data-id="{{item.id}}" bindtap="goDetail">
+      <!-- 封面：失败时自动重试一次，仍失败才显示占位文字。
+           原来只写了 lazy-load —— 真机上一旦某张图没触发加载/解码失败，就是一块纯灰，
+           用户完全分不清「没图」和「没加载出来」（2026-10-17 反馈）。 -->
+      <image
+        wx:if="{{!item.imgFail}}"
+        class="l-img"
+        src="{{item.cover}}"
+        mode="aspectFill"
+        data-index="{{index}}"
+        binderror="onCoverError"></image>
+      <view wx:else class="l-img l-img-fail">图片加载失败</view>
+      <view class="l-main">
+        <view class="l-title ellipsis2">{{item.title}}</view>
+        <view class="l-tags">
+          <text wx:if="{{item.modeText}}" class="l-tag">{{item.modeText}}</text>
+          <text class="l-tag gray">{{item.location || '校内'}}</text>
+        </view>
+        <view class="l-bottom">
+          <view class="price"><text class="price-sym">¥</text><text class="price-num">{{item.priceText}}</text></view>
+          <text class="l-seller">{{item.seller.nickname}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view wx:if="{{loadingMore}}" class="more-tip">正在加载…</view>
+  <view wx:elif="{{!hasMore && list.length}}" class="more-tip">— 已经到底啦 —</view>
+
+  <empty wx:if="{{!loading && !list.length}}" text="没有找到相关宝贝" sub="换个关键词，或者去发布一条"></empty>
+
+  <view wx:if="{{loading}}" class="skeleton-wrap">
+    <view class="skeleton sk-row" wx:for="{{[1,2,3,4]}}" wx:key="*this"></view>
+  </view>
+
+  <view class="bottom-pad"></view>
+  <view class="fab" bindtap="goPublish">＋</view>
+</view>

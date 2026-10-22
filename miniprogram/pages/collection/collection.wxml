@@ -1,0 +1,44 @@
+<view class="page-wrap">
+  <navbar title="我的收藏" back="{{true}}"></navbar>
+
+  <view class="tabs">
+    <view
+      wx:for="{{tabs}}"
+      wx:key="key"
+      class="tab {{type===item.key?'on':''}}"
+      data-k="{{item.key}}"
+      bindtap="onTab">{{item.label}}</view>
+  </view>
+
+  <!-- 宝贝 -->
+  <view class="list" wx:if="{{type === 'listing'}}">
+    <view class="f-card" wx:for="{{list}}" wx:key="id" data-id="{{item.id}}" bindtap="goDetail">
+      <image class="f-img" src="{{item.cover}}" mode="aspectFill" lazy-load></image>
+      <view class="f-main">
+        <view class="f-title ellipsis2">{{item.title}}</view>
+        <view class="f-meta">
+          <text class="f-seller">{{item.seller.nickname}}</text>
+          <text class="f-time">{{item.timeText}}</text>
+        </view>
+        <view class="f-bottom">
+          <view class="price"><text class="price-sym">¥</text><text class="price-num">{{item.priceText}}</text></view>
+          <view class="f-del" data-id="{{item.id}}" catchtap="unFav">取消收藏</view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 帖子 -->
+  <view class="post-list" wx:else>
+    <post-card wx:for="{{list}}" wx:key="id" post="{{item}}" bind:like="onLike" />
+  </view>
+
+  <empty wx:if="{{!loading && !list.length}}" text="{{type==='listing' ? '还没有收藏的宝贝' : '还没有收藏的帖子'}}" sub="看到喜欢的点个收藏吧"></empty>
+  <view wx:if="{{!loading && !list.length}}" class="go-btn" bindtap="goExplore">去首页逛逛 ›</view>
+
+  <view wx:if="{{loading}}" class="skeleton-wrap">
+    <view class="skeleton sk-row" wx:for="{{[1,2,3]}}" wx:key="*this"></view>
+  </view>
+
+  <view class="bottom-pad"></view>
+</view>

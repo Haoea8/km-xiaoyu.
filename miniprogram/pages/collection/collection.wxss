@@ -1,0 +1,44 @@
+.tabs { display: flex; gap: 16rpx; padding: 20rpx 24rpx 8rpx; }
+.tab {
+  flex: 1; height: 70rpx; border-radius: 999rpx;
+  background: #fff; border: 2rpx solid var(--line);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 27rpx; color: var(--ink-2);
+}
+.tab.on {
+  background: var(--brand-grad); color: #fff; border-color: transparent;
+  font-weight: 600; box-shadow: 0 8rpx 18rpx rgba(31, 164, 91, 0.24);
+}
+
+.list { padding: 16rpx 24rpx 0; }
+.f-card {
+  display: flex; gap: 20rpx;
+  background: #fff; border-radius: var(--radius);
+  padding: 22rpx; margin-bottom: 20rpx;
+  box-shadow: var(--shadow);
+}
+.f-card:active { background: #FAFBFC; }
+.f-img { width: 190rpx; height: 190rpx; border-radius: 18rpx; background: #F1F3F5; flex-shrink: 0; }
+.f-main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.f-title { font-size: 28rpx; font-weight: 600; line-height: 1.42; }
+.f-meta { display: flex; align-items: center; gap: 16rpx; margin-top: 12rpx; }
+.f-seller { font-size: 21rpx; color: var(--ink-3); }
+.f-time { font-size: 21rpx; color: var(--ink-4); }
+.f-bottom { display: flex; align-items: center; justify-content: space-between; margin-top: auto; padding-top: 12rpx; }
+.f-del {
+  font-size: 22rpx; color: var(--ink-3);
+  border: 2rpx solid var(--line); padding: 8rpx 20rpx; border-radius: 999rpx;
+}
+
+.post-list { padding: 16rpx 24rpx 0; }
+
+.go-btn {
+  margin: 30rpx auto 0; width: 300rpx; height: 80rpx; border-radius: 999rpx;
+  background: var(--brand-soft); color: var(--brand);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 27rpx; font-weight: 600;
+}
+
+.skeleton-wrap { padding: 16rpx 24rpx 0; }
+.sk-row { height: 236rpx; margin-bottom: 20rpx; border-radius: var(--radius); }
+.bottom-pad { height: 80rpx; }

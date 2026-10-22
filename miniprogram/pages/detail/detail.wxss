@@ -1,0 +1,167 @@
+/* ---------- 轮播 ---------- */
+.d-swiper { position: relative; }
+.d-swiper-box { width: 100%; height: 750rpx; }
+.d-img { width: 100%; height: 750rpx; background: #EDEFF2; }
+.d-count {
+  position: absolute; right: 28rpx; bottom: 28rpx;
+  background: rgba(0, 0, 0, 0.42); color: #fff;
+  font-size: 22rpx; padding: 6rpx 20rpx; border-radius: 999rpx;
+  backdrop-filter: blur(8rpx);
+}
+.d-status {
+  position: absolute; left: 28rpx; top: 60rpx;
+  background: rgba(0, 0, 0, 0.55); color: #fff;
+  font-size: 24rpx; padding: 8rpx 22rpx; border-radius: 999rpx;
+  backdrop-filter: blur(8rpx);
+}
+
+/* ---------- 主信息 ---------- */
+.d-main { margin: -40rpx 24rpx 0; position: relative; padding: 30rpx 28rpx; border-radius: var(--radius-lg); }
+.d-price-row { display: flex; align-items: baseline; gap: 12rpx; flex-wrap: wrap; }
+.d-big { font-size: 56rpx; }
+.d-unit { font-size: 22rpx; color: var(--ink-3); margin-left: 6rpx; }
+.d-mode {
+  font-size: 21rpx; padding: 4rpx 16rpx; border-radius: 8rpx;
+  margin-left: auto; font-weight: 600;
+}
+.d-title { font-size: 34rpx; font-weight: 700; line-height: 1.45; margin-top: 20rpx; }
+.d-stats { display: flex; gap: 28rpx; font-size: 22rpx; color: var(--ink-4); margin-top: 18rpx; }
+.d-tags { display: flex; flex-wrap: wrap; margin-top: 20rpx; }
+
+/* ---------- 通用卡片 ---------- */
+.d-card { margin: 20rpx 24rpx 0; }
+.d-sec-title { font-size: 30rpx; font-weight: 700; margin-bottom: 18rpx; }
+
+/* ---------- 拼团 ---------- */
+.g-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18rpx; }
+.g-title-wrap { display: flex; flex-direction: column; }
+.g-title { font-size: 32rpx; font-weight: 700; color: var(--brand); }
+.g-sub { font-size: 21rpx; color: var(--ink-3); margin-top: 4rpx; }
+.g-auto {
+  height: 64rpx; padding: 0 30rpx; border-radius: 999rpx;
+  background: var(--brand-grad); color: #fff;
+  font-size: 25rpx; font-weight: 600;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 8rpx 18rpx rgba(31, 164, 91, 0.26);
+}
+.g-tip {
+  font-size: 22rpx; color: #C97A00; background: #FFF7E8;
+  padding: 14rpx 20rpx; border-radius: 14rpx; margin-bottom: 18rpx; line-height: 1.5;
+}
+.g-list { display: flex; flex-direction: column; gap: 18rpx; }
+.g-item {
+  display: flex; align-items: center; gap: 18rpx;
+  padding: 20rpx; border-radius: 18rpx; background: #FAFBFC;
+}
+.g-item:active { background: #F2F4F7; }
+.g-avatars { display: flex; flex-shrink: 0; }
+.g-avatar {
+  width: 56rpx; height: 56rpx; border-radius: 50%;
+  border: 3rpx solid #fff; background: #EDEFF2;
+  margin-left: -16rpx;
+}
+.g-avatar:first-child { margin-left: 0; }
+.g-info { flex: 1; min-width: 0; }
+.g-line { display: flex; align-items: center; gap: 12rpx; }
+.g-need { font-size: 26rpx; font-weight: 600; color: var(--ink); }
+.g-status { font-size: 19rpx; padding: 2rpx 12rpx; border-radius: 6rpx; background: #E4F6EC; color: var(--brand); }
+.g-status.success { background: #E6F8F0; color: var(--green); }
+.g-progress { height: 10rpx; background: #E8EBEF; border-radius: 999rpx; margin-top: 12rpx; overflow: hidden; }
+.g-bar {
+  height: 100%; border-radius: 999rpx;
+  background: linear-gradient(90deg, #2FBE6E 0%, #1FA45B 100%);
+  box-shadow: inset 0 2rpx 4rpx rgba(255, 255, 255, 0.35);
+}
+.g-meta { font-size: 20rpx; color: var(--ink-4); margin-top: 8rpx; }
+.g-go {
+  flex-shrink: 0; height: 58rpx; padding: 0 24rpx; border-radius: 999rpx;
+  border: 2rpx solid var(--brand); color: var(--brand);
+  font-size: 23rpx; display: flex; align-items: center;
+}
+.g-empty { font-size: 23rpx; color: var(--ink-3); text-align: center; padding: 20rpx 0; }
+
+/* ---------- 卖家 ---------- */
+.d-seller { display: flex; align-items: center; gap: 20rpx; }
+.d-seller-main { flex: 1; min-width: 0; }
+.d-seller-name { font-size: 30rpx; font-weight: 600; display: flex; align-items: center; gap: 10rpx; }
+.d-ai {
+  font-size: 19rpx; color: #fff; background: linear-gradient(135deg, #FFD24D, #F5A623);
+  padding: 2rpx 12rpx; border-radius: 999rpx; font-weight: 500;
+}
+.d-seller-sub { display: flex; align-items: center; gap: 12rpx; margin-top: 10rpx; }
+.d-credit { font-size: 21rpx; color: var(--gold); background: #FFF6E0; padding: 3rpx 12rpx; border-radius: 6rpx; }
+.d-seller-bio { font-size: 22rpx; color: var(--ink-3); margin-top: 10rpx; }
+.d-seller-go { font-size: 23rpx; color: var(--brand); flex-shrink: 0; }
+
+/* ---------- 描述 ---------- */
+.d-desc { font-size: 28rpx; line-height: 1.7; color: var(--ink-2); white-space: pre-wrap; }
+
+/* ---------- 交易信息 ---------- */
+.d-info { display: flex; flex-direction: column; gap: 22rpx; }
+.d-info-row { display: flex; align-items: center; justify-content: space-between; gap: 20rpx; }
+.d-info-k { font-size: 26rpx; color: var(--ink-3); flex-shrink: 0; }
+.d-info-v { font-size: 26rpx; color: var(--ink-2); display: flex; align-items: center; gap: 10rpx; text-align: right; }
+.d-zone-dot { width: 14rpx; height: 14rpx; border-radius: 50%; }
+
+/* ---------- 提示 ---------- */
+.d-tip {
+  display: flex; gap: 14rpx; margin: 24rpx;
+  padding: 22rpx 24rpx; background: #FFF8E6; border-radius: var(--radius);
+  font-size: 22rpx; color: #A36A00; line-height: 1.55;
+}
+.d-tip-ico {
+  width: 34rpx; height: 34rpx; border-radius: 50%; background: #FFB300; color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 21rpx; font-weight: 700; flex-shrink: 0;
+}
+
+/* ---------- 相关推荐 ---------- */
+.d-rel-head { font-size: 30rpx; font-weight: 700; padding: 0 32rpx 18rpx; }
+.d-rel { white-space: nowrap; display: flex; padding: 0 24rpx;
+  height: 350rpx;
+  box-sizing: border-box;
+}
+.d-rel-item {
+  width: 240rpx; flex-shrink: 0; margin-right: 18rpx;
+  background: #fff; border-radius: var(--radius); padding: 14rpx;
+  box-shadow: var(--shadow);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.d-rel-item:active { transform: scale(0.97); box-shadow: var(--shadow-hover); }
+.d-rel-img { width: 100%; height: 220rpx; border-radius: 14rpx; background: #F1F3F5; }
+.d-rel-title { font-size: 24rpx; margin-top: 12rpx; }
+.d-rel-item .price { margin-top: 6rpx; display: block; }
+
+/* ---------- 底部栏 ---------- */
+.d-footer {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 50;
+  background: #fff; padding: 16rpx 20rpx calc(16rpx + env(safe-area-inset-bottom));
+  display: flex; align-items: center; gap: 14rpx;
+  box-shadow: 0 -6rpx 24rpx rgba(31, 35, 40, 0.06);
+}
+.d-f-btn { display: flex; flex-direction: column; align-items: center; gap: 4rpx; width: 84rpx; flex-shrink: 0; }
+.d-f-btn text { font-size: 19rpx; color: var(--ink-3); }
+/* 底部小图标：容器只负责尺寸与居中，图形由 ::after 绘制。
+   原样式只有 background 的圆点、没有任何图形（position:relative 却无伪元素），
+   真机上看起来就是几个灰白小圆，像图标没加载出来。 */
+.d-f-ico {
+  width: 40rpx; height: 40rpx;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 34rpx; line-height: 1; color: #B4BAC2;
+}
+/* 收藏：未收藏空心星 → 已收藏实心星并变主题色 */
+.d-f-star::after { content: '☆'; }
+.d-f-star.on::after { content: '★'; color: var(--brand); }
+/* 想要：未想要空心爱心 → 已想要实心爱心 */
+.d-f-heart::after { content: '♡'; }
+.d-f-heart.on::after { content: '♥'; color: #FF3B6B; }
+/* 举报：感叹号（用 ASCII 字符，任何机型都有字形且可着色） */
+.d-f-warn::after { content: '!'; font-size: 30rpx; font-weight: 700; color: #FFB300; }
+/* 管理 */
+.d-f-gear::after { content: '⚙'; }
+.d-f-chat { flex: 1; height: 84rpx; font-size: 28rpx; }
+.d-f-buy { flex: 1.2; height: 84rpx; font-size: 29rpx; }
+.d-f-mine { flex: 1; height: 84rpx; font-size: 28rpx; }
+
+/* ---------- 骨架 ---------- */
+.d-loading { padding-bottom: 40rpx; }

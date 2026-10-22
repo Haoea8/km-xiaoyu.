@@ -1,0 +1,215 @@
+<view class="page-wrap">
+  <!-- Hero -->
+  <view class="hero" style="padding-top:{{statusBar + 16}}px;">
+    <view class="hero-glow g1"></view>
+    <view class="hero-glow g2"></view>
+
+    <view class="hero-top">
+      <view class="hero-loc">
+        <text class="loc-dot"></text>
+        <text>广东科贸职业学院 · 清远校区</text>
+      </view>
+    </view>
+
+    <view class="hero-title">科贸小鱼</view>
+    <!--
+      「我的拼团」原来钉在 hero-top 的右侧（statusBar 下方），正好被微信胶囊压住。
+      现在挪到副标题这一行的最右边：不占状态栏、不碰胶囊，和「买卖·代跑…」同基线。
+    -->
+    <view class="hero-sub-row">
+      <view class="hero-sub">买卖 · 代跑 · 拼团 · 租借 · 换物 · 交流</view>
+      <view class="hero-groups" bindtap="goMyGroups">
+        <text class="hg-ico">👥</text>
+        <text>我的拼团</text>
+      </view>
+    </view>
+
+    <view class="search" bindtap="onSearchTap">
+      <view class="s-ico"></view>
+      <input
+        class="s-input"
+        placeholder="搜索二手好物、代跑、拼团…"
+        placeholder-class="s-ph"
+        confirm-type="search"
+        bindconfirm="onSearchConfirm" />
+      <view class="s-btn">搜索</view>
+    </view>
+  </view>
+
+  <!-- 公告：点击**弹窗显示公告正文**（不跳页）。
+       原来绑的是 goCircle（跳校园圈子，与公告无关），也不该跳走 ——
+       公告就一条短消息，弹窗看完关掉最省事。正文已在 /api/home 里整条带回。 -->
+  <view wx:if="{{notice && !noticeClosed}}" class="notice" bindtap="openNotice">
+    <view class="n-tag">公告</view>
+    <view class="n-text ellipsis">{{notice.title}}</view>
+    <view class="n-close" catchtap="closeNotice">×</view>
+  </view>
+
+  <!-- 金刚区 -->
+  <view class="kingkong">
+    <view class="kk-item" wx:for="{{zones}}" wx:key="code" data-zone="{{item.code}}" bindtap="goZone">
+      <view class="kk-ico" style="background:{{item.bg}}">{{item.short}}</view>
+      <text class="kk-name">{{item.name}}</text>
+    </view>
+  </view>
+
+  <!-- 特色入口（已按要求从首页隐藏；页面功能仍在，可通过后台/其他入口访问） -->
+
+  <!-- AI 智能推荐 -->
+  <view class="sec">
+    <view class="sec-head">
+      <view class="sec-title-row">
+        <view class="ai-badge">AI</view>
+        <text class="sec-title">为你推荐</text>
+      </view>
+      <view class="sec-more" bindtap="refreshRecommend">换一批 ⟳</view>
+    </view>
+
+    <view class="rec-reason">
+      <text class="rr-dot"></text>
+      <text class="rr-text">{{recReason}}</text>
+      <text wx:if="{{personalized}}" class="rr-tag">个性化</text>
+      <text wx:else class="rr-tag cold">热门</text>
+    </view>
+
+    <scroll-view wx:if="{{recTags.length}}" class="rt-scroll" scroll-x enable-flex show-scrollbar="{{false}}">
+      <view class="rt" wx:for="{{recTags}}" wx:key="*this" data-name="{{item}}" bindtap="goTopic">#{{item}}</view>
+    </scroll-view>
+
+    <view class="waterfall">
+      <view class="wf-col">
+        <view class="wf-card" wx:for="{{recList}}" wx:key="id" wx:if="{{index % 2 === 0}}" data-id="{{item.id}}" bindtap="goDetail">
+          <image class="wf-img" src="{{item.cover}}" mode="aspectFill" lazy-load></image>
+          <view class="wf-body">
+            <view class="wf-title ellipsis2">{{item.title}}</view>
+            <view class="wf-reason">{{item.reasonShort}}</view>
+            <view class="wf-bottom">
+              <view class="price"><text class="price-sym">¥</text><text class="price-num">{{item.priceText}}</text></view>
+              <text class="wf-seller ellipsis">{{item.seller.nickname}}</text>
+            </view>
+          </view>
+        </view>
+      </view>
+      <view class="wf-col">
+        <view class="wf-card" wx:for="{{recList}}" wx:key="id" wx:if="{{index % 2 === 1}}" data-id="{{item.id}}" bindtap="goDetail">
+          <image class="wf-img" src="{{item.cover}}" mode="aspectFill" lazy-load></image>
+          <view class="wf-body">
+            <view class="wf-title ellipsis2">{{item.title}}</view>
+            <view class="wf-reason">{{item.reasonShort}}</view>
+            <view class="wf-bottom">
+              <view class="price"><text class="price-sym">¥</text><text class="price-num">{{item.priceText}}</text></view>
+              <text class="wf-seller ellipsis">{{item.seller.nickname}}</text>
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 话题 -->
+  <view class="sec" wx:if="{{topics.length}}">
+    <view class="sec-head">
+      <text class="sec-title">热门话题</text>
+      <text class="sec-more" bindtap="goCircle">去圈子 ›</text>
+    </view>
+    <view class="topic-grid">
+      <view class="topic-card" wx:for="{{topics}}" wx:key="name" data-name="{{item.name}}" bindtap="goTopic">
+        <view class="tc-name">#{{item.name}}</view>
+        <view class="tc-count">{{item.count}} 条讨论</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 热帖 -->
+  <view class="sec" wx:if="{{hotPosts.length}}">
+    <view class="sec-head">
+      <text class="sec-title">校园热帖</text>
+      <text class="sec-more" bindtap="goCircle">更多 ›</text>
+    </view>
+    <view class="hot-post" wx:for="{{hotPosts}}" wx:key="id" data-id="{{item.id}}" bindtap="goPost">
+      <image wx:if="{{item.cover}}" class="hp-img" src="{{item.cover}}" mode="aspectFill"></image>
+      <view class="hp-main">
+        <view class="hp-content ellipsis2">{{item.content}}</view>
+        <view class="hp-meta">
+          <!-- 点头像/昵称 → 作者主页（catchtap 阻止冒泡，否则会连带进帖子详情）
+               头像 = 字标 + 图片两层，图片空/失败露出首字，不会是白块 -->
+          <view class="hp-av" style="background:{{item.author.bg}};color:{{item.author.fg}}"
+            data-id="{{item.author.id}}" catchtap="goUser">
+            <text class="hp-av-txt">{{item.author.letter}}</text>
+            <image wx:if="{{item.author.avatar}}" class="hp-av-img" src="{{item.author.avatar}}" mode="aspectFill"></image>
+          </view>
+          <text class="hp-name" data-id="{{item.author.id}}" catchtap="goUser">{{item.author.nickname}}</text>
+          <text class="hp-stat">♥ {{item.likeCount}} · 💬 {{item.commentCount}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 全部好物 -->
+  <view class="sec">
+    <view class="sec-head">
+      <text class="sec-title">全部好物</text>
+      <text class="sec-more" bindtap="goCircle">{{feed.length}} 件在售</text>
+    </view>
+    <view class="waterfall">
+      <view class="wf-col">
+        <view class="wf-card" wx:for="{{feed}}" wx:key="id" wx:if="{{index % 2 === 0}}" data-id="{{item.id}}" bindtap="goDetail">
+          <image class="wf-img" src="{{item.cover}}" mode="aspectFill" lazy-load></image>
+          <view class="wf-body">
+            <view class="wf-title ellipsis2">{{item.title}}</view>
+            <view class="wf-bottom">
+              <view class="price"><text class="price-sym">¥</text><text class="price-num">{{item.priceText}}</text></view>
+              <text class="wf-seller ellipsis">{{item.seller.nickname}}</text>
+            </view>
+          </view>
+        </view>
+      </view>
+      <view class="wf-col">
+        <view class="wf-card" wx:for="{{feed}}" wx:key="id" wx:if="{{index % 2 === 1}}" data-id="{{item.id}}" bindtap="goDetail">
+          <image class="wf-img" src="{{item.cover}}" mode="aspectFill" lazy-load></image>
+          <view class="wf-body">
+            <view class="wf-title ellipsis2">{{item.title}}</view>
+            <view class="wf-bottom">
+              <view class="price"><text class="price-sym">¥</text><text class="price-num">{{item.priceText}}</text></view>
+              <text class="wf-seller ellipsis">{{item.seller.nickname}}</text>
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view wx:if="{{loadingMore}}" class="more-tip">正在加载…</view>
+  <view wx:elif="{{!hasMore && feed.length}}" class="more-tip">— 已经到底啦 —</view>
+
+  <view wx:if="{{loading}}" class="skeleton-wrap">
+    <view class="skeleton sk-block" style="height:320rpx;border-radius:24rpx"></view>
+    <view class="skeleton sk-block" style="height:300rpx;border-radius:24rpx"></view>
+  </view>
+
+  <!-- 悬浮发布 -->
+  <view class="fab" bindtap="goPublish">＋</view>
+  <view class="bottom-pad"></view>
+
+  <!-- 公告弹窗（点首页公告横幅弹出）。
+       用自定义弹窗而不是 wx.showModal：正文可能较长，自带弹窗会截断，
+       这里可以滚动查看完整内容。
+       根节点用 catchtap 关掉自己，content 用 catchtap 阻止冒泡（点正文不关）。 -->
+  <view wx:if="{{noticeOpen}}" class="np-mask" catchtap="closeNoticePopup">
+    <view class="np" catchtap="noop">
+      <view class="np-head">
+        <view class="np-tag">公告</view>
+        <view class="np-close" catchtap="closeNoticePopup">×</view>
+      </view>
+      <view class="np-title">{{notice.title}}</view>
+      <view class="np-time">{{notice.timeText || ''}}</view>
+      <scroll-view class="np-body" scroll-y>
+        <text class="np-content">{{notice.content}}</text>
+      </scroll-view>
+      <view class="np-foot">
+        <view class="np-btn np-btn-ghost" catchtap="muteNotice">不再提示</view>
+        <view class="np-btn" catchtap="closeNoticePopup">我知道了</view>
+      </view>
+    </view>
+  </view>
+</view>

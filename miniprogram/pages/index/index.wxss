@@ -1,0 +1,305 @@
+/* ---------- Hero ---------- */
+.hero {
+  position: relative; overflow: hidden;
+  background: linear-gradient(150deg, #FFD84D 0%, #FFC53D 42%, #FFB300 100%);
+  padding-bottom: 40rpx;
+  border-bottom-left-radius: 44rpx;
+  border-bottom-right-radius: 44rpx;
+}
+/* 斜纹图案填充：让头图不再是「一块空旷的纯渐变」 */
+.hero::before {
+  content: ''; position: absolute; left: 0; right: 0; top: 0; bottom: 0;
+  background: repeating-linear-gradient(115deg,
+    rgba(255, 255, 255, 0.06) 0 24rpx, transparent 24rpx 52rpx);
+  pointer-events: none;
+}
+.hero-glow { position: absolute; border-radius: 50%; }
+.g1 {
+  width: 380rpx; height: 380rpx; right: -120rpx; top: -120rpx;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.28), transparent 68%);
+}
+.g2 {
+  width: 300rpx; height: 300rpx; left: -100rpx; bottom: -140rpx;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.32), transparent 70%);
+}
+.hero-top {
+  position: relative; z-index: 2;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 32rpx;
+}
+.hero-loc { display: flex; align-items: center; gap: 10rpx; color: rgba(255, 255, 255, 0.95); font-size: 23rpx; text-shadow: 0 1rpx 6rpx rgba(160, 100, 0, 0.4); }
+.loc-dot {
+  width: 12rpx; height: 12rpx; border-radius: 50%; background: #22B573;
+  box-shadow: 0 0 10rpx rgba(34, 181, 115, 0.6);
+}
+.hero-groups {
+  display: flex; align-items: center; gap: 6rpx;
+  background: rgba(255, 255, 255, 0.22); border-radius: 999rpx;
+  padding: 8rpx 20rpx; color: #fff; font-size: 23rpx;
+}
+.hg-ico { font-size: 24rpx; }
+
+.hero-title {
+  position: relative; z-index: 2;
+  padding: 26rpx 32rpx 0;
+  font-size: 58rpx; font-weight: 800; color: #fff; letter-spacing: 2rpx;
+  text-shadow: 0 4rpx 14rpx rgba(150, 90, 0, 0.35);
+}
+.hero-sub {
+  position: relative; z-index: 2;
+  padding: 8rpx 32rpx 0;
+  font-size: 24rpx; color: rgba(255, 255, 255, 0.92); letter-spacing: 1rpx;
+  text-shadow: 0 1rpx 6rpx rgba(160, 100, 0, 0.4);
+}
+/* 副标题 + 「我的拼团」一行：右边贴齐搜索框右沿，不再往右上角挤（那里是微信胶囊） */
+.hero-sub-row {
+  position: relative; z-index: 2;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8rpx 32rpx 0; gap: 16rpx;
+}
+.hero-sub-row .hero-sub { position: static; z-index: auto; padding: 0; }
+
+.search {
+  position: relative; z-index: 2;
+  margin: 28rpx 32rpx 0;
+  display: flex; align-items: center; gap: 14rpx;
+  background: #fff; border-radius: 999rpx;
+  height: 84rpx; padding: 0 8rpx 0 28rpx;
+  box-shadow: 0 10rpx 28rpx rgba(196, 138, 16, 0.28);
+}
+.s-ico {
+  width: 28rpx; height: 28rpx; border-radius: 50%;
+  border: 4rpx solid var(--ink-4); position: relative; flex-shrink: 0;
+}
+.s-ico::after {
+  content: ''; position: absolute; right: -12rpx; bottom: -8rpx;
+  width: 16rpx; height: 4rpx; background: var(--ink-4); transform: rotate(45deg); border-radius: 2rpx;
+}
+.s-input { flex: 1; font-size: 27rpx; }
+.s-ph { color: var(--ink-4); }
+.s-btn {
+  height: 68rpx; padding: 0 34rpx; border-radius: 999rpx;
+  background: var(--brand-grad); color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 26rpx; font-weight: 600; flex-shrink: 0;
+}
+
+/* ---------- 公告 ---------- */
+.notice {
+  display: flex; align-items: center; gap: 14rpx;
+  margin: 20rpx 24rpx 0; padding: 20rpx 24rpx;
+  background: #FFF8E6; border-radius: var(--radius);
+  border: 2rpx solid #FFE9BF;
+  box-shadow: 0 4rpx 14rpx rgba(245, 158, 11, 0.08);
+}
+.n-tag {
+  font-size: 20rpx; color: #fff; background: linear-gradient(135deg, #FFD24D, #F5A623);
+  padding: 3rpx 14rpx; border-radius: 8rpx; flex-shrink: 0;
+}
+.n-text { flex: 1; font-size: 24rpx; color: #A36A00; }
+.n-close { font-size: 32rpx; color: #C9A46A; padding: 0 6rpx; line-height: 1; }
+
+/* ---------- 公告弹窗（点横幅弹出，比跳页轻） ---------- */
+.np-mask {
+  position: fixed; left: 0; right: 0; top: 0; bottom: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex; align-items: center; justify-content: center;
+  padding: 0 60rpx;
+  z-index: 1000;
+}
+.np {
+  width: 100%;
+  max-height: 72vh;                 /* 长公告不撑破屏幕 */
+  display: flex; flex-direction: column;
+  background: #fff; border-radius: 28rpx;
+  padding: 32rpx 32rpx 28rpx;
+}
+.np-head { display: flex; align-items: center; justify-content: space-between; }
+.np-tag {
+  font-size: 22rpx; font-weight: 700; color: #fff;
+  background: linear-gradient(135deg, #FFD84D, #FFB300);
+  padding: 4rpx 18rpx; border-radius: 8rpx;
+}
+.np-close { font-size: 44rpx; color: #B9BEC6; line-height: 1; padding: 0 8rpx; }
+.np-title { font-size: 34rpx; font-weight: 800; line-height: 1.45; margin-top: 22rpx; }
+.np-time { font-size: 23rpx; color: var(--ink-4); margin-top: 10rpx; }
+/* 正文可滚动：长公告也能看全（wx.showModal 会截断，所以用自定义弹窗） */
+.np-body { max-height: 44vh; margin-top: 22rpx; }
+.np-content { font-size: 28rpx; line-height: 1.8; color: var(--ink-2); white-space: pre-wrap; word-break: break-all; }
+.np-foot { display: flex; gap: 16rpx; margin-top: 28rpx; }
+.np-btn {
+  flex: 1; margin-top: 0; height: 84rpx;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 30rpx; font-weight: 600; color: #fff;
+  background: var(--brand-grad); border-radius: 999rpx;
+}
+.np-btn-ghost { background: #F2F3F5; color: var(--ink-2); font-weight: 500; }
+
+/* ---------- 金刚区 ---------- */
+.kingkong {
+  display: flex; flex-wrap: wrap;
+  margin: 24rpx 24rpx 0; padding: 28rpx 8rpx 8rpx;
+  background: #fff;
+  /* 点阵图案填充：白卡不再空旷，又足够克制 */
+  background-image: radial-gradient(#F3EDDC 2.5rpx, transparent 2.5rpx);
+  background-size: 28rpx 28rpx;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+}
+.kk-item {
+  width: 20%; display: flex; flex-direction: column; align-items: center;
+  margin-bottom: 28rpx;
+}
+.kk-item:active { transform: scale(0.94); }
+.kk-ico {
+  width: 88rpx; height: 88rpx; border-radius: 28rpx;
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-size: 34rpx; font-weight: 700;
+  box-shadow: 0 3rpx 8rpx rgba(31, 35, 40, 0.06), 0 10rpx 20rpx rgba(31, 35, 40, 0.12);
+}
+.kk-name { font-size: 22rpx; color: var(--ink-2); margin-top: 12rpx; text-align: center; }
+
+/* ---------- 特色入口 ---------- */
+.feature-row { display: flex; gap: 20rpx; margin: 20rpx 24rpx 0; }
+.feature {
+  flex: 1; display: flex; align-items: center; gap: 16rpx;
+  padding: 26rpx 22rpx; border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  position: relative; overflow: hidden;
+}
+/* 卡片右上加半透明大圆光斑，渐变底更有层次 */
+.feature::after {
+  content: ''; position: absolute; right: -36rpx; top: -36rpx;
+  width: 140rpx; height: 140rpx; border-radius: 50%;
+  background: rgba(255, 255, 255, 0.45);
+}
+.f-wall { background: linear-gradient(135deg, #FFFBE6 0%, #FFF3BF 100%); border: 2rpx solid #FFEDA8; }
+.f-res { background: linear-gradient(135deg, #E9FBEF 0%, #CFF3DE 100%); border: 2rpx solid #BEEBD3; }
+.feature:active { transform: scale(0.98); }
+.f-ico { font-size: 46rpx; position: relative; z-index: 1; }
+.f-title { font-size: 29rpx; font-weight: 700; position: relative; z-index: 1; }
+.f-wall .f-title { color: #0A8A52; }
+.f-res .f-title { color: #0A8A52; }
+.f-sub { font-size: 21rpx; color: var(--ink-3); margin-top: 4rpx; position: relative; z-index: 1; }
+
+/* ---------- 通用区块 ---------- */
+.sec { margin-top: 40rpx; }
+.sec-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 32rpx 20rpx;
+}
+.sec-title-row { display: flex; align-items: center; gap: 12rpx; }
+.ai-badge {
+  font-size: 20rpx; font-weight: 800; color: #fff; letter-spacing: 1rpx;
+  background: linear-gradient(135deg, #FFD24D, #F5A623);
+  padding: 4rpx 14rpx; border-radius: 8rpx;
+  box-shadow: 0 4rpx 12rpx rgba(122, 90, 248, 0.32);
+}
+.sec-title { font-size: 34rpx; font-weight: 700; }
+.sec-more { font-size: 23rpx; font-weight: 600; color: #E09600; }
+
+/* ---------- AI 推荐 ---------- */
+.rec-reason {
+  display: flex; align-items: center; gap: 10rpx;
+  margin: 0 32rpx 18rpx;
+}
+.rr-dot {
+  width: 12rpx; height: 12rpx; border-radius: 50%;
+  background: linear-gradient(135deg, #FFD24D, #F5A623);
+}
+.rr-text { font-size: 24rpx; color: var(--ink-2); flex: 1; }
+.rr-tag {
+  font-size: 19rpx; color: var(--purple); background: #F1EDFE;
+  padding: 3rpx 14rpx; border-radius: 999rpx;
+}
+.rr-tag.cold { color: var(--ink-3); background: #F2F4F7; }
+
+.rt-scroll { white-space: nowrap; display: flex; padding: 0 24rpx 20rpx;
+  height: 86rpx;
+  box-sizing: border-box;
+}
+.rt {
+  flex-shrink: 0; margin-right: 14rpx;
+  font-size: 23rpx; color: var(--brand);
+  background: var(--brand-soft); padding: 10rpx 24rpx; border-radius: 999rpx;
+}
+
+/* ---------- 瀑布流 ---------- */
+.waterfall { display: flex; gap: 20rpx; padding: 0 24rpx; }
+.wf-col { flex: 1; display: flex; flex-direction: column; gap: 20rpx; }
+.wf-card {
+  background: #fff; border-radius: var(--radius);
+  overflow: hidden; box-shadow: var(--shadow);
+}
+.wf-card:active { transform: scale(0.985); }
+/* 图片高度固定 → 卡片高度只由「固定行数的标题」决定。
+   高度用 rpx，随屏幕宽度等比缩放，所以换机型时比例完全一致。 */
+.wf-img { width: 100%; height: 320rpx; background: #F1F3F5; display: block; }
+.wf-body { padding: 18rpx 20rpx 20rpx; }
+/* ⚠️ 标题必须恒定占 2 行高度（height = 2 × line-height = 2 × 38rpx）。
+   原来只靠 ellipsis2 自适应 1~2 行，于是「1 行标题」的卡片比「2 行标题」的
+   矮 39rpx；而两列是各自独立的 flex 列，各自向前排 ——
+   每出现一次「一边一行、一边两行」就错开 39rpx，累积起来就是
+   用户看到的「越往下拉越长、还不对齐」。
+   固定高度后所有卡片等高，两列严格对齐，且与机型无关。 */
+.wf-title { font-size: 27rpx; line-height: 38rpx; font-weight: 500; height: 76rpx; overflow: hidden; }
+.wf-reason {
+  display: inline-block; font-size: 19rpx; color: var(--purple);
+  background: #F5F2FF; padding: 2rpx 12rpx; border-radius: 6rpx;
+  margin-top: 10rpx;
+}
+.wf-bottom {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-top: 14rpx; gap: 10rpx;
+}
+/* 价格不换行、不压缩：否则长价格（如 ¥12345）会把这一行撑高一行，
+   同样破坏「卡片等高」。卖家名让位收缩（已有 ellipsis）。 */
+.wf-bottom .price { flex-shrink: 0; white-space: nowrap; }
+.wf-seller { font-size: 21rpx; color: var(--ink-4); max-width: 150rpx; min-width: 0; }
+
+/* ---------- 话题 ---------- */
+.topic-grid {
+  display: flex; flex-wrap: wrap; gap: 16rpx;
+  padding: 0 24rpx;
+}
+.topic-card {
+  /* ⚠️ 12rpx 不能改小：2×(50%−12rpx) + 16rpx = 100% − 8rpx，留 8rpx 余量。
+     刚好铺满（写成 -8rpx）时，rpx→px 的取整误差会把第二张卡挤到下一行。
+     见 tools/check-adaptive.js。 */
+  width: calc(50% - 12rpx); box-sizing: border-box;
+  background: #fff; border-radius: var(--radius);
+  padding: 22rpx 24rpx; box-shadow: var(--shadow);
+}
+.topic-card:active { background: #FAFBFC; }
+.tc-name { font-size: 27rpx; font-weight: 600; color: var(--brand); }
+.tc-count { font-size: 21rpx; color: var(--ink-4); margin-top: 6rpx; }
+
+/* ---------- 热帖 ---------- */
+.hot-post {
+  display: flex; gap: 20rpx;
+  margin: 0 24rpx 20rpx; padding: 24rpx;
+  background: #fff; border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+.hot-post:active { background: #FAFBFC; }
+.hp-img { width: 150rpx; height: 150rpx; border-radius: 16rpx; background: #F1F3F5; flex-shrink: 0; }
+.hp-main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.hp-content { font-size: 27rpx; line-height: 1.5; }
+.hp-meta { display: flex; align-items: center; gap: 10rpx; margin-top: auto; padding-top: 14rpx; }
+.hp-avatar { width: 36rpx; height: 36rpx; border-radius: 50%; background: #EDEFF2; }
+/* 头像字标兜底：字标在下、图片盖上（图片空/失败就露出首字，不会是白块） */
+.hp-av { position: relative; overflow: hidden; flex-shrink: 0; width: 36rpx; height: 36rpx; border-radius: 50%; }
+.hp-av-txt {
+  position: absolute; left: 0; top: 0; right: 0; bottom: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20rpx; font-weight: 600; line-height: 1;
+}
+.hp-av-img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; }
+.hp-name { font-size: 22rpx; color: var(--ink-2); }
+.hp-stat { font-size: 21rpx; color: var(--ink-4); margin-left: auto; }
+
+/* ---------- 其他 ---------- */
+.more-tip { text-align: center; font-size: 22rpx; color: var(--ink-4); padding: 30rpx 0; }
+.skeleton-wrap { padding: 0 24rpx; }
+.sk-block { margin-bottom: 24rpx; }
+.bottom-pad { height: calc(180rpx + env(safe-area-inset-bottom)); }

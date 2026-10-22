@@ -1,0 +1,188 @@
+<view class="page-wrap" wx:if="{{listing}}">
+  <!--
+    顶栏用**白底不透明**（不要 transparent）：
+    之前是透明沉浸式，图片从 y=0 就开始铺，导航文字和返回箭头直接压在图上，
+    状态栏/刘海也盖住图片顶部 —— 用户看到的就是「顶栏把图片挡住了」。
+    改成白底后 navbar 会补一个占位块，图片正好从顶栏下沿开始。
+  -->
+  <navbar title="宝贝详情" back="{{true}}"></navbar>
+
+  <!-- 图片轮播 -->
+  <view class="d-swiper">
+    <swiper class="d-swiper-box" circular indicator-dots="{{false}}" bindchange="onSwiperChange">
+      <swiper-item wx:for="{{images}}" wx:key="*this">
+        <image class="d-img" src="{{item}}" mode="aspectFill" data-index="{{index}}" bindtap="previewImage"></image>
+      </swiper-item>
+    </swiper>
+    <view class="d-count">{{current}} / {{images.length}}</view>
+    <view class="d-status" wx:if="{{listing.status !== 'on'}}">{{listing.status === 'sold' ? '已售出' : '已下架'}}</view>
+  </view>
+
+  <!-- 价格与标题 -->
+  <view class="d-main card">
+    <view class="d-price-row">
+      <view class="price"><text class="price-sym">¥</text><text class="price-num d-big">{{priceText}}</text>
+        <text class="d-unit">/{{listing.priceUnit || '件'}}</text>
+      </view>
+      <text class="price-old" wx:if="{{oldPriceText}}">¥{{oldPriceText}}</text>
+      <view class="d-mode" wx:if="{{modeText && modeText !== '出售'}}" style="background:{{zone.color}}22;color:{{zone.color}}">{{modeText}}</view>
+    </view>
+    <view class="d-title">{{listing.title}}</view>
+    <view class="d-stats">
+      <text>{{listing.views || 0}} 浏览</text>
+      <text>{{listing.favoriteCount || 0}} 收藏</text>
+      <text>{{listing.wantCount || 0}} 想要</text>
+      <text>{{listing.timeText}}</text>
+    </view>
+    <view class="d-tags" wx:if="{{listing.tags.length}}">
+      <text class="tag tag-brand" wx:for="{{listing.tags}}" wx:key="*this">{{item}}</text>
+    </view>
+  </view>
+
+  <!-- 拼团模块 -->
+  <view class="d-card card card-pad" wx:if="{{isGroup}}">
+    <view class="g-head">
+      <view class="g-title-wrap">
+        <text class="g-title">拼团进行中</text>
+        <text class="g-sub">{{targetCount}} 人成团 · 自动匹配</text>
+      </view>
+      <view class="g-auto" wx:if="{{listing.status === 'on' && !isMine}}" bindtap="onJoinGroup">自动参团</view>
+    </view>
+
+    <view class="g-tip" wx:if="{{autoTip}}">💡 {{autoTip}}</view>
+
+    <view class="g-list" wx:if="{{groups.length}}">
+      <view class="g-item" wx:for="{{groups}}" wx:key="id" data-id="{{item.id}}" bindtap="goGroup">
+        <view class="g-avatars">
+          <image
+            wx:for="{{item.members}}"
+            wx:for-item="m"
+            wx:key="userId"
+            wx:if="{{index < 4}}"
+            class="g-avatar"
+            src="{{m.avatar}}"
+            mode="aspectFill"></image>
+        </view>
+        <view class="g-info">
+          <view class="g-line">
+            <text class="g-need">还差 {{item.needCount}} 人</text>
+            <text class="g-status {{item.status}}">{{item.status === 'success' ? '已成团' : '拼团中'}}</text>
+          </view>
+          <view class="g-progress">
+            <view class="g-bar" style="width:{{item.paidCount / item.targetCount * 100}}%"></view>
+          </view>
+          <view class="g-meta">{{item.paidCount}}/{{item.targetCount}} 人已付款 · {{item.expireLeft}}</view>
+        </view>
+        <view class="g-go">去参团</view>
+      </view>
+    </view>
+    <view wx:else class="g-empty">还没有人开团，点「自动参团」立即开一个团</view>
+  </view>
+
+  <!-- 卖家 -->
+  <view class="d-card card card-pad" bindtap="goSeller">
+    <view class="d-seller">
+      <image class="avatar avatar-96" src="{{seller.avatar}}" mode="aspectFill"></image>
+      <view class="d-seller-main">
+        <view class="d-seller-name">
+          {{seller.nickname}}
+          <text class="d-ai" wx:if="{{seller.isAI}}">AI 助手</text>
+        </view>
+        <view class="d-seller-sub">
+          <text wx:if="{{seller.cert === 'student'}}" class="tag tag-green">已认证学生</text>
+          <text class="d-credit">信用 {{seller.credit}}</text>
+        </view>
+        <view class="d-seller-bio ellipsis" wx:if="{{seller.bio}}">{{seller.bio}}</view>
+      </view>
+      <view class="d-seller-go">主页</view>
+    </view>
+  </view>
+
+  <!-- 描述 -->
+  <view class="d-card card card-pad">
+    <view class="d-sec-title">宝贝描述</view>
+    <view class="d-desc">{{listing.desc || '卖家很懒，什么都没写～'}}</view>
+  </view>
+
+  <!-- 交易信息 -->
+  <view class="d-card card card-pad">
+    <view class="d-sec-title">交易信息</view>
+    <view class="d-info">
+      <view class="d-info-row">
+        <text class="d-info-k">所属分区</text>
+        <view class="d-info-v" bindtap="goZone">
+          <view class="d-zone-dot" style="background:{{zone.color}}"></view>{{zone.name}} ›
+        </view>
+      </view>
+      <view class="d-info-row">
+        <text class="d-info-k">交易地点</text>
+        <text class="d-info-v">{{listing.location || '校内'}}</text>
+      </view>
+      <view class="d-info-row">
+        <text class="d-info-k">支持方式</text>
+        <text class="d-info-v">{{listing.tradeMethods[0] || '校内面交'}}</text>
+      </view>
+      <view class="d-info-row">
+        <text class="d-info-k">担保交易</text>
+        <text class="d-info-v">平台托管货款，确认收货后打款给卖家</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 安全提示 -->
+  <view class="d-tip">
+    <text class="d-tip-ico">!</text>
+    <text>交流时请勿脱离平台私下转账，谨防诈骗。遇到问题可在聊天中随时联系 AI 客服。</text>
+  </view>
+
+  <!-- 相关推荐 -->
+  <view wx:if="{{related.length}}">
+    <view class="d-rel-head">同分区好物</view>
+    <scroll-view class="d-rel" scroll-x enable-flex>
+      <view class="d-rel-item" wx:for="{{related}}" wx:key="id" data-id="{{item.id}}" bindtap="goRelated">
+        <image class="d-rel-img" src="{{item.cover}}" mode="aspectFill" lazy-load></image>
+        <view class="d-rel-title ellipsis">{{item.title}}</view>
+        <view class="price price-sm"><text class="price-sym">¥</text><text class="price-num">{{item.priceText}}</text></view>
+      </view>
+    </scroll-view>
+  </view>
+
+  <view class="footer-pad"></view>
+
+  <!-- 底部操作栏 -->
+  <view class="d-footer">
+    <view class="d-f-btn" bindtap="onFav">
+      <view class="d-f-ico d-f-star {{fav ? 'on' : ''}}"></view>
+      <text>{{fav ? '已收藏' : '收藏'}}</text>
+    </view>
+    <view class="d-f-btn" bindtap="onWant">
+      <view class="d-f-ico d-f-heart {{want ? 'on' : ''}}"></view>
+      <text>{{want ? '已想要' : '想要'}}</text>
+    </view>
+    <view class="d-f-btn" bindtap="onReport" wx:if="{{!isMine}}">
+      <view class="d-f-ico d-f-warn"></view>
+      <text>举报</text>
+    </view>
+    <view class="d-f-btn" bindtap="onManage" wx:if="{{isMine}}">
+      <view class="d-f-ico d-f-gear"></view>
+      <text>管理</text>
+    </view>
+    <block wx:if="{{!isMine}}">
+      <view class="btn btn-dark d-f-chat" bindtap="onChat">聊一聊</view>
+      <view wx:if="{{isGroup}}" class="btn btn-primary d-f-buy {{listing.status !== 'on' ? 'btn-disabled' : ''}}" bindtap="onJoinGroup">{{buyText}}</view>
+      <!-- 拍下即锁：被别人拍下的单件商品，按钮直接禁用并说明原因，
+           而不是等用户点了才报错（那样像"按钮坏了"） -->
+      <view wx:else class="btn btn-primary d-f-buy {{buyDisabled ? 'btn-disabled' : ''}}" bindtap="onBuy">{{buyText}}</view>
+    </block>
+    <view wx:else class="btn btn-soft d-f-mine">这是我发布的宝贝</view>
+  </view>
+</view>
+
+<view wx:else>
+  <navbar title="宝贝详情" back="{{true}}"></navbar>
+  <view class="d-loading" wx:if="{{loading}}">
+    <view class="skeleton" style="height:640rpx;border-radius:0"></view>
+    <view class="skeleton" style="height:200rpx;margin:24rpx;border-radius:24rpx"></view>
+    <view class="skeleton" style="height:240rpx;margin:24rpx;border-radius:24rpx"></view>
+  </view>
+</view>
