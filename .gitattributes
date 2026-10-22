@@ -1,0 +1,32 @@
+# 统一换行符：仓库内与工作区都用 LF，避免 Windows 上出现
+# “LF will be replaced by CRLF” 的大量警告和假 diff。
+* text=auto eol=lf
+
+# ⚠️ 例外：Windows 批处理必须保持 CRLF。
+#
+# 起因（真实事故）：start-admin.cmd 是 LF 时，双击后 cmd.exe 解析错乱，
+# 窗口里刷出一片「'xxx' 不是内部或外部命令」，连英文标语都被切碎，
+# 但服务其实能启动 —— 很容易被当成"偶发"忽略。
+#
+# 这两行必须放在 `* text=auto eol=lf` **之后**：gitattributes 是
+# 「后面的规则覆盖前面的」，放前面会被上面的通配规则吃掉。
+#
+# ⚠️ 还有一条同类规则（换行符管不了）：**.cmd / .bat 里只写 ASCII**。
+# 2026-10-17 又踩一次：换成 CRLF 之后仍然刷「'xx' 不是内部或外部命令」，
+# 根因是文件里有中文（UTF-8 多字节）+ chcp 65001 —— cmd.exe 会按字节偏移
+# 重读批处理文件，多字节汉字把行切错，行尾被当成命令执行。
+# 对策：批处理只留 3~4 行调用逻辑，所有中文提示放进 Node 脚本（见 tools/start-admin.js）。
+*.cmd text eol=crlf
+*.bat text eol=crlf
+
+# 二进制文件不做换行符转换
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.gif  binary
+*.ico  binary
+*.webp binary
+*.ttf  binary
+*.woff binary
+*.woff2 binary
+*.zip  binary

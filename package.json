@@ -1,0 +1,16 @@
+{
+  "name": "campus-xianyu",
+  "version": "1.0.0",
+  "private": true,
+  "description": "校园生活服务与二手交易综合平台（微信小程序 + Node 后端 + 管理后台）",
+  "scripts": {
+    "server": "node server/src/index.js",
+    "seed": "node server/src/seed.js",
+    "e2e": "node automation/e2e.js",
+    "gen-icons": "node scripts/gen-icons.js"
+  },
+  "dependencies": {
+    "ws": "^8.22.0",
+    "busboy": "^1.6.0"
+  }
+}

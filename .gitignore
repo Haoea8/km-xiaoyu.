@@ -1,0 +1,75 @@
+# ============================================================
+# 校园集市 · git 忽略规则
+# 原则：依赖、构建产物、运行时状态、个人本地配置 —— 一律不入库
+# ============================================================
+
+# ---------- 依赖（最大头：cloudfunctions/campus/node_modules 约 22 MB）----------
+node_modules/
+**/node_modules/
+miniprogram_npm/
+**/miniprogram_npm/
+
+# ---------- 微信开发者工具 ----------
+# 个人本地编译设置，官方模板同样忽略
+project.private.config.json
+.wechatide/
+.wxcloud/
+
+# ---------- 本地服务端运行时数据 ----------
+# server/data/db.json 是本地 mock 服务的内存快照（含 session token、订单等），
+# 每次运行都会变，属于「状态」而非「源码」，入库只会产生无意义的大量 diff。
+server/data/
+
+# ---------- 云端凭据（务必忽略！）----------
+# server/.cloudbase.json 里是 CloudBase 的 API Key（管理员权限、长期有效），
+# 用来让本地管理后台读线上真实数据。一旦入库/进分享包＝把整个环境的
+# 管理权限送出去，所以必须忽略，只在本地保存。
+server/.cloudbase.json
+.cloudbase.json
+.env
+.env.local
+
+# ---------- 构建产物 / 缓存 ----------
+dist/
+build/
+.cache/
+*.log
+logs/
+
+# ---------- 系统 / 编辑器 ----------
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+*.swp
+*~
+
+# ---------- 本地临时文件 ----------
+# 调试时产生的探针/临时文件（约定：临时脚本以 _ 开头命名）
+#
+# ⚠ 原来这里写的是 `/_*.txt` 与 `/_*.json` —— 带前缀 `/` 表示**只匹配仓库根目录**，
+#   于是 tools/ 下的 `_probe-*.txt`、`_q.json` 全都没被忽略（`git status` 一直能看到），
+#   而且 `_*.js` 压根没覆盖 → 结果 `tools/_mem16.js` 这种调试脚本真的被提交进了库。
+#   现在按「根目录 + tools/」两处、且带全 js/txt/json 三种后缀来写。
+#
+# 注意：**刻意不用 `**/_*`** —— 那会误伤 `tools/_archive/`（一次性脚本归档，要保留）
+#       里以 _ 开头的文件，以及 `_backup/` 下的备份。
+# 注意：本文件只影响**未入库**的文件；已经提交进去的（如 tools/_mem16.js）
+#       不会因此消失，要清理得用 `git rm --cached`（属删除类操作，先与用户确认）。
+/_*.js
+/_*.txt
+/_*.json
+/tools/_*.js
+/tools/_*.txt
+/tools/_*.json
+
+# ============================================================
+# 以下内容「特意保留在版本库中」，不要忽略：
+#   tools/_archive/   —— 一次性脚本归档（有 README 说明，随时可恢复）
+#   _backup/          —— 重构前的旧代码备份（体积小，保留以防万一）
+#   DEPLOY.md         —— 部署文档
+#   cloudfunctions/campus/config.json —— 云函数配置（timeout / permissions）
+#   server/.cloudbase.json.example —— 云端凭据的**模板**（只有字段名，没有真 Key），
+#                                    保留它对方才知道该填什么；真 Key 文件已被忽略
+# ============================================================
