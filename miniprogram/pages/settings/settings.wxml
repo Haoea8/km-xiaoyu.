@@ -1,0 +1,95 @@
+<view class="page-wrap">
+  <navbar title="设置" back="{{true}}"></navbar>
+
+  <block wx:if="{{logged && user}}">
+    <!-- 资料 -->
+    <view class="card">
+      <view class="card-title">个人资料</view>
+
+      <!-- 头像：点左边一键带入【微信头像】，点右边从相册自选 -->
+      <view class="avatar-row">
+        <text class="row-label">头像</text>
+        <view class="avatar-right">
+          <!-- 微信「头像昵称填写能力」：open-type="chooseAvatar"
+               这是官方在 wx.getUserProfile 被回收后指定的替代方案，
+               点一下即可带入微信头像（用户主动点击，符合合规要求）。 -->
+          <button class="avatar-btn" open-type="chooseAvatar" bind:chooseavatar="onChooseAvatar">
+            <image class="avatar-img" src="{{avatarAbs}}" mode="aspectFill"></image>
+          </button>
+          <text class="avatar-hint" bindtap="changeAvatar">从相册选</text>
+        </view>
+      </view>
+
+      <view class="field">
+        <text class="field-label">昵称</text>
+        <!-- type="nickname"：微信键盘上方会出现「使用微信昵称」，点一下就填入 -->
+        <input class="field-input" type="nickname" value="{{nickname}}" placeholder="你的昵称" placeholder-class="ph" maxlength="20" bindinput="onNickname" />
+      </view>
+
+      <view class="field">
+        <text class="field-label">简介</text>
+        <input class="field-input" value="{{bio}}" placeholder="一句话介绍自己（选填）" placeholder-class="ph" maxlength="50" bindinput="onBio" />
+      </view>
+
+      <picker mode="selector" range="{{colleges}}" value="{{collegeIndex}}" bindchange="onCollege">
+        <view class="field">
+          <text class="field-label">学院校区</text>
+          <view class="field-value">{{colleges[collegeIndex]}} <text class="arrow">›</text></view>
+        </view>
+      </picker>
+
+      <picker mode="selector" range="{{grades}}" value="{{gradeIndex}}" bindchange="onGrade">
+        <view class="field">
+          <text class="field-label">年级</text>
+          <view class="field-value">{{grades[gradeIndex]}} <text class="arrow">›</text></view>
+        </view>
+      </picker>
+
+      <picker mode="selector" range="{{genders}}" value="{{genderIndex}}" bindchange="onGender">
+        <view class="field">
+          <text class="field-label">性别</text>
+          <view class="field-value">{{genders[genderIndex]}} <text class="arrow">›</text></view>
+        </view>
+      </picker>
+
+      <view class="field">
+        <text class="field-label">信用分</text>
+        <view class="field-value credit">{{user.credit}} 分</view>
+      </view>
+
+      <view class="field" bindtap="copyUid">
+        <text class="field-label">用户 ID</text>
+        <view class="field-value">{{user.id}} <text class="copy">复制</text></view>
+      </view>
+
+      <view class="save-btn {{saving ? 'disabled' : ''}}" bindtap="onSave">{{saving ? '保存中…' : '保存资料'}}</view>
+    </view>
+  </block>
+
+  <view wx:else class="guest-card" bindtap="goLogin">
+    <view class="guest-text">还没有登录，点击这里登录账号</view>
+    <text class="arrow">›</text>
+  </view>
+
+  <!-- 通用 -->
+  <view class="card list-card">
+    <view class="list-row" bindtap="clearCache">
+      <view class="lr-left"><text class="lr-ico">🧹</text><text class="lr-label">清除缓存</text></view>
+      <text class="lr-right">{{cacheSize}}</text>
+    </view>
+    <view class="list-row" bindtap="showEnv">
+      <view class="lr-left"><text class="lr-ico">☁️</text><text class="lr-label">云开发环境</text></view>
+      <text class="lr-right ellipsis">{{envId}}</text>
+    </view>
+    <view class="list-row" bindtap="about">
+      <view class="lr-left"><text class="lr-ico">ℹ️</text><text class="lr-label">关于我们</text></view>
+      <text class="lr-right">v{{version}}</text>
+    </view>
+  </view>
+
+  <view wx:if="{{logged}}" class="logout" bindtap="logout">退出登录</view>
+
+  <view class="footer-note">
+    科贸小鱼 · 传智杯第九届 AI 微信小程序开发挑战赛作品
+  </view>
+</view>

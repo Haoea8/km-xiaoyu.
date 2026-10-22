@@ -1,0 +1,82 @@
+.page {
+  min-height: 100vh;
+  background: linear-gradient(180deg, #FFF3EE 0%, #F5F6F8 42%);
+  padding-bottom: 60rpx;
+}
+
+/* ---------- Logo ---------- */
+.logo-wrap { padding: 60rpx 0 0; text-align: center; }
+.logo {
+  width: 160rpx; height: 160rpx; border-radius: 48rpx; margin: 0 auto;
+  background: var(--brand-grad); color: #fff;
+  font-size: 76rpx; font-weight: 800;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 18rpx 40rpx rgba(23, 138, 74, 0.32);
+}
+.app-name { font-size: 48rpx; font-weight: 800; margin-top: 30rpx; letter-spacing: 2rpx; }
+.app-slogan { font-size: 24rpx; color: var(--ink-3); margin-top: 12rpx; }
+
+/* ---------- 主按钮 ---------- */
+.main { padding: 70rpx 60rpx 0; }
+.wx-btn {
+  height: 96rpx; border-radius: 999rpx;
+  background: linear-gradient(135deg, #5BE07A, #22B573);
+  color: #fff; font-size: 32rpx; font-weight: 600;
+  display: flex; align-items: center; justify-content: center; gap: 14rpx;
+  box-shadow: 0 12rpx 30rpx rgba(34, 181, 115, 0.3);
+}
+.wx-btn.disabled { opacity: 0.6; }
+.wx-hint {
+  margin-top: 16rpx; text-align: center;
+  font-size: 22rpx; color: var(--ink-4); line-height: 1.5;
+}
+.wx-ico {
+  width: 44rpx; height: 44rpx; border-radius: 50%;
+  background: rgba(255, 255, 255, 0.26);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22rpx;
+}
+
+.agree { display: flex; align-items: center; justify-content: center; margin-top: 34rpx; }
+.checkbox {
+  width: 34rpx; height: 34rpx; border-radius: 50%;
+  border: 3rpx solid var(--ink-4); box-sizing: border-box;
+  margin-right: 12rpx; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+}
+.checkbox.on { background: var(--brand); border-color: var(--brand); }
+.tick {
+  width: 14rpx; height: 8rpx;
+  border-left: 3rpx solid #fff; border-bottom: 3rpx solid #fff;
+  transform: rotate(-45deg) translate(1rpx, -2rpx);
+  opacity: 0;
+}
+.checkbox.on .tick { opacity: 1; }
+.agree-text { font-size: 23rpx; color: var(--ink-3); }
+.agree-link { font-size: 23rpx; color: var(--brand); }
+
+.skip { text-align: center; font-size: 25rpx; color: var(--ink-3); margin-top: 40rpx; }
+
+/* ---------- 演示账号 ---------- */
+.demo { margin-top: 70rpx; padding: 0 40rpx; }
+.demo-head { display: flex; align-items: center; gap: 18rpx; }
+.demo-line { flex: 1; height: 2rpx; background: var(--line); }
+.demo-title { font-size: 23rpx; color: var(--ink-3); flex-shrink: 0; }
+.demo-tip {
+  font-size: 21rpx; color: var(--ink-4); text-align: center;
+  margin-top: 16rpx; line-height: 1.5;
+}
+.acc-grid { display: flex; flex-wrap: wrap; gap: 16rpx; margin-top: 26rpx; }
+.acc {
+  /* ⚠️ 14rpx 不能改小：4×(25%−14rpx) + 3×16rpx = 100% − 8rpx，留 8rpx 余量。
+     原来写 -12rpx 时三边间距正好等于容器宽（余量 0），取整会换行。
+     见 tools/check-adaptive.js。 */
+  width: calc(25% - 14rpx); box-sizing: border-box;
+  background: #fff; border-radius: 20rpx;
+  padding: 20rpx 8rpx 16rpx; text-align: center;
+  box-shadow: var(--shadow);
+}
+.acc:active { transform: scale(0.95); background: #FAFBFC; }
+.acc-avatar { width: 76rpx; height: 76rpx; border-radius: 24rpx; background: #EDEFF2; }
+.acc-name { font-size: 22rpx; font-weight: 600; margin-top: 10rpx; }
+.acc-college { font-size: 17rpx; color: var(--ink-4); margin-top: 2rpx; }

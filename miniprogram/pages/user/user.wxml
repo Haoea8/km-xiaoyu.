@@ -1,0 +1,79 @@
+<view class="page-wrap">
+  <navbar title="主页" back="{{true}}">
+    <view slot="right" wx:if="{{user && !isMe}}" class="nb-more" bindtap="onReport">···</view>
+  </navbar>
+
+  <block wx:if="{{!loading && user}}">
+    <!-- 资料头 -->
+    <view class="hero">
+      <view class="hero-glow"></view>
+      <view class="u-row">
+        <image class="u-avatar" src="{{avatarAbs}}" mode="aspectFill"></image>
+        <view class="u-main">
+          <view class="u-name">
+            {{user.nickname}}
+            <text wx:if="{{user.cert === 'student'}}" class="u-cert">学生认证</text>
+            <text wx:if="{{user.isAI}}" class="u-ai">AI</text>
+          </view>
+          <view class="u-sub">{{user.college || '广东科贸职业学院'}}<text wx:if="{{user.grade}}"> · {{user.grade}}</text></view>
+          <view class="u-bio" wx:if="{{user.bio}}">{{user.bio}}</view>
+        </view>
+      </view>
+
+      <view class="stat-row">
+        <view class="stat"><view class="stat-num">{{stats.published}}</view><view class="stat-label">在售</view></view>
+        <view class="stat"><view class="stat-num">{{stats.sold}}</view><view class="stat-label">已卖出</view></view>
+        <view class="stat" data-uid="{{id}}" data-name="{{user.nickname}}" bindtap="goDynamics"><view class="stat-num">{{stats.posts}}</view><view class="stat-label">动态</view></view>
+        <view class="stat"><view class="stat-num">{{stats.followers}}</view><view class="stat-label">粉丝</view></view>
+      </view>
+    </view>
+
+    <!-- 操作 -->
+    <view class="actions" wx:if="{{!isMe}}">
+      <view class="act-btn follow {{isFollowed ? 'on' : ''}}" bindtap="onFollow">
+        {{isFollowed ? '已关注' : '+ 关注'}}
+      </view>
+      <view class="act-btn chat" bindtap="chat">聊一聊</view>
+    </view>
+    <view class="actions" wx:else>
+      <view class="act-btn chat wide" bindtap="goMyGroups">我的拼团</view>
+    </view>
+
+    <!-- 信用 -->
+    <view class="card credit-card">
+      <view class="cc-left">
+        <view class="cc-label">信用分</view>
+        <view class="cc-val">{{user.credit || 80}}</view>
+      </view>
+      <view class="cc-bar">
+        <view class="cc-fill" style="width:{{user.credit || 80}}%"></view>
+      </view>
+      <view class="cc-tip">交易完成后双方可互相评价</view>
+    </view>
+
+    <!-- TA 的宝贝 -->
+    <view class="sec">
+      <view class="sec-head">
+        <text class="sec-title">在售宝贝（{{listings.length}}）</text>
+      </view>
+      <view class="grid">
+        <view class="g-card" wx:for="{{listings}}" wx:key="id" data-id="{{item.id}}" bindtap="goDetail">
+          <image class="g-img" src="{{item.cover}}" mode="aspectFill" lazy-load></image>
+          <view class="g-body">
+            <view class="g-title ellipsis2">{{item.title}}</view>
+            <view class="g-price"><text class="yuan">¥</text>{{item.priceText}}</view>
+          </view>
+        </view>
+      </view>
+      <empty wx:if="{{!listings.length}}" text="TA 还没有在售的宝贝" sub=""></empty>
+    </view>
+
+    <view class="uid" bindtap="copyUid">UID {{user.id}} · 点击复制</view>
+    <view class="bottom-pad"></view>
+  </block>
+
+  <view wx:else class="skeleton-wrap">
+    <view class="skeleton" style="height:280rpx;margin:24rpx;border-radius:32rpx"></view>
+    <view class="skeleton" style="height:300rpx;margin:24rpx;border-radius:24rpx"></view>
+  </view>
+</view>

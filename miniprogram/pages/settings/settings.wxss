@@ -1,0 +1,74 @@
+.card { margin: 20rpx 24rpx 0; padding: 28rpx; }
+.card-title { font-size: 30rpx; font-weight: 700; margin-bottom: 12rpx; }
+
+/* ---------- 头像 ---------- */
+.avatar-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 24rpx 0; border-bottom: 2rpx solid var(--line);
+}
+.avatar-right { display: flex; align-items: center; gap: 12rpx; }
+.avatar-img { width: 96rpx; height: 96rpx; border-radius: 28rpx; background: #EDEFF2; }
+.row-label { font-size: 28rpx; color: var(--ink); }
+
+/* open-type="chooseAvatar" 必须用 button 承载（微信规定），
+   但 button 自带边框/内边距/行高，会把头像挤变形 → 这里整个重置掉 */
+.avatar-btn {
+  padding: 0; margin: 0; border: none; background: transparent;
+  width: 96rpx; height: 96rpx; line-height: 1; border-radius: 28rpx;
+}
+.avatar-btn::after { border: none; }
+/* 「从相册选」小入口：保留原有能力（相册挑图），与「微信头像」并列 */
+.avatar-hint { font-size: 23rpx; color: var(--brand); }
+
+/* ---------- 表单 ---------- */
+.field { display: flex; align-items: center; padding: 24rpx 0; border-bottom: 2rpx solid var(--line); }
+.field:last-child { border-bottom: none; }
+.field-label { width: 170rpx; color: var(--ink-3); font-size: 27rpx; flex-shrink: 0; }
+.field-input { flex: 1; font-size: 28rpx; }
+.field-value { flex: 1; font-size: 28rpx; color: var(--ink-2); text-align: right; }
+.field-value.credit { color: var(--gold); font-weight: 700; }
+.arrow { color: var(--ink-4); font-size: 32rpx; margin-left: 8rpx; }
+.copy { font-size: 21rpx; color: var(--brand); margin-left: 12rpx; }
+.ph { color: var(--ink-4); }
+
+.save-btn {
+  margin-top: 28rpx; height: 88rpx; border-radius: 999rpx;
+  background: var(--brand-grad); color: #fff; font-size: 30rpx; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 8rpx 20rpx rgba(31, 164, 91, 0.26);
+}
+.save-btn.disabled { opacity: 0.6; }
+
+/* ---------- 未登录 ---------- */
+.guest-card {
+  display: flex; align-items: center; justify-content: space-between;
+  margin: 20rpx 24rpx 0; padding: 34rpx 28rpx;
+  background: #fff; border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+}
+.guest-text { font-size: 28rpx; color: var(--ink-2); }
+
+/* ---------- 列表 ---------- */
+.list-card { padding: 8rpx 28rpx; }
+.list-row {
+  display: flex; align-items: center; justify-content: space-between; gap: 20rpx;
+  padding: 26rpx 0; border-bottom: 2rpx solid var(--line);
+}
+.list-row:last-child { border-bottom: none; }
+.lr-left { display: flex; align-items: center; gap: 16rpx; }
+.lr-ico { font-size: 34rpx; }
+.lr-label { font-size: 28rpx; }
+.lr-right { font-size: 23rpx; color: var(--ink-4); max-width: 380rpx; text-align: right; }
+
+/* ---------- 退出 ---------- */
+.logout {
+  margin: 40rpx 24rpx 0; height: 92rpx; border-radius: 999rpx;
+  background: #fff; color: #E53935; font-size: 30rpx; font-weight: 600;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: var(--shadow);
+}
+.footer-note {
+  text-align: center; font-size: 21rpx; color: var(--ink-4);
+  padding: 50rpx 40rpx calc(40rpx + env(safe-area-inset-bottom));
+  line-height: 1.6;
+}

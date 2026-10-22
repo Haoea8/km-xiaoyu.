@@ -1,0 +1,128 @@
+/* ---------- Hero ---------- */
+.hero {
+  position: relative; overflow: hidden;
+  background: linear-gradient(150deg, #FFD84D 0%, #FFC53D 45%, #F5A623 100%);
+  padding: 0 32rpx 40rpx;
+  border-bottom-left-radius: 44rpx;
+  border-bottom-right-radius: 44rpx;
+}
+.hero-glow {
+  position: absolute; right: -100rpx; top: -100rpx;
+  width: 340rpx; height: 340rpx; border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.28), transparent 68%);
+}
+
+.me-row { position: relative; display: flex; align-items: center; gap: 22rpx; padding-top: 34rpx; }
+.me-avatar {
+  width: 128rpx; height: 128rpx; border-radius: 40rpx;
+  border: 4rpx solid rgba(255, 255, 255, 0.5); background: #EDEFF2; flex-shrink: 0;
+}
+.me-main { flex: 1; min-width: 0; }
+.me-name { font-size: 38rpx; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 12rpx; }
+.me-cert {
+  font-size: 18rpx; font-weight: 500; color: #FFE0C7;
+  background: rgba(255, 255, 255, 0.2); padding: 2rpx 12rpx; border-radius: 999rpx;
+}
+.me-sub { font-size: 23rpx; color: rgba(255, 255, 255, 0.85); margin-top: 10rpx; }
+.me-credit { display: flex; gap: 20rpx; margin-top: 12rpx; }
+.mc-item { font-size: 21rpx; color: rgba(255, 255, 255, 0.78); }
+.me-go { font-size: 42rpx; color: rgba(255, 255, 255, 0.7); flex-shrink: 0; }
+
+.stat-row {
+  position: relative; display: flex; align-items: center;
+  margin-top: 34rpx; padding: 24rpx 0;
+  background: rgba(255, 255, 255, 0.16); border-radius: var(--radius-lg);
+}
+.stat { flex: 1; text-align: center; }
+.stat-num { font-size: 40rpx; font-weight: 800; color: #fff; font-family: "DIN Alternate", sans-serif; }
+.stat-label { font-size: 21rpx; color: rgba(255, 255, 255, 0.82); margin-top: 4rpx; }
+
+/* ---------- 未登录 ---------- */
+.guest-hero { padding-bottom: 56rpx; }
+.guest-avatar {
+  position: relative;
+  width: 128rpx; height: 128rpx; border-radius: 40rpx; margin-top: 34rpx;
+  background: rgba(255, 255, 255, 0.24); color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 60rpx; font-weight: 700;
+}
+.guest-name { position: relative; font-size: 38rpx; font-weight: 700; color: #fff; margin-top: 24rpx; }
+.guest-sub { position: relative; font-size: 23rpx; color: rgba(255, 255, 255, 0.84); margin-top: 12rpx; line-height: 1.5; }
+.login-btn {
+  margin: 30rpx 24rpx 0; height: 92rpx; border-radius: 999rpx;
+  background: var(--brand-grad); color: #fff; font-weight: 700; font-size: 31rpx;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 10rpx 26rpx rgba(31, 164, 91, 0.3);
+}
+
+/* ---------- 钱包 ---------- */
+.wallet-card {
+  display: flex; align-items: center; justify-content: space-between;
+  margin: 22rpx 24rpx 0; padding: 30rpx 28rpx;
+  background: linear-gradient(120deg, #2B3242, #3E3550);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 12rpx 30rpx rgba(43, 50, 66, 0.24);
+}
+.wc-label { font-size: 22rpx; color: rgba(255, 255, 255, 0.6); }
+.wc-amount { font-size: 48rpx; font-weight: 800; color: #FFD8A8; margin-top: 8rpx; }
+.wc-yuan { font-size: 26rpx; margin-right: 4rpx; }
+.wc-btn {
+  font-size: 24rpx; color: #FFC178;
+  border: 2rpx solid rgba(255, 193, 120, 0.4);
+  padding: 12rpx 24rpx; border-radius: 999rpx;
+}
+
+/* ---------- 卡片 ---------- */
+.card { margin: 20rpx 24rpx 0; padding: 28rpx; }
+.card-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 22rpx; }
+.card-title { font-size: 30rpx; font-weight: 700; }
+.card-more { font-size: 23rpx; color: var(--ink-3); }
+
+/* ---------- 订单 ---------- */
+.order-grid { display: flex; }
+.og-item { flex: 1; display: flex; flex-direction: column; align-items: center; position: relative; }
+.og-item:active { opacity: 0.7; }
+.og-ico { font-size: 44rpx; }
+.og-label { font-size: 21rpx; color: var(--ink-2); margin-top: 10rpx; }
+.og-badge {
+  position: absolute; top: -6rpx; right: 50%; margin-right: -46rpx;
+  min-width: 30rpx; height: 30rpx; padding: 0 8rpx;
+  background: #FF3B30; color: #fff; border-radius: 999rpx;
+  font-size: 18rpx; display: flex; align-items: center; justify-content: center;
+  box-sizing: border-box;
+}
+
+/* ---------- 服务网格 ---------- */
+.menu-grid { display: flex; flex-wrap: wrap; }
+.mg-item { width: 33.333%; display: flex; flex-direction: column; align-items: center; padding: 16rpx 0; }
+.mg-item:active { opacity: 0.7; }
+.mg-ico {
+  width: 92rpx; height: 92rpx; border-radius: 28rpx;
+  display: flex; align-items: center; justify-content: center; font-size: 40rpx;
+}
+.mg-label { font-size: 22rpx; color: var(--ink-2); margin-top: 12rpx; }
+
+/* ---------- 列表 ---------- */
+.list-card { padding: 8rpx 28rpx; }
+.list-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 26rpx 0; border-bottom: 2rpx solid var(--line);
+}
+.list-row:last-child { border-bottom: none; }
+.lr-left { display: flex; align-items: center; gap: 16rpx; }
+.lr-ico { font-size: 34rpx; }
+.lr-label { font-size: 28rpx; }
+.lr-right { display: flex; align-items: center; gap: 12rpx; }
+.lr-go { font-size: 23rpx; color: var(--ink-4); }
+
+.uid { text-align: center; font-size: 21rpx; color: var(--ink-4); padding: 34rpx 0 0; }
+.bottom-pad { height: calc(180rpx + env(safe-area-inset-bottom)); }
+
+/* 我的动态入口：一行浅底条，跟在统计区下面 */
+.dyn-entry {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-top: 18rpx; padding: 20rpx 24rpx;
+  background: rgba(255, 122, 69, 0.08); border-radius: 16rpx;
+}
+.de-label { font-size: 27rpx; font-weight: 600; color: var(--brand); }
+.de-sub { font-size: 23rpx; color: var(--ink-3); }

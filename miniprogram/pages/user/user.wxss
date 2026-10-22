@@ -1,0 +1,85 @@
+.nb-more { font-size: 36rpx; color: var(--ink-2); padding: 0 12rpx; }
+
+/* ---------- 头部 ---------- */
+.hero {
+  position: relative; overflow: hidden;
+  margin: 8rpx 24rpx 0; padding: 34rpx 28rpx 30rpx;
+  background: linear-gradient(150deg, #FFD84D, #F5A623);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 12rpx 30rpx rgba(23, 138, 74, 0.24);
+}
+.hero-glow {
+  position: absolute; right: -80rpx; top: -80rpx;
+  width: 260rpx; height: 260rpx; border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.3), transparent 70%);
+}
+.u-row { position: relative; display: flex; align-items: center; gap: 22rpx; }
+.u-avatar {
+  width: 132rpx; height: 132rpx; border-radius: 42rpx;
+  border: 4rpx solid rgba(255, 255, 255, 0.5); background: #EDEFF2; flex-shrink: 0;
+}
+.u-main { flex: 1; min-width: 0; }
+.u-name { font-size: 38rpx; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 12rpx; flex-wrap: wrap; }
+.u-cert { font-size: 18rpx; font-weight: 500; color: #FFE0C7; background: rgba(255, 255, 255, 0.2); padding: 2rpx 12rpx; border-radius: 999rpx; }
+.u-ai { font-size: 18rpx; font-weight: 700; color: #fff; background: rgba(122, 90, 248, 0.9); padding: 2rpx 12rpx; border-radius: 999rpx; }
+.u-sub { font-size: 23rpx; color: rgba(255, 255, 255, 0.85); margin-top: 10rpx; }
+.u-bio { font-size: 22rpx; color: rgba(255, 255, 255, 0.8); margin-top: 10rpx; line-height: 1.5; }
+
+.stat-row {
+  position: relative; display: flex; align-items: center;
+  margin-top: 30rpx; padding: 22rpx 0;
+  background: rgba(255, 255, 255, 0.16); border-radius: var(--radius);
+}
+.stat { flex: 1; text-align: center; }
+.stat-num { font-size: 36rpx; font-weight: 800; color: #fff; font-family: "DIN Alternate", sans-serif; }
+.stat-label { font-size: 20rpx; color: rgba(255, 255, 255, 0.82); margin-top: 4rpx; }
+
+/* ---------- 操作 ---------- */
+.actions { display: flex; gap: 18rpx; margin: 22rpx 24rpx 0; }
+.act-btn {
+  flex: 1; height: 84rpx; border-radius: 999rpx;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 29rpx; font-weight: 600;
+}
+.act-btn.follow { background: var(--brand-soft); color: var(--brand); }
+.act-btn.follow.on { background: #F2F4F7; color: var(--ink-3); font-weight: 400; }
+.act-btn.chat { background: var(--brand-grad); color: #fff; box-shadow: 0 8rpx 20rpx rgba(31, 164, 91, 0.26); }
+.act-btn.wide { flex: 1; background: var(--brand-soft); color: var(--brand); }
+
+/* ---------- 信用 ---------- */
+.card { margin: 20rpx 24rpx 0; padding: 28rpx; }
+.credit-card { display: flex; align-items: center; gap: 20rpx; }
+.cc-left { display: flex; flex-direction: column; align-items: center; flex-shrink: 0; }
+.cc-label { font-size: 20rpx; color: var(--ink-3); }
+.cc-val { font-size: 44rpx; font-weight: 800; color: var(--gold); font-family: "DIN Alternate", sans-serif; }
+.cc-bar { flex: 1; height: 14rpx; background: #EEF1F5; border-radius: 999rpx; overflow: hidden; }
+.cc-fill { height: 100%; background: linear-gradient(90deg, #FFD54F, #FFB300); border-radius: 999rpx; }
+.cc-tip { font-size: 20rpx; color: var(--ink-4); flex-shrink: 0; }
+
+/* ---------- 宝贝 ---------- */
+.sec { margin-top: 34rpx; }
+.sec-head { padding: 0 32rpx 18rpx; }
+.sec-title { font-size: 30rpx; font-weight: 700; }
+.grid { display: flex; flex-wrap: wrap; padding: 0 24rpx; gap: 20rpx; }
+/* ⚠️ 14rpx 不能改小。
+   卡片宽度必须**略小于**容器的一半：
+     2×(50%−14rpx) + 20rpx = 100% − 8rpx  ← 留 8rpx 余量
+   若写成 calc(50% - 10rpx) 就正好等于 100%，而 rpx 换算成 px 会有小数，
+   不同机型取整后总和略微超过容器宽度 → 第二张卡被挤到下一行，
+   用户看到的就是「一行只有一个、这个手机不适配」。
+   判据与自动检查见 tools/check-adaptive.js。 */
+.g-card {
+  width: calc(50% - 14rpx); box-sizing: border-box;
+  background: #fff; border-radius: var(--radius); overflow: hidden;
+  box-shadow: var(--shadow);
+}
+.g-card:active { transform: scale(0.985); }
+.g-img { width: 100%; height: 320rpx; background: #F1F3F5; display: block; }
+.g-body { padding: 18rpx 20rpx 20rpx; }
+.g-title { font-size: 27rpx; line-height: 1.42; }
+.g-price { font-size: 32rpx; color: var(--brand); font-weight: 700; margin-top: 12rpx; }
+.yuan { font-size: 22rpx; }
+
+.uid { text-align: center; font-size: 21rpx; color: var(--ink-4); padding: 34rpx 0 0; }
+.bottom-pad { height: 80rpx; }
+.skeleton-wrap { padding-top: 20rpx; }

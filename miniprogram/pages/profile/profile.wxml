@@ -1,0 +1,179 @@
+<view class="page-wrap">
+  <!-- 已登录 -->
+  <block wx:if="{{logged && user}}">
+    <view class="hero" style="padding-top:{{statusBar + 16}}px;">
+      <view class="hero-glow"></view>
+
+      <view class="me-row" bindtap="goUser">
+        <image class="me-avatar" src="{{user.avatarAbs}}" mode="aspectFill"></image>
+        <view class="me-main">
+          <view class="me-name">
+            {{user.nickname}}
+            <text wx:if="{{user.cert === 'student'}}" class="me-cert">学生认证</text>
+          </view>
+          <view class="me-sub">{{user.college || '广东科贸职业学院'}}<text wx:if="{{user.grade}}"> · {{user.grade}}</text></view>
+          <view class="me-credit">
+            <text class="mc-item">信用分 {{user.credit}}</text>
+            <text class="mc-item">关注 {{stats.following}}</text>
+            <text class="mc-item">粉丝 {{stats.followers}}</text>
+          </view>
+        </view>
+        <view class="me-go">›</view>
+      </view>
+
+      <!-- 数据 -->
+      <view class="stat-row">
+        <view class="stat" bindtap="goMyListings">
+          <view class="stat-num">{{stats.published}}</view>
+          <view class="stat-label">在售</view>
+        </view>
+        <view class="stat" data-role="seller" data-status="done" bindtap="goOrders">
+          <view class="stat-num">{{stats.sold}}</view>
+          <view class="stat-label">已卖出</view>
+        </view>
+        <view class="stat" data-role="buyer" data-status="done" bindtap="goOrders">
+          <view class="stat-num">{{stats.bought}}</view>
+          <view class="stat-label">已买到</view>
+        </view>
+        <view class="stat" bindtap="goCollection">
+          <view class="stat-num">{{stats.favorites}}</view>
+          <view class="stat-label">收藏</view>
+        </view>
+        </view>
+
+        <!-- 动态入口：帖子 / 校园墙 / 资料 聚合页（「动态」这个数字原本点不进去） -->
+        <view class="dyn-entry" bindtap="goDynamics">
+          <text class="de-label">我的动态</text>
+          <text class="de-sub">帖子 · 校园墙 · 资料 ›</text>
+        </view>
+    </view>
+
+    <!-- 钱包 -->
+    <view class="wallet-card" bindtap="goWallet">
+      <view class="wc-left">
+        <view class="wc-label">校园钱包余额</view>
+        <view class="wc-amount"><text class="wc-yuan">¥</text>{{balanceText}}</view>
+      </view>
+      <view class="wc-btn">充值 / 明细 ›</view>
+    </view>
+
+    <!-- 我的订单 -->
+    <view class="card">
+      <view class="card-head">
+        <text class="card-title">我的订单</text>
+        <text class="card-more" data-role="buyer" data-status="all" bindtap="goOrders">全部订单 ›</text>
+      </view>
+      <view class="order-grid">
+        <view class="og-item" data-role="buyer" data-status="pending" bindtap="goOrders">
+          <view class="og-ico">💰</view>
+          <view class="og-label">待付款</view>
+          <view wx:if="{{orders.pending}}" class="og-badge">{{orders.pending}}</view>
+        </view>
+        <view class="og-item" data-role="buyer" data-status="paid" bindtap="goOrders">
+          <view class="og-ico">📦</view>
+          <view class="og-label">待发货</view>
+          <view wx:if="{{orders.paid}}" class="og-badge">{{orders.paid}}</view>
+        </view>
+        <view class="og-item" data-role="buyer" data-status="shipped" bindtap="goOrders">
+          <view class="og-ico">🚚</view>
+          <view class="og-label">待收货</view>
+          <view wx:if="{{orders.shipped}}" class="og-badge">{{orders.shipped}}</view>
+        </view>
+        <view class="og-item" data-role="buyer" data-status="refunding" bindtap="goOrders">
+          <view class="og-ico">↩️</view>
+          <view class="og-label">退款</view>
+          <view wx:if="{{orders.refunding}}" class="og-badge">{{orders.refunding}}</view>
+        </view>
+        <view class="og-item" data-role="seller" data-status="all" bindtap="goOrders">
+          <view class="og-ico">🏪</view>
+          <view class="og-label">我卖出的</view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 我的服务 -->
+    <view class="card">
+      <view class="card-head"><text class="card-title">我的服务</text></view>
+      <view class="menu-grid">
+        <view class="mg-item" bindtap="goMyListings">
+          <view class="mg-ico" style="background:#E4F6EC">📢</view>
+          <text class="mg-label">我的发布</text>
+        </view>
+        <view class="mg-item" bindtap="goMyGroups">
+          <view class="mg-ico" style="background:#FFF7E8">👥</view>
+          <text class="mg-label">我的拼团</text>
+        </view>
+        <view class="mg-item" bindtap="goCollection">
+          <view class="mg-ico" style="background:#FFF3C4">⭐</view>
+          <text class="mg-label">我的收藏</text>
+        </view>
+        <view class="mg-item" bindtap="goMyResources">
+          <view class="mg-ico" style="background:#E4F6EC">📚</view>
+          <text class="mg-label">我的资料</text>
+        </view>
+        <view class="mg-item" bindtap="goAddress">
+          <view class="mg-ico" style="background:#E6F8F0">📍</view>
+          <text class="mg-label">收货地址</text>
+        </view>
+        <view class="mg-item" bindtap="goPublish">
+          <view class="mg-ico" style="background:#F1EDFE">➕</view>
+          <text class="mg-label">发布宝贝</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 列表入口 -->
+    <view class="card list-card">
+      <view class="list-row" bindtap="goWall">
+        <view class="lr-left"><text class="lr-ico">💌</text><text class="lr-label">校园墙</text></view>
+        <text class="lr-go">去看看 ›</text>
+      </view>
+      <view class="list-row" bindtap="goResource">
+        <view class="lr-left"><text class="lr-ico">📖</text><text class="lr-label">学习资源库</text></view>
+        <text class="lr-go">去看看 ›</text>
+      </view>
+      <view class="list-row" bindtap="goChat">
+        <view class="lr-left"><text class="lr-ico">💬</text><text class="lr-label">我的消息</text></view>
+        <view class="lr-right">
+          <view wx:if="{{unread}}" class="badge">{{unread > 99 ? '99+' : unread}}</view>
+          <text class="lr-go">›</text>
+        </view>
+      </view>
+      <view class="list-row" bindtap="goSettings">
+        <view class="lr-left"><text class="lr-ico">⚙️</text><text class="lr-label">设置</text></view>
+        <text class="lr-go">›</text>
+      </view>
+    </view>
+
+    <view class="uid" bindtap="copyUid">UID {{user.id}} · 点击复制</view>
+    <view class="bottom-pad"></view>
+  </block>
+
+  <!-- 未登录 -->
+  <block wx:else>
+    <view class="hero guest-hero" style="padding-top:{{statusBar + 16}}px;">
+      <view class="hero-glow"></view>
+      <view class="guest-avatar">?</view>
+      <view class="guest-name" bindtap="goLogin">点击登录 / 注册</view>
+      <view class="guest-sub">登录后可使用发布、下单、拼团、聊天等全部功能</view>
+    </view>
+
+    <view class="login-btn" bindtap="goLogin">微信一键登录</view>
+
+    <view class="card list-card" style="margin-top:24rpx">
+      <view class="list-row" bindtap="goWall">
+        <view class="lr-left"><text class="lr-ico">💌</text><text class="lr-label">校园墙</text></view>
+        <text class="lr-go">去看看 ›</text>
+      </view>
+      <view class="list-row" bindtap="goResource">
+        <view class="lr-left"><text class="lr-ico">📖</text><text class="lr-label">学习资源库</text></view>
+        <text class="lr-go">去看看 ›</text>
+      </view>
+      <view class="list-row" bindtap="goSettings">
+        <view class="lr-left"><text class="lr-ico">⚙️</text><text class="lr-label">设置</text></view>
+        <text class="lr-go">›</text>
+      </view>
+    </view>
+    <view class="bottom-pad"></view>
+  </block>
+</view>

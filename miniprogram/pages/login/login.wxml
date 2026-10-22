@@ -1,0 +1,49 @@
+<view class="page">
+  <navbar title="" transparent="{{true}}" back="{{true}}"></navbar>
+
+  <view class="logo-wrap">
+    <view class="logo">集</view>
+    <view class="app-name">科贸小鱼</view>
+    <view class="app-slogan">校园生活服务与二手交易综合平台</view>
+  </view>
+
+  <view class="main">
+    <view class="wx-btn {{loading ? 'disabled' : ''}}" bindtap="onWechat">
+      <view class="wx-ico">微</view>
+      <text>{{loading ? '登录中…' : '微信一键登录'}}</text>
+    </view>
+
+    <!-- 说明为什么这里不弹「获取昵称头像」的授权：
+         微信已回收该接口（弹了也拿不到真实昵称头像），
+         改由「设置 → 个人资料」一键带入。 -->
+    <view class="wx-hint">登录后可在「我的 → 设置」一键带入微信昵称和头像</view>
+
+    <view class="agree" bindtap="toggleAgree">
+      <view class="checkbox {{agree ? 'on' : ''}}">
+        <view class="tick"></view>
+      </view>
+      <text class="agree-text">已阅读并同意</text>
+      <text class="agree-link" catchtap="showAgree">《用户协议与隐私政策》</text>
+    </view>
+
+    <view class="skip" bindtap="onSkip">先随便逛逛</view>
+  </view>
+
+  <view class="demo" wx:if="{{accounts.length}}">
+    <view class="demo-head">
+      <view class="demo-line"></view>
+      <text class="demo-title">演示账号 · 一键体验</text>
+      <view class="demo-line"></view>
+    </view>
+    <view class="demo-tip">单人体验可任选账号。多人一起测试请各自用上方「微信一键登录」——账号才彼此独立</view>
+    <view class="acc-grid">
+      <view class="acc" wx:for="{{accounts}}" wx:key="id" data-id="{{item.id}}" bindtap="onAccount">
+        <image class="acc-avatar" src="{{item.avatar}}" mode="aspectFill"></image>
+        <view class="acc-name">{{item.nickname}}</view>
+        <view class="acc-college ellipsis">{{item.college}}</view>
+      </view>
+    </view>
+  </view>
+
+  <view class="safe-bottom"></view>
+</view>
