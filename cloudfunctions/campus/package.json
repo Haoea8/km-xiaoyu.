@@ -1,0 +1,10 @@
+{
+  "name": "campus",
+  "version": "1.0.0",
+  "description": "科贸小鱼后端云函数：登录/商品/订单担保支付/拼团/校园墙/学习资源/AI推荐/圈子/管理后台",
+  "main": "index.js",
+  "private": true,
+  "dependencies": {
+    "wx-server-sdk": "~4.0.2"
+  }
+}
