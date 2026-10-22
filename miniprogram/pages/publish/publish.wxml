@@ -1,0 +1,195 @@
+<view class="page-wrap">
+  <!-- 顶部右侧原来有个「发布」，位置正好被微信胶囊按钮盖住（点不到、看着像残缺），
+       而底部已经有醒目的「立即发布」，所以直接去掉，不再占用导航栏右侧。 -->
+  <navbar title="发布宝贝" back="{{true}}"></navbar>
+
+  <!-- 图片 -->
+  <view class="card">
+    <view class="card-title">宝贝图片 <text class="opt">第一张为封面，最多 9 张</text></view>
+    <view class="img-grid">
+      <view class="img-cell" wx:for="{{images}}" wx:key="*this">
+        <image class="img" src="{{item}}" mode="aspectFill" data-index="{{index}}" bindtap="previewImage"></image>
+        <view wx:if="{{index === 0}}" class="img-cover">封面</view>
+        <view class="img-del" data-index="{{index}}" catchtap="removeImage">×</view>
+      </view>
+      <view class="img-add" wx:if="{{images.length < maxImages}}" bindtap="chooseImage">
+        <view class="add-plus">＋</view>
+        <view class="add-text">{{images.length}}/{{maxImages}}</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 基本信息 -->
+  <view class="card">
+    <view class="card-title title-row">
+      <text>基本信息</text>
+      <!-- AI 帮我写：根据已有标题/分区生成文案与建议价（catchtap 防止冒泡到卡片） -->
+      <view class="ai-write {{aiBusy ? 'busy' : ''}}" catchtap="onAiAssist">
+        <text class="ai-spark">AI</text>{{aiBusy ? '写作中…' : '帮我写'}}
+      </view>
+    </view>
+    <view class="ai-tip" wx:if="{{aiTip}}">
+      {{aiTip}}{{aiSource === 'rule' ? '（离线规则引擎）' : ''}}
+    </view>
+    <view class="field">
+      <text class="field-label">标题</text>
+      <input class="field-input" value="{{title}}" placeholder="一句话说清是什么，如：九成新山地自行车" placeholder-class="ph" maxlength="40" bindinput="onTitle" />
+    </view>
+    <view class="field field-col">
+      <text class="field-label">描述</text>
+      <textarea class="field-textarea" value="{{desc}}" placeholder="品牌型号、使用时长、成色、交易方式…写清楚更好卖" placeholder-class="ph" maxlength="500" bindinput="onDesc"></textarea>
+    </view>
+  </view>
+
+  <!-- 交易类型 -->
+  <view class="card">
+    <view class="card-title">交易方式</view>
+    <view class="mode-grid">
+      <view
+        wx:for="{{modes}}"
+        wx:key="key"
+        class="mode {{modeIndex===index?'on':''}}"
+        data-index="{{index}}"
+        bindtap="onModeChange">
+        <view class="mode-label">{{item.label}}</view>
+        <view class="mode-desc">{{item.desc}}</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 拼团参数 -->
+  <view class="card" wx:if="{{modes[modeIndex].key === 'group'}}">
+    <view class="card-title">拼团设置</view>
+    <view class="field">
+      <text class="field-label">成团人数</text>
+      <input class="field-input" type="number" value="{{groupTarget}}" placeholder="如 3" placeholder-class="ph" bindinput="onGroupTarget" />
+    </view>
+    <view class="field">
+      <text class="field-label">截止时间</text>
+      <input class="field-input" value="{{groupDeadline}}" placeholder="如 3 天后 / 本周日（默认 3 天）" placeholder-class="ph" bindinput="onGroupDeadline" />
+    </view>
+  </view>
+
+  <!-- 价格 -->
+  <view class="card">
+    <view class="field">
+      <text class="field-label">{{modes[modeIndex].key === 'free' ? '价格' : '售价'}}</text>
+      <view class="price-input-wrap">
+        <text class="yuan">¥</text>
+        <input class="price-input" type="digit" value="{{priceYuan}}" placeholder="{{modes[modeIndex].key === 'free' ? '免费送，无需填写' : '0.00'}}" placeholder-class="ph" disabled="{{modes[modeIndex].key === 'free'}}" bindinput="onPrice" />
+      </view>
+    </view>
+    <view class="field">
+      <text class="field-label">原价</text>
+      <view class="price-input-wrap">
+        <text class="yuan gray">¥</text>
+        <input class="price-input" type="digit" value="{{originalYuan}}" placeholder="填了会显示划线价（选填）" placeholder-class="ph" bindinput="onOriginal" />
+      </view>
+    </view>
+    <!-- 计价单位 = 数量（自己写）+ 单位（只能选）。
+         数字是输入框；单位是 picker，没有光标、删不掉、移不动、右端写不了字。 -->
+    <view class="field">
+      <text class="field-label">计价单位</text>
+      <view class="field-value unit-value">
+        <!-- 数量：不设件数上限（用户明确要求），只在前导零和非法字符上做处理 -->
+        <input
+          class="unit-count"
+          type="number"
+          value="{{unitCount}}"
+          placeholder="1"
+          placeholder-class="ph"
+          bindinput="onUnitCount" />
+        <picker mode="selector" range="{{units}}" value="{{unitIndex}}" bindchange="onUnitChange">
+          <view class="unit-pick">{{isOtherUnit && unitOther ? unitOther : units[unitIndex]}} <text class="arrow">›</text></view>
+        </picker>
+      </view>
+    </view>
+    <view class="field field-col" wx:if="{{isOtherUnit}}">
+      <input
+        class="other-input"
+        value="{{unitOther}}"
+        maxlength="{{unitMax}}"
+        placeholder="单位文字，如：课时 / 打 / 袋"
+        placeholder-class="ph"
+        bindinput="onUnitOther" />
+    </view>
+  </view>
+
+  <!-- 分区与位置 -->
+  <view class="card">
+    <picker mode="selector" range="{{zones}}" range-key="name" value="{{zoneIndex}}" bindchange="onZoneChange">
+      <view class="field">
+        <text class="field-label">交易分区</text>
+        <view class="field-value">{{zones[zoneIndex].name}} <text class="arrow">›</text></view>
+      </view>
+    </picker>
+    <picker mode="selector" range="{{locations}}" value="{{locationIndex}}" bindchange="onLocationChange">
+      <view class="field">
+        <text class="field-label">交易地点</text>
+        <view class="field-value">{{isOtherLocation && locationOther ? locationOther : locations[locationIndex]}} <text class="arrow">›</text></view>
+      </view>
+    </picker>
+    <!-- 选「其他」后展开：自己填具体地点 -->
+    <view class="field field-col" wx:if="{{isOtherLocation}}">
+      <input
+        class="other-input"
+        value="{{locationOther}}"
+        maxlength="{{locationMax}}"
+        placeholder="填写具体地点，如：3 号宿舍楼下快递柜旁"
+        placeholder-class="ph"
+        bindinput="onLocationOther" />
+    </view>
+    <view class="field field-col">
+      <text class="field-label">支持方式</text>
+      <view class="method-chips">
+        <!-- on 标记由 js 预先算好（wxml 不支持 indexOf 这类函数调用） -->
+        <view
+          wx:for="{{methodPool}}"
+          wx:key="name"
+          class="mchip {{item.on ? 'on' : ''}}"
+          data-m="{{item.name}}"
+          bindtap="toggleMethod">{{item.name}}</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 标签与属性 -->
+  <view class="card">
+    <view class="card-title">标签 <text class="opt">最多 5 个</text></view>
+    <view class="tag-selected" wx:if="{{tags.length}}">
+      <view class="ts-item" wx:for="{{tags}}" wx:key="*this" data-t="{{item}}" bindtap="removeTag">#{{item}} <text class="ts-del">×</text></view>
+    </view>
+    <view class="tag-input-row">
+      <input class="tag-input" value="{{tagInput}}" placeholder="如：球鞋、数码、考研" placeholder-class="ph" bindinput="onTagInput" bindconfirm="addTag" />
+      <view class="tag-add" bindtap="addTag">添加</view>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="card-title">规格属性 <text class="opt">如「成色：9成新」，最多 6 条</text></view>
+    <view class="attr-list" wx:if="{{attrs.length}}">
+      <view class="attr-item" wx:for="{{attrs}}" wx:key="k">
+        <text class="attr-k">{{item.k}}</text>
+        <text class="attr-v">{{item.v}}</text>
+        <text class="attr-del" data-index="{{index}}" bindtap="removeAttr">×</text>
+      </view>
+    </view>
+    <view class="attr-input-row">
+      <input class="attr-input small" value="{{attrKey}}" placeholder="属性名" placeholder-class="ph" bindinput="onAttrKey" />
+      <input class="attr-input" value="{{attrVal}}" placeholder="属性值" placeholder-class="ph" bindinput="onAttrVal" />
+      <view class="attr-add" bindtap="addAttr">添加</view>
+    </view>
+  </view>
+
+  <!-- 规范 -->
+  <view class="agree" bindtap="toggleAgree">
+    <view class="checkbox {{agree ? 'on' : ''}}"><view class="tick"></view></view>
+    <text class="agree-text">我承诺所发布内容真实合法，不含违禁品与虚假信息</text>
+  </view>
+
+  <view class="footer-pad"></view>
+  <view class="footer">
+    <view class="btn-cancel" bindtap="onCancel">取消</view>
+    <view class="btn-submit {{submitting ? 'disabled' : ''}}" bindtap="onSubmit">{{submitting ? '发布中…' : '立即发布'}}</view>
+  </view>
+</view>

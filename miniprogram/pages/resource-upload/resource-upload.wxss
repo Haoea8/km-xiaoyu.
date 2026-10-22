@@ -1,0 +1,99 @@
+.nb-submit {
+  font-size: 24rpx; color: var(--ink-4);
+  padding: 8rpx 26rpx; border-radius: 999rpx; background: #F2F4F7;
+}
+.nb-submit.on { color: #fff; background: linear-gradient(135deg, #4CD08A, #1FA45B); font-weight: 600; }
+
+.card { margin: 20rpx 24rpx 0; padding: 28rpx; }
+.card-title { font-size: 28rpx; font-weight: 600; margin-bottom: 20rpx; }
+.opt { font-size: 21rpx; color: var(--ink-4); font-weight: 400; margin-left: 8rpx; }
+
+/* ---------- 文件选择 ---------- */
+.file-picker {
+  border: 3rpx dashed #BEE8D2; background: #F7FBFF;
+  border-radius: 20rpx; padding: 46rpx 20rpx; text-align: center;
+}
+.file-picker:active { background: #EDF5FF; }
+.fp-ico { font-size: 60rpx; }
+.fp-title { font-size: 29rpx; font-weight: 600; color: #178A4A; margin-top: 14rpx; }
+.fp-sub { font-size: 21rpx; color: var(--ink-4); margin-top: 10rpx; line-height: 1.5; }
+
+.file-selected {
+  display: flex; align-items: center; gap: 20rpx;
+  background: #F7FBFF; border-radius: 20rpx; padding: 24rpx;
+}
+.fs-type {
+  width: 110rpx; height: 110rpx; border-radius: 22rpx; flex-shrink: 0;
+  background: #fff; color: #178A4A;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 26rpx; font-weight: 800;
+}
+.fs-main { flex: 1; min-width: 0; }
+.fs-name { font-size: 28rpx; font-weight: 600; }
+.fs-size { font-size: 22rpx; color: var(--ink-3); margin-top: 8rpx; }
+.fs-del {
+  width: 52rpx; height: 52rpx; border-radius: 50%; background: #E8EBEF;
+  color: var(--ink-3); font-size: 30rpx;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+
+/* ---------- 表单 ---------- */
+.field { display: flex; align-items: center; padding: 24rpx 0; border-bottom: 2rpx solid var(--line); }
+.field:last-child { border-bottom: none; }
+.field-col { flex-direction: column; align-items: stretch; }
+.field-label { width: 160rpx; color: var(--ink-3); font-size: 27rpx; flex-shrink: 0; }
+.field-input { flex: 1; font-size: 28rpx; }
+.field-value { flex: 1; font-size: 28rpx; color: var(--ink-2); text-align: right; }
+.arrow { color: var(--ink-4); font-size: 32rpx; margin-left: 8rpx; }
+.field-textarea {
+  width: 100%; min-height: 160rpx; font-size: 27rpx; line-height: 1.65;
+  margin-top: 16rpx; background: #FAFBFC; border-radius: 16rpx; padding: 20rpx; box-sizing: border-box;
+}
+.ph { color: var(--ink-4); }
+
+/* ---------- 标签 ---------- */
+.tag-selected { display: flex; flex-wrap: wrap; gap: 14rpx; margin-bottom: 20rpx; }
+.ts-item {
+  font-size: 24rpx; color: #178A4A; background: #E4F6EC;
+  padding: 10rpx 22rpx; border-radius: 999rpx;
+}
+.ts-del { font-size: 26rpx; }
+.tag-input-row { display: flex; align-items: center; gap: 16rpx; }
+.tag-input {
+  flex: 1; height: 72rpx; background: #F4F6F8; border-radius: 999rpx;
+  padding: 0 26rpx; font-size: 27rpx;
+}
+.tag-add {
+  height: 72rpx; padding: 0 32rpx; border-radius: 999rpx;
+  background: #E4F6EC; color: #178A4A; font-size: 26rpx; font-weight: 600;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.hot-tags { display: flex; flex-wrap: wrap; gap: 14rpx; margin-top: 22rpx; }
+.ht { font-size: 23rpx; color: var(--ink-2); background: #F4F6F8; padding: 10rpx 22rpx; border-radius: 999rpx; }
+.ht:active { background: #E4F6EC; color: #178A4A; }
+
+/* ---------- 说明 ---------- */
+.note { padding: 30rpx 40rpx 0; }
+.note-item { font-size: 22rpx; color: var(--ink-4); line-height: 1.9; }
+
+/* ---------- 底栏 ---------- */
+.footer-pad { height: calc(180rpx + env(safe-area-inset-bottom)); }
+.footer {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 50;
+  background: #fff; padding: 18rpx 24rpx calc(18rpx + env(safe-area-inset-bottom));
+  display: flex; align-items: center; gap: 18rpx;
+  box-shadow: 0 -6rpx 24rpx rgba(31, 35, 40, 0.06);
+}
+.btn-cancel {
+  flex: 1; height: 88rpx; border-radius: 999rpx;
+  border: 2rpx solid var(--line); color: var(--ink-2);
+  display: flex; align-items: center; justify-content: center; font-size: 29rpx;
+}
+.btn-submit {
+  flex: 2; height: 88rpx; border-radius: 999rpx;
+  background: linear-gradient(135deg, #4CD08A, #1FA45B); color: #fff;
+  font-weight: 700; font-size: 30rpx;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 8rpx 20rpx rgba(29, 111, 208, 0.26);
+}
+.btn-submit.disabled { opacity: 0.6; }

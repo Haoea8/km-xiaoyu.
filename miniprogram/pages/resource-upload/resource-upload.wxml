@@ -1,0 +1,75 @@
+<view class="page-wrap">
+  <navbar title="上传资料" back="{{true}}">
+    <view slot="right" class="nb-submit {{file && title ? 'on' : ''}}" bindtap="onSubmit">发布</view>
+  </navbar>
+
+  <!-- 选文件 -->
+  <view class="card">
+    <view class="card-title">资料文件</view>
+    <view wx:if="{{!file}}" class="file-picker" bindtap="chooseFile">
+      <view class="fp-ico">📄</view>
+      <view class="fp-title">选择要分享的文件</view>
+      <view class="fp-sub">支持 PDF / Word / PPT / Excel / ZIP / 代码等，最大 30MB</view>
+    </view>
+    <view wx:else class="file-selected">
+      <view class="fs-type">{{file.typeText}}</view>
+      <view class="fs-main">
+        <view class="fs-name ellipsis">{{file.name}}</view>
+        <view class="fs-size">{{file.sizeText}}</view>
+      </view>
+      <view class="fs-del" bindtap="removeFile">×</view>
+    </view>
+  </view>
+
+  <!-- 基本信息 -->
+  <view class="card">
+    <view class="field">
+      <text class="field-label">资料标题</text>
+      <input class="field-input" value="{{title}}" placeholder="例如：高数（上）历年期末真题" placeholder-class="ph" maxlength="60" bindinput="onTitle" />
+    </view>
+    <view class="field">
+      <text class="field-label">所属课程</text>
+      <input class="field-input" value="{{course}}" placeholder="例如：高等数学 / 数据结构（选填）" placeholder-class="ph" maxlength="40" bindinput="onCourse" />
+    </view>
+    <picker mode="selector" range="{{categories}}" range-key="name" value="{{categoryIndex}}" bindchange="onCategoryChange">
+      <view class="field">
+        <text class="field-label">资料分类</text>
+        <view class="field-value">{{categories[categoryIndex].name}} <text class="arrow">›</text></view>
+      </view>
+    </picker>
+    <view class="field field-col">
+      <text class="field-label">资料简介</text>
+      <textarea class="field-textarea" value="{{desc}}" placeholder="简单说明资料的来源、覆盖范围、使用建议…" placeholder-class="ph" maxlength="300" bindinput="onDesc"></textarea>
+    </view>
+  </view>
+
+  <!-- 标签 -->
+  <view class="card">
+    <view class="card-title">标签 <text class="opt">最多 5 个，便于同学搜到</text></view>
+    <view class="tag-selected" wx:if="{{tags.length}}">
+      <view class="ts-item" wx:for="{{tags}}" wx:key="*this" data-t="{{item}}" bindtap="removeTag">
+        #{{item}} <text class="ts-del">×</text>
+      </view>
+    </view>
+    <view class="tag-input-row">
+      <input class="tag-input" value="{{tagInput}}" placeholder="自定义标签" placeholder-class="ph" bindinput="onTagInput" bindconfirm="addTag" />
+      <view class="tag-add" bindtap="addTag">添加</view>
+    </view>
+    <view class="hot-tags">
+      <view class="ht" wx:for="{{hotTags}}" wx:key="*this" data-t="{{item}}" bindtap="addTag">{{item}}</view>
+    </view>
+  </view>
+
+  <!-- 说明 -->
+  <view class="note">
+    <view class="note-item">· 请勿上传含个人隐私、商业课程或侵权内容</view>
+    <view class="note-item">· 资料将公开给全校同学下载，上传即表示你拥有分享权</view>
+    <view class="note-item">· 违规资料会被下架，情节严重将限制账号功能</view>
+  </view>
+
+  <view class="footer-pad"></view>
+  <view class="footer">
+    <view class="btn-cancel" bindtap="onCancel">取消</view>
+    <view class="btn-submit {{submitting ? 'disabled' : ''}}" bindtap="onSubmit">{{submitting ? '发布中…' : '发布资料'}}</view>
+  </view>
+</view>

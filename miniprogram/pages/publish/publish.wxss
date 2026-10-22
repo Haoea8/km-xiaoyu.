@@ -1,0 +1,176 @@
+.nb-submit {
+  font-size: 24rpx; color: var(--ink-4);
+  padding: 8rpx 26rpx; border-radius: 999rpx; background: #F2F4F7;
+}
+.nb-submit.on { color: #fff; background: var(--brand-grad); font-weight: 600; }
+
+.card { margin: 20rpx 24rpx 0; padding: 28rpx; }
+.card-title { font-size: 28rpx; font-weight: 600; margin-bottom: 20rpx; }
+.opt { font-size: 21rpx; color: var(--ink-4); font-weight: 400; margin-left: 8rpx; }
+
+/* ---------- AI 帮我写 ---------- */
+.title-row { display: flex; align-items: center; justify-content: space-between; }
+.ai-write {
+  display: flex; align-items: center; gap: 8rpx;
+  font-size: 24rpx; font-weight: 500; line-height: 1;
+  color: #fff; padding: 14rpx 22rpx; border-radius: 999rpx;
+  background: linear-gradient(135deg, #4CD08A, #1FA45B);
+  box-shadow: 0 6rpx 16rpx rgba(108, 92, 231, 0.28);
+}
+.ai-write:active { opacity: 0.85; }
+.ai-write.busy { opacity: 0.55; }
+.ai-spark {
+  font-size: 20rpx; font-weight: 700;
+  background: rgba(255, 255, 255, 0.24); border-radius: 6rpx; padding: 2rpx 8rpx;
+}
+/* 建议价/成色的一句话说明：来自后端 reason，说明「为什么是这个价」 */
+.ai-tip {
+  font-size: 22rpx; line-height: 1.5; color: #178A4A;
+  background: rgba(108, 92, 231, 0.08); border-radius: 12rpx;
+  padding: 14rpx 18rpx; margin-bottom: 20rpx;
+}
+
+/* ---------- 图片 ---------- */
+.img-grid { display: flex; flex-wrap: wrap; gap: 16rpx; }
+.img-cell { position: relative; width: 200rpx; height: 200rpx; }
+.img { width: 200rpx; height: 200rpx; border-radius: 16rpx; background: #F1F3F5; }
+.img-cover {
+  position: absolute; left: 0; bottom: 0; width: 200rpx;
+  background: rgba(31, 164, 91, 0.86); color: #fff;
+  font-size: 19rpx; text-align: center; padding: 4rpx 0;
+  border-bottom-left-radius: 16rpx; border-bottom-right-radius: 16rpx;
+}
+.img-del {
+  position: absolute; top: -12rpx; right: -12rpx;
+  width: 44rpx; height: 44rpx; border-radius: 50%;
+  background: rgba(0, 0, 0, 0.62); color: #fff;
+  display: flex; align-items: center; justify-content: center; font-size: 28rpx;
+}
+.img-add {
+  width: 200rpx; height: 200rpx; border-radius: 16rpx;
+  border: 2rpx dashed var(--ink-4); background: #FAFBFC;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8rpx;
+}
+.add-plus { font-size: 54rpx; color: var(--ink-4); font-weight: 300; line-height: 1; }
+.add-text { font-size: 22rpx; color: var(--ink-4); }
+
+/* ---------- 表单 ---------- */
+.field { display: flex; align-items: center; padding: 24rpx 0; border-bottom: 2rpx solid var(--line); }
+.field:last-child { border-bottom: none; }
+.field-col { flex-direction: column; align-items: stretch; }
+.field-label { width: 160rpx; color: var(--ink-3); font-size: 27rpx; flex-shrink: 0; }
+.field-input { flex: 1; font-size: 28rpx; }
+.field-value { flex: 1; font-size: 28rpx; color: var(--ink-2); text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* 「其他」类字段的手填输入框（交易地点 / 计价单位共用同一套样式）。
+   注意别用 .tag-input —— 它带 flex:1，放进纵向的 field-col 里会被拉伸。 */
+.other-input { height: 72rpx; background: #F4F6F8; border-radius: 999rpx; padding: 0 26rpx; font-size: 27rpx; }
+
+/* 计价单位 = 数量 + 单位。
+   数量框**占满标签与单位之间的空间**（flex:1），数字右对齐紧贴单位 ——
+   不要给固定宽度：那样右边会空出一大片，看起来像「这一格很小 / 有上限」。
+   单位那侧 flex-shrink:0，不被挤扁。 */
+.unit-value { display: flex; align-items: center; gap: 10rpx; }
+.unit-count { flex: 1; min-width: 0; text-align: right; font-size: 28rpx; color: var(--ink-2); }
+.unit-pick { color: var(--ink-2); font-size: 28rpx; flex-shrink: 0; }
+.arrow { color: var(--ink-4); font-size: 32rpx; margin-left: 8rpx; }
+.field-textarea {
+  width: 100%; min-height: 180rpx; font-size: 27rpx; line-height: 1.65;
+  margin-top: 16rpx; background: #FAFBFC; border-radius: 16rpx; padding: 20rpx; box-sizing: border-box;
+}
+.ph { color: var(--ink-4); }
+
+.price-input-wrap { flex: 1; display: flex; align-items: center; gap: 8rpx; }
+.yuan { font-size: 30rpx; color: var(--brand); font-weight: 700; }
+.yuan.gray { color: var(--ink-4); }
+.price-input { flex: 1; font-size: 30rpx; font-weight: 600; }
+
+.method-chips { display: flex; flex-wrap: wrap; gap: 16rpx; margin-top: 18rpx; }
+.mchip {
+  font-size: 24rpx; color: var(--ink-2); background: #F4F6F8;
+  padding: 12rpx 28rpx; border-radius: 999rpx;
+}
+.mchip.on { background: var(--brand-soft); color: var(--brand); font-weight: 600; }
+
+/* ---------- 交易类型 ---------- */
+.mode-grid { display: flex; flex-wrap: wrap; gap: 16rpx; }
+.mode {
+  /* ⚠️ 14rpx 不能改小：3×(33.333%−14rpx) + 2×16rpx ≈ 100% − 8rpx，留 8rpx 余量。
+     原来写 -11rpx 时余量只有 1rpx，取整就会换行。
+     见 tools/check-adaptive.js。 */
+  width: calc(33.333% - 14rpx); box-sizing: border-box;
+  border: 2rpx solid var(--line); border-radius: 18rpx;
+  padding: 20rpx 12rpx; text-align: center;
+}
+.mode.on {
+  border-color: var(--brand); background: var(--brand-soft);
+}
+.mode-label { font-size: 27rpx; font-weight: 600; }
+.mode.on .mode-label { color: var(--brand); }
+.mode-desc { font-size: 18rpx; color: var(--ink-4); margin-top: 6rpx; }
+
+/* ---------- 标签 ---------- */
+.tag-selected { display: flex; flex-wrap: wrap; gap: 14rpx; margin-bottom: 20rpx; }
+.ts-item { font-size: 24rpx; color: var(--brand); background: var(--brand-soft); padding: 10rpx 22rpx; border-radius: 999rpx; }
+.ts-del { font-size: 26rpx; }
+.tag-input-row { display: flex; align-items: center; gap: 16rpx; }
+.tag-input { flex: 1; height: 72rpx; background: #F4F6F8; border-radius: 999rpx; padding: 0 26rpx; font-size: 27rpx; }
+.tag-add {
+  height: 72rpx; padding: 0 32rpx; border-radius: 999rpx;
+  background: var(--brand-soft); color: var(--brand); font-size: 26rpx; font-weight: 600;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+
+/* ---------- 属性 ---------- */
+.attr-list { display: flex; flex-wrap: wrap; gap: 14rpx; margin-bottom: 20rpx; }
+.attr-item {
+  display: flex; align-items: center; gap: 10rpx;
+  background: #F4F6F8; border-radius: 10rpx; padding: 10rpx 18rpx;
+}
+.attr-k { font-size: 22rpx; color: var(--ink-3); }
+.attr-v { font-size: 23rpx; color: var(--ink); }
+.attr-del { font-size: 24rpx; color: var(--ink-4); padding-left: 6rpx; }
+.attr-input-row { display: flex; align-items: center; gap: 12rpx; }
+.attr-input { flex: 1; height: 72rpx; background: #F4F6F8; border-radius: 14rpx; padding: 0 22rpx; font-size: 26rpx; }
+.attr-input.small { flex: 0 0 170rpx; }
+.attr-add {
+  height: 72rpx; padding: 0 28rpx; border-radius: 14rpx;
+  background: var(--brand-soft); color: var(--brand); font-size: 25rpx; font-weight: 600;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+
+/* ---------- 规范 ---------- */
+.agree { display: flex; align-items: center; gap: 12rpx; padding: 30rpx 40rpx 0; }
+.checkbox {
+  width: 34rpx; height: 34rpx; border-radius: 50%;
+  border: 3rpx solid var(--ink-4); box-sizing: border-box; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+}
+.checkbox.on { background: var(--brand); border-color: var(--brand); }
+.tick {
+  width: 14rpx; height: 8rpx;
+  border-left: 3rpx solid #fff; border-bottom: 3rpx solid #fff;
+  transform: rotate(-45deg) translate(1rpx, -2rpx); opacity: 0;
+}
+.checkbox.on .tick { opacity: 1; }
+.agree-text { font-size: 22rpx; color: var(--ink-3); flex: 1; line-height: 1.5; }
+
+/* ---------- 底栏 ---------- */
+.footer-pad { height: calc(180rpx + env(safe-area-inset-bottom)); }
+.footer {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 50;
+  background: #fff; padding: 18rpx 24rpx calc(18rpx + env(safe-area-inset-bottom));
+  display: flex; align-items: center; gap: 18rpx;
+  box-shadow: 0 -6rpx 24rpx rgba(31, 35, 40, 0.06);
+}
+.btn-cancel {
+  flex: 1; height: 88rpx; border-radius: 999rpx;
+  border: 2rpx solid var(--line); color: var(--ink-2);
+  display: flex; align-items: center; justify-content: center; font-size: 29rpx;
+}
+.btn-submit {
+  flex: 2; height: 88rpx; border-radius: 999rpx;
+  background: var(--brand-grad); color: #fff; font-weight: 700; font-size: 30rpx;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 8rpx 20rpx rgba(31, 164, 91, 0.26);
+}
+.btn-submit.disabled { opacity: 0.6; }
