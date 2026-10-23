@@ -278,8 +278,16 @@ Page({
     });
   },
 
+  /**
+   * 提醒发货 / 催买家付款：进会话并自动替用户发一条消息。
+   * 之前只跳会话、什么都不发，用户还得自己再打一遍字。
+   */
   remind(o) {
-    app.openChat({ peerId: peerIdOf(o, this.data.role), listingId: o.listingId });
+    const isBuyer = (o && o.isBuyer !== undefined) ? !!o.isBuyer : this.data.role === 'buyer';
+    const text = isBuyer
+      ? ('你好，我这边已经付款了（订单 ' + (o.orderNo || o.id) + '），麻烦尽快发货，谢谢～')
+      : ('你好，订单 ' + (o.orderNo || o.id) + ' 还在等待付款，方便的时候付一下，谢谢～');
+    app.openChat({ peerId: peerIdOf(o, this.data.role), listingId: o.listingId, text });
   },
 
   /** 头像图片加载失败 → 退回字标（不留下破图） */

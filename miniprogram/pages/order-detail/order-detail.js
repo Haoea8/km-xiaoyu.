@@ -167,11 +167,23 @@ Page({
       refund: () => this.refund(o),
       agree: () => this.decide(o, true),
       reject: () => this.decide(o, false),
-      remind: () => this.chat(),
+      remind: () => this.remind(),
       chat: () => this.chat(),
       rebuy: () => wx.navigateTo({ url: '/pages/detail/detail?id=' + o.listingId })
     };
     if (map[act]) map[act]();
+  },
+
+  /** 提醒发货 / 催付款：进会话并自动发一条消息 */
+  remind() {
+    const o = this.data.order || {};
+    const isBuyer = !!o.isBuyer;
+    const text = isBuyer
+      ? ('你好，我这边已经付款了（订单 ' + (o.orderNo || o.id) + '），麻烦尽快发货，谢谢～')
+      : ('你好，订单 ' + (o.orderNo || o.id) + ' 还在等待付款，方便的时候付一下，谢谢～');
+    const peerId = (this.data.peer && this.data.peer.id) || (isBuyer ? o.sellerId : o.buyerId) || 0;
+    if (!peerId) return wx.showToast({ title: '对方信息加载中', icon: 'none' });
+    app.openChat({ peerId, listingId: o.listingId, text });
   },
 
   chat() {

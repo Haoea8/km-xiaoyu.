@@ -359,6 +359,12 @@ App({
       wx.showLoading({ title: '进入会话', mask: true });
       const res = await api.post('/api/conversations/open', { peerId, listingId, sendCard }, { silent: true });
       wx.hideLoading();
+      // 可选：进会话前先替用户发一条消息（提醒发货 / 催付款这种一键动作）
+      if (opts && opts.text) {
+        try {
+          await api.post('/api/conversations/' + res.conversation.id + '/messages', { type: 'text', content: opts.text }, { silent: true });
+        } catch (e) { /* 发送失败不挡跳转，用户仍能看到会话 */ }
+      }
       const peer = res.conversation.peer || {};
       wx.navigateTo({
         url: '/pages/chat/chat?id=' + res.conversation.id +
