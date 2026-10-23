@@ -61,6 +61,9 @@ function actionsOf(o, role) {
   if (!acts.some((a) => a.act === 'chat')) {
     acts.push({ act: 'chat', label: isBuyer ? '联系卖家' : '联系买家', ghost: true });
   }
+  // 主按钮（绿色）永远排最后 → 渲染在最右边（数据层排序，不依赖 CSS order）
+  acts.sort((a, b) => (a.main ? 1 : 0) - (b.main ? 1 : 0));
+
   // 自买自卖的历史测试单没有「对方」：去掉联系入口，换成一个能点的「查看订单」，
   // 避免用户点了看到「不能和自己发起会话」这种莫名其妙的报错。
   if (o.isSelfOrder) {

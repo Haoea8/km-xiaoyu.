@@ -150,6 +150,8 @@ Page({
     if (!acts.some((a) => a.act === 'chat')) {
       acts.push({ act: 'chat', label: isBuyer ? '联系卖家' : '联系买家', ghost: true });
     }
+    acts.sort((a, b) => (a.main ? 1 : 0) - (b.main ? 1 : 0));
+
     if (o.isSelfOrder) {
       return acts.filter((a) => a.act !== 'chat');
     }
