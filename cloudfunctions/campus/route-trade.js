@@ -97,7 +97,7 @@ module.exports = function register(route) {
         const lockedByOthers = new Set();
         for (const o of allOrders) {
           if (ACTIVE_ORDER_STATES.indexOf(o.status) === -1) continue;
-          if (me && o.buyerId === me.id) continue;      // 自己拍下的留着（要能继续付款）
+          // 拍下即下架：谁拍的都隐藏（买家从「我的订单 · 待付款」里付款，不需要再从首页找到商品）
           lockedByOthers.add(o.listingId);
         }
         if (lockedByOthers.size) {
@@ -146,8 +146,16 @@ module.exports = function register(route) {
     }
     // 相关推荐：先取出原始文档、把卖家补进内存，**再** deco
     // （顺序不能反：deco 里的 sellerBrief 是同步读内存的，补晚了就是 null）
-    const relatedRaw = db.find('listings', (x) => x.status === 'on' && x.zone === l.zone && x.id !== l.id)
-      .sort((a, b) => b.createdAt - a.createdAt).slice(0, 4);
+    let relatedRaw = db.find('listings', (x) => x.status === 'on' && x.zone === l.zone && x.id !== l.id)
+      .sort((a, b) => b.createdAt - a.createdAt);
+    // 相关推荐同样排除「已被拍下」的，避免点进去全是买不到的东西
+    try {
+      const ACTIVE_R = ['pending', 'paid', 'shipped', 'refunding'];
+      const os = await db.readAllFromDb('orders');
+      const lockedR = new Set(os.filter((o) => ACTIVE_R.indexOf(o.status) > -1).map((o) => o.listingId));
+      if (lockedR.size) relatedRaw = relatedRaw.filter((x) => !lockedR.has(x.id));
+    } catch (e) { /* 忽略 */ }
+    relatedRaw = relatedRaw.slice(0, 4);
     await db.warmUsers(relatedRaw.map((x) => x.sellerId));
     const related = relatedRaw.map((x) => deco.decorateListing(x, me));
     const isWanted = me ? !!db.one('wants', (w) => w.userId === me.id && w.listingId === l.id) : false;

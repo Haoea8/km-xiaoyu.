@@ -57,7 +57,7 @@ module.exports = function register(route) {
       const ACTIVE = ['pending', 'paid', 'shipped', 'refunding'];
       const locked = new Set();
       for (const o of db.find('orders', (x) => ACTIVE.indexOf(x.status) > -1)) {
-        if (me && o.buyerId === me.id) continue;
+        // 拍下即下架：谁拍的都隐藏
         locked.add(o.listingId);
       }
       if (locked.size) {
