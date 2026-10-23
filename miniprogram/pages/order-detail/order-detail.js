@@ -133,7 +133,7 @@ Page({
         acts.push({ act: 'confirm', label: '确认收货', main: true });
       } else {
         acts.push({ act: 'chat', label: '联系买家', ghost: true });
-        acts.push({ act: 'remind', label: '提醒收货', ghost: true });
+        acts.push({ act: 'remind', label: '提醒收货', main: true });
       }
     } else if (o.status === 'refunding') {
       if (isBuyer) acts.push({ act: 'chat', label: '联系卖家', ghost: true });

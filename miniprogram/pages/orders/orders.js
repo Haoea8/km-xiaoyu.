@@ -45,7 +45,7 @@ function actionsOf(o, role) {
     } else {
       acts.push({ act: 'chat', label: '联系买家', ghost: true });
       // 卖家视角的「待收货」：催买家确认收货（钱才结算）
-      acts.push({ act: 'remind', label: '提醒收货', ghost: true });
+      acts.push({ act: 'remind', label: '提醒收货', main: true });
     }
   } else if (o.status === 'refunding') {
     if (isBuyer) acts.push({ act: 'chat', label: '联系卖家', ghost: true });
