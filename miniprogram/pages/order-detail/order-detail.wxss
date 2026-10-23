@@ -169,3 +169,5 @@
 .f-btn:active { opacity: 0.86; }
 
 .loading-wrap { padding-top: 20rpx; }
+
+.row-r.muted { color: #9AA0A6; }

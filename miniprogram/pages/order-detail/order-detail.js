@@ -146,7 +146,8 @@ Page({
       if (isBuyer) acts.push({ act: 'rebuy', label: '再次购买', ghost: true });
       else acts.push({ act: 'chat', label: '联系买家', ghost: true });
     }
-    return acts;
+    // 自买自卖的历史单没有「对方」，联系入口只会弹「不能和自己发起会话」
+    return o.isSelfOrder ? acts.filter((a) => a.act !== 'chat') : acts;
   },
 
   onAction(e) {

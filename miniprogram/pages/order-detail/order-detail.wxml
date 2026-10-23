@@ -97,9 +97,13 @@
     <view class="card">
       <view class="row"><text class="row-l">订单编号</text><text class="row-r mono" bindtap="copyNo">{{order.orderNo}} <text class="copy">复制</text></text></view>
       <view class="row"><text class="row-l">下单时间</text><text class="row-r">{{createdText}}</text></view>
-      <view class="row" bindtap="goPeer">
+      <view class="row" wx:if="{{!order.isSelfOrder}}" bindtap="goPeer">
         <text class="row-l">{{isBuyer ? '卖家' : '买家'}}</text>
         <text class="row-r link">{{peer.nickname}} ›</text>
+      </view>
+      <view class="row" wx:else>
+        <text class="row-l">{{isBuyer ? '卖家' : '买家'}}</text>
+        <text class="row-r muted">本人（测试单）</text>
       </view>
       <view class="row" wx:if="{{order.refundReason}}"><text class="row-l">退款原因</text><text class="row-r warn">{{order.refundReason}}</text></view>
     </view>

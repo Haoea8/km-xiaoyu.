@@ -56,7 +56,8 @@ function actionsOf(o, role) {
     if (isBuyer) acts.push({ act: 'rebuy', label: '再次购买', ghost: true });
     else acts.push({ act: 'chat', label: '联系买家', ghost: true });
   }
-  return acts;
+  // 自买自卖的历史测试单没有「对方」，给联系入口只会弹「不能和自己发起会话」
+  return o.isSelfOrder ? acts.filter((a) => a.act !== 'chat') : acts;
 }
 
 /** 对方 userId：订单字段优先，缺失时退回序列化出来的 brief（列表接口可能只给 brief） */

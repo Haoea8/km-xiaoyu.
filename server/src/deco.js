@@ -50,6 +50,7 @@ function decorateOrder(o, me) {
   out.buyer = sellerBrief(o.buyerId);
   out.seller = sellerBrief(o.sellerId);
   out.isBuyer = me ? o.buyerId === me.id : false;
+  out.isSelfOrder = o.buyerId === o.sellerId; // 自买自卖的历史单，不提供联系对方入口
   out.statusText = ORDER_STATUS[o.status] || o.status;
   out.timeText = require('./util').relTime(o.createdAt);
   return out;
