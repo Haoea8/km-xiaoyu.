@@ -216,18 +216,7 @@ module.exports = function register(route) {
     const p = db.findById('posts', ctx.params.id);
     if (!p) fail('帖子不存在', 404);
     const content = util.clampText((ctx.body || {}).content, 300);
-    /**
-     * 评论配图：**最多 3 张**，只接受字符串（cloud:// 或 https）。
-     *
-     * 为什么不限更多：评论区是碎片场景，3 张够表达（配图/截图/一张实物图），
-     * 多了会把楼层撑得很长，也会让别人的回复被挤到屏幕外。
-     * 数量在前端也拦一次（选图时就限制），这里再兜一次 —— 前端永远不可信。
-     */
-    const imgs = (Array.isArray((ctx.body || {}).images) ? (ctx.body || {}).images : [])
-      .filter((x) => typeof x === 'string' && x)
-      .slice(0, 3);
-    // 文字或图片**有一个**就能发（纯图评论是正常需求）
-    if (!content && !imgs.length) fail('说点什么，或配张图');
+    if (!content) fail('评论内容不能为空');
     // 校验 replyTo：必须存在、且属于同一个帖子。
     // 不校验就静默置空 → 前端「回复某人」会变成「直接回复帖子」（与云函数版一致）
     let replyTo = Number((ctx.body || {}).replyTo) || null;
@@ -237,16 +226,11 @@ module.exports = function register(route) {
       if (!target || target.postId !== p.id) { replyTo = null; target = null; }
     }
     const c = db.insert('comments', {
-      postId: p.id, authorId: me.id, content, replyTo,
-      // 老评论没有这个字段 → 前端按空数组处理，不需要数据迁移
-      images: imgs,
-      createdAt: Date.now()
+      postId: p.id, authorId: me.id, content, replyTo, createdAt: Date.now()
     });
     p.commentCount = db.find('comments', (x) => x.postId === p.id).length;
     db.saveSoon();
-    if (p.authorId !== me.id) {
-      ws.notifyUser(p.authorId, '「' + me.nickname + '」评论了你的帖子：' + (content ? content.slice(0, 30) : '[图片]'));
-    }
+    if (p.authorId !== me.id) ws.notifyUser(p.authorId, '「' + me.nickname + '」评论了你的帖子：' + content.slice(0, 30));
 
     /**
      * 互动消息（独立于上面的 AI 会话通知）。
@@ -259,13 +243,13 @@ module.exports = function register(route) {
      */
     it.add({
       toUserId: p.authorId, actorId: me.id, type: 'post_comment',
-      targetId: p.id, commentId: c.id, text: content || (imgs.length ? '[图片]' : ''),
+      targetId: p.id, commentId: c.id, text: content,
       title: p.content, image: (p.images || [])[0] || ''
     });
     if (replyTo && target) {
       it.add({
         toUserId: target.authorId, actorId: me.id, type: 'comment_reply',
-        targetId: p.id, commentId: c.id, text: content || (imgs.length ? '[图片]' : ''),
+        targetId: p.id, commentId: c.id, text: content,
         title: p.content, image: (p.images || [])[0] || ''
       });
     }
@@ -317,7 +301,7 @@ module.exports = function register(route) {
     return { list, unreadTotal: list.reduce((s, c) => s + c.unread, 0), interactionUnread };
   });
 
-  route('POST', '/api/conversations/open', (ctx) => {
+  route('POST', '/api/conversations/open', async (ctx) => {
     const me = needUser(ctx);
     const b = ctx.body || {};
     let peerId = util.num(b.peerId);
@@ -328,8 +312,10 @@ module.exports = function register(route) {
     }
     const aiUser = db.one('users', (u) => u.isAI);
     if (!peerId && aiUser) peerId = aiUser.id;
-    const peer = db.findById('users', peerId);
-    if (!peer || peer.id === me.id) fail('对方不存在');
+    let peer = (await db.findByIdWithFallback('users', peerId)).doc;
+    if (!peer) peer = db.findById('users', peerId);
+    if (!peer) fail('对方不存在');
+    if (peer.id === me.id) fail('不能和自己发起会话');
     let conv = db.one('conversations', (c) => c.members.length === 2 && c.members.indexOf(me.id) !== -1 && c.members.indexOf(peer.id) !== -1);
     if (!conv) conv = db.insert('conversations', { members: [me.id, peer.id], lastMessage: '', lastTime: Date.now() });
     if (b.sendCard && listing) {

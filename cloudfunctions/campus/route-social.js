@@ -346,18 +346,7 @@ module.exports = function register(route) {
     const p = f.doc;
     if (!p) fail('帖子不存在', 404);
     const content = util.clampText((ctx.body || {}).content, 300);
-    /**
-     * 评论配图：**最多 3 张**，只接受字符串（cloud:// 或 https）。
-     *
-     * 为什么不限更多：评论区是碎片场景，3 张够表达（配图/截图/一张实物图），
-     * 多了会把楼层撑得很长，也会让别人的回复被挤到屏幕外。
-     * 数量在前端也拦一次（选图时就限制），这里再兜一次 —— 前端永远不可信。
-     */
-    const imgs = (Array.isArray((ctx.body || {}).images) ? (ctx.body || {}).images : [])
-      .filter((x) => typeof x === 'string' && x)
-      .slice(0, 3);
-    // 文字或图片**有一个**就能发（纯图评论是正常需求）
-    if (!content && !imgs.length) fail('说点什么，或配张图');
+    if (!content) fail('评论内容不能为空');
 
     /**
      * 回复目标必须**真实存在且属于本帖**，所以要走直查兜底。
@@ -375,10 +364,7 @@ module.exports = function register(route) {
     }
 
     const c = db.insert('comments', {
-      postId: p.id, authorId: me.id, content, replyTo,
-      // 老评论没有这个字段 → 前端按空数组处理，不需要数据迁移
-      images: imgs,
-      createdAt: Date.now()
+      postId: p.id, authorId: me.id, content, replyTo, createdAt: Date.now()
     });
     /**
      * ⚠️ 这里**不能**再写 `db.find('comments', ...).length`。
@@ -392,9 +378,7 @@ module.exports = function register(route) {
      */
     p.commentCount = (p.commentCount || 0) + 1;
     db.saveSoon();
-    if (p.authorId !== me.id) {
-      ws.notifyUser(p.authorId, '「' + me.nickname + '」评论了你的帖子：' + (content ? content.slice(0, 30) : '[图片]'));
-    }
+    if (p.authorId !== me.id) ws.notifyUser(p.authorId, '「' + me.nickname + '」评论了你的帖子：' + content.slice(0, 30));
 
     /**
      * 互动消息（独立于上面的 AI 会话通知）。
@@ -407,13 +391,13 @@ module.exports = function register(route) {
      */
     it.add({
       toUserId: p.authorId, actorId: me.id, type: 'post_comment',
-      targetId: p.id, commentId: c.id, text: content || (imgs.length ? '[图片]' : ''),
+      targetId: p.id, commentId: c.id, text: content,
       title: p.content, image: (p.images || [])[0] || ''
     });
     if (replyTo && target) {
       it.add({
         toUserId: target.authorId, actorId: me.id, type: 'comment_reply',
-        targetId: p.id, commentId: c.id, text: content || (imgs.length ? '[图片]' : ''),
+        targetId: p.id, commentId: c.id, text: content,
         title: p.content, image: (p.images || [])[0] || ''
       });
     }
@@ -511,8 +495,16 @@ module.exports = function register(route) {
     }
     const aiUser = db.one('users', (u) => u.isAI);
     if (!peerId && aiUser) peerId = aiUser.id;
-    const peer = db.findById('users', peerId);
-    if (!peer || peer.id === me.id) fail('对方不存在');
+    // ⚠️ 不能只查内存：对方（尤其买家）可能是别的实例写入的用户，
+    // 本实例镜像里没有 → 误报「对方不存在」（订单列表点「联系买家」就是这个现象，
+    // 而订单详情能进，因为详情接口先 warmUsers 把对方补进了内存）。
+    let peer = (await db.findByIdWithFallback('users', peerId)).doc;
+    if (!peer) {
+      try { await db.warmUsers([peerId]); } catch (e) { /* 忽略 */ }
+      peer = db.findById('users', peerId);
+    }
+    if (!peer) fail('对方不存在');
+    if (peer.id === me.id) fail('不能和自己发起会话');
     /**
      * ⚠️ 查「是否已有双人会话」也直查数据库。
      * 只读内存时，若会话是别的实例建的，这里查不到 → **又建一个新会话** →

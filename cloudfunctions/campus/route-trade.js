@@ -401,8 +401,11 @@ module.exports = function register(route) {
      * 于是返回 404「订单不存在」，前端就跳去别处（看起来像"跳到了别人的页面"）。
      * 与「会话不存在被丢进 AI 会话」是同一个模式，必须走兜底。
      */
-    const found = await db.findByIdWithFallback('orders', ctx.params.id);
-    const o = found.doc;
+    // 详情必须读到「最新状态」：镜像命中也不够。
+    // 曾出现「已发货却显示待发货、还能再点发货」——因为本实例镜像停在 paid，
+    // 而库里已经是 shipped；把它写回去就把状态冲回去了。
+    let o = await db.findByIdFresh('orders', ctx.params.id);
+    if (!o) o = (await db.findByIdWithFallback('orders', ctx.params.id)).doc;
     if (!o || (o.buyerId !== me.id && o.sellerId !== me.id)) fail('订单不存在', 404);
     await db.warmUsers([o.buyerId, o.sellerId]);
     return { order: deco.decorateOrder(o, me) };
@@ -421,7 +424,8 @@ module.exports = function register(route) {
    */
   route('POST', '/api/orders/:id/pay', async (ctx) => {
     const me = needUser(ctx);
-    const o = db.findById('orders', ctx.params.id);
+    // 写操作必须拿最新版本：镜像可能停在 pending，而库里已经被别的实例改成 paid/shipped
+    const o = await db.findByIdFresh('orders', ctx.params.id);
     if (!o || o.buyerId !== me.id) fail('订单不存在', 404);
     if (o.status !== 'pending') fail('订单状态不允许支付');
 
@@ -434,7 +438,8 @@ module.exports = function register(route) {
     // 曾经不分模式一律拦，结果把拼团锁死：B、C 参团各一笔单，C 先付成功后
     // B 再付就被拒 → 团永远停在「还差 1 人成团」（smoke2 的「满员自动成团」抓到的就是这个）。
     const PAID_STATES = ['paid', 'shipped', 'done', 'refunding'];
-    const l0 = db.findById('listings', o.listingId);
+    // 商品状态也直查最新：镜像里可能还写着 on，而库里已经 sold（别人刚付完）
+    const l0 = await db.findByIdFresh('listings', o.listingId);
     if (l0 && l0.status === 'sold') {
       fail('该商品已被购买，这笔订单不能再次支付（请直接取消订单）');
     }
@@ -458,14 +463,37 @@ module.exports = function register(route) {
     }
 
     const method = (ctx.body || {}).method || 'balance';
+    if (!['balance', 'wxpay'].includes(method)) fail('不支持的支付方式');
+    if (method === 'balance' && (me.balance || 0) < o.payAmount) {
+      fail('余额不足，请先到「我的钱包」充值');
+    }
+
+    /**
+     * ⚠️ 防「付两次」的最后一道闸：抢占商品。
+     *
+     * 上面的状态检查都是「先读后写」，两个请求（双击 / 弱网重试）可能同时读到 pending，
+     * 于是都往下走、各扣一次钱。用户的反馈正是「有时会付两次」。
+     * 这里把「商品 on → sold」当成一次原子占位：只有改成功的那次能继续付款，
+     * 第二次请求必然看到 sold 而提前退出。
+     */
+    if (isUnique && l0) {
+      const claim = await db.updateFresh('listings', l0.id, { status: 'sold' });
+      if (!claim) fail('下单失败，请重试');
+    }
+    // 再确认订单仍是 pending：并发时先到的那次已经把它改成 paid
+    const recheck = await db.findByIdFresh('orders', o.id);
+    if (!recheck || recheck.status !== 'pending') {
+      if (isUnique && l0) { try { await db.updateFresh('listings', l0.id, { status: 'on' }); } catch (e) { /* 忽略 */ } }
+      fail('这笔订单已经付过款了，请刷新查看');
+    }
+
     if (method === 'balance') {
-      if ((me.balance || 0) < o.payAmount) fail('余额不足，请先到「我的钱包」充值');
       const balance = me.balance - o.payAmount;
       db.update('users', me.id, { balance });
       db.insert('transactions', { userId: me.id, type: 'pay', amount: -o.payAmount, note: '购买「' + o.snapshot.title + '」', balanceAfter: balance, orderId: o.id });
-    } else if (method === 'wxpay') {
+    } else {
       db.insert('transactions', { userId: me.id, type: 'pay_wx', amount: -o.payAmount, note: '微信支付（演示）「' + o.snapshot.title + '」', balanceAfter: me.balance || 0, orderId: o.id });
-    } else fail('不支持的支付方式');
+    }
     o.payType = method;
     o.status = 'paid';
     o.timeline.push({ status: 'paid', time: Date.now(), note: (method === 'balance' ? '余额支付' : '微信支付（演示）') + ' ¥' + util.yuan(o.payAmount) });
@@ -477,39 +505,46 @@ module.exports = function register(route) {
     });
 
     const l = db.findById('listings', o.listingId);
-    if (l) {
-      if (l.tradeMode === 'group') {
-        // 拼团：标记参团已付款，并尝试自动成团（满员即成功）
-        try { require('./group').onOrderPaid(o, me); } catch (e) { /* 不影响主流程 */ }
-      } else if (l.tradeMode === 'sell' || l.tradeMode === 'rent') {
-        db.update('listings', l.id, { status: 'sold' });
-      }
+    if (l && l.tradeMode === 'group') {
+      // 拼团：标记参团已付款，并尝试自动成团（满员即成功）
+      try { require('./group').onOrderPaid(o, me); } catch (e) { /* 不影响主流程 */ }
     }
-    db.saveSoon();
+    // 单件类商品在上面的「抢占」里已经置为 sold，这里不再重复写
+    // 只落「订单状态相关字段」，避免把整份过期镜像写回去把别人的改动冲掉
+    await db.updateFresh('orders', o.id, {
+      status: o.status, payType: o.payType, timeline: o.timeline
+    });
     ws.notifyUser(o.sellerId, '买家已付款：「' + o.snapshot.title + '」等待你发货 / 面交', { orderId: o.id, title: o.snapshot.title, amount: o.payAmount });
     ws.notifyUser(me.id, '支付成功：「' + o.snapshot.title + '」，等待卖家发货。', { orderId: o.id, title: o.snapshot.title, amount: o.payAmount });
     return { order: deco.decorateOrder(o, me) };
   });
 
-  route('POST', '/api/orders/:id/ship', (ctx) => {
+  /**
+   * 发货。⚠️ 幂等：只允许 paid → shipped 一次。
+   * 之前用镜像读状态，别的实例已发货时本地仍是 paid → 可以无限次发货，
+   * 且每次把 shipped 覆盖回 shipped（时间线越堆越长）。必须直查最新状态。
+   */
+  route('POST', '/api/orders/:id/ship', async (ctx) => {
     const me = needUser(ctx);
-    const o = db.findById('orders', ctx.params.id);
+    const o = await db.findByIdFresh('orders', ctx.params.id);
     if (!o || o.sellerId !== me.id) fail('订单不存在', 404);
-    if (o.status !== 'paid') fail('订单状态不允许发货');
-    o.status = 'shipped';
-    o.timeline.push({ status: 'shipped', time: Date.now(), note: util.clampText((ctx.body || {}).note, 60) || '卖家已发货 / 完成交付' });
-    db.saveSoon();
+    if (o.status !== 'paid') fail(o.status === 'shipped' ? '这笔订单已经发过货了' : '订单状态不允许发货');
+    const timeline = (o.timeline || []).concat([{
+      status: 'shipped', time: Date.now(),
+      note: util.clampText((ctx.body || {}).note, 60) || '卖家已发货 / 完成交付'
+    }]);
+    const saved = await db.updateFresh('orders', o.id, { status: 'shipped', timeline });
+    if (!saved) fail('发货失败，请重试');
     ws.notifyUser(o.buyerId, '卖家已发货：「' + o.snapshot.title + '」，请及时确认收货', { orderId: o.id, title: o.snapshot.title, amount: o.payAmount });
-    return { order: deco.decorateOrder(o, me) };
+    return { order: deco.decorateOrder(saved, me) };
   });
 
-  route('POST', '/api/orders/:id/confirm', (ctx) => {
+  route('POST', '/api/orders/:id/confirm', async (ctx) => {
     const me = needUser(ctx);
-    const o = db.findById('orders', ctx.params.id);
+    const o = await db.findByIdFresh('orders', ctx.params.id);
     if (!o || o.buyerId !== me.id) fail('订单不存在', 404);
     if (o.status !== 'shipped') fail('订单状态不允许确认');
-    o.status = 'done';
-    o.timeline.push({ status: 'done', time: Date.now(), note: '买家已确认收货' });
+    const timeline = (o.timeline || []).concat([{ status: 'done', time: Date.now(), note: '买家已确认收货' }]);
     const seller = db.findById('users', o.sellerId);
     if (seller) {
       const balance = (seller.balance || 0) + o.payAmount;
@@ -518,46 +553,50 @@ module.exports = function register(route) {
       // 平台担保：放款给卖家
       db.insert('escrows', { orderId: o.id, type: 'release', userId: o.sellerId, amount: o.payAmount, status: 'released', createdAt: Date.now() });
     }
-    db.saveSoon();
+    const saved = await db.updateFresh('orders', o.id, { status: 'done', timeline });
+    if (!saved) fail('确认收货失败，请重试');
     ws.notifyUser(o.sellerId, '买家已确认收货，订单完成：「' + o.snapshot.title + '」，货款已入账', { orderId: o.id, title: o.snapshot.title, amount: o.payAmount });
-    return { order: deco.decorateOrder(o, me) };
+    return { order: deco.decorateOrder(saved, me) };
   });
 
-  route('POST', '/api/orders/:id/cancel', (ctx) => {
+  route('POST', '/api/orders/:id/cancel', async (ctx) => {
     const me = needUser(ctx);
-    const o = db.findById('orders', ctx.params.id);
+    const o = await db.findByIdFresh('orders', ctx.params.id);
     if (!o || (o.buyerId !== me.id && o.sellerId !== me.id)) fail('订单不存在', 404);
     if (o.status !== 'pending') fail('已付款订单请走退款流程');
-    o.status = 'canceled';
-    o.timeline.push({ status: 'canceled', time: Date.now(), note: (o.buyerId === me.id ? '买家' : '卖家') + '取消订单' });
-    db.saveSoon();
+    const timeline = (o.timeline || []).concat([{ status: 'canceled', time: Date.now(), note: (o.buyerId === me.id ? '买家' : '卖家') + '取消订单' }]);
+    const saved = await db.updateFresh('orders', o.id, { status: 'canceled', timeline });
+    if (!saved) fail('取消失败，请重试');
     const other = o.buyerId === me.id ? o.sellerId : o.buyerId;
     ws.notifyUser(other, '订单已取消：「' + o.snapshot.title + '」', { orderId: o.id, title: o.snapshot.title, amount: o.payAmount });
-    return { order: deco.decorateOrder(o, me) };
+    return { order: deco.decorateOrder(saved, me) };
   });
 
-  route('POST', '/api/orders/:id/refund', (ctx) => {
+  route('POST', '/api/orders/:id/refund', async (ctx) => {
     const me = needUser(ctx);
-    const o = db.findById('orders', ctx.params.id);
+    const o = await db.findByIdFresh('orders', ctx.params.id);
     if (!o || o.buyerId !== me.id) fail('订单不存在', 404);
     if (!['paid', 'shipped'].includes(o.status)) fail('当前状态不支持退款');
-    o.status = 'refunding';
-    o.refundReason = util.clampText((ctx.body || {}).reason, 100) || '买家申请退款';
-    o.timeline.push({ status: 'refunding', time: Date.now(), note: '买家申请退款：' + o.refundReason });
-    db.saveSoon();
+    const refundReason = util.clampText((ctx.body || {}).reason, 100) || '买家申请退款';
+    const timeline = (o.timeline || []).concat([{ status: 'refunding', time: Date.now(), note: '买家申请退款：' + refundReason }]);
+    const saved = await db.updateFresh('orders', o.id, { status: 'refunding', refundReason, timeline });
+    if (!saved) fail('提交失败，请重试');
     ws.notifyUser(o.sellerId, '买家申请退款：「' + o.snapshot.title + '」，请尽快处理', { orderId: o.id, title: o.snapshot.title, amount: o.payAmount });
-    return { order: deco.decorateOrder(o, me) };
+    return { order: deco.decorateOrder(saved, me) };
   });
 
-  route('POST', '/api/orders/:id/refund/decide', (ctx) => {
+  route('POST', '/api/orders/:id/refund/decide', async (ctx) => {
     const me = needUser(ctx);
-    const o = db.findById('orders', ctx.params.id);
+    const o = await db.findByIdFresh('orders', ctx.params.id);
     if (!o || o.sellerId !== me.id) fail('订单不存在', 404);
     if (o.status !== 'refunding') fail('订单不在退款流程中');
     const approve = !!(ctx.body || {}).approve;
+    const nextStatus = approve ? 'refunded' : 'paid';
+    const timeline = (o.timeline || []).concat([{
+      status: nextStatus, time: Date.now(),
+      note: approve ? '卖家同意退款' : ('卖家拒绝退款：' + (util.clampText((ctx.body || {}).note, 60) || '商品无问题'))
+    }]);
     if (approve) {
-      o.status = 'refunded';
-      o.timeline.push({ status: 'refunded', time: Date.now(), note: '卖家同意退款' });
       if (o.payType === 'balance') {
         const buyer = db.findById('users', o.buyerId);
         if (buyer) {
@@ -572,12 +611,10 @@ module.exports = function register(route) {
       if (l && l.status === 'sold') db.update('listings', l.id, { status: 'on' });
       // 平台担保：退款流水
       db.insert('escrows', { orderId: o.id, type: 'refund', userId: o.buyerId, amount: o.payAmount, status: 'refunded', createdAt: Date.now() });
-    } else {
-      o.status = 'paid';
-      o.timeline.push({ status: 'paid', time: Date.now(), note: '卖家拒绝退款：' + (util.clampText((ctx.body || {}).note, 60) || '商品无问题') });
     }
-    db.saveSoon();
+    const saved = await db.updateFresh('orders', o.id, { status: nextStatus, timeline });
+    if (!saved) fail('处理失败，请重试');
     ws.notifyUser(o.buyerId, approve ? ('退款成功：「' + o.snapshot.title + '」款项已原路退回') : ('卖家拒绝了退款申请：「' + o.snapshot.title + '」，如有争议可联系客服'), { orderId: o.id, title: o.snapshot.title, amount: o.payAmount });
-    return { order: deco.decorateOrder(o, me) };
+    return { order: deco.decorateOrder(saved, me) };
   });
 };

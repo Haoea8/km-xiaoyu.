@@ -51,9 +51,19 @@ function actionsOf(o, role) {
       acts.push({ act: 'agree', label: '同意退款', main: true });
     }
   } else if (o.status === 'done' || o.status === 'canceled' || o.status === 'refunded') {
-    acts.push({ act: 'rebuy', label: '再次购买', ghost: true });
+    // 终态：买家能「再次购买」，卖家不该有购买按钮 —— 之前这里不分角色，
+    // 卖家在「我卖出的 · 已完成」里看到「再次购买」，点进去还是自己那件商品。
+    if (isBuyer) acts.push({ act: 'rebuy', label: '再次购买', ghost: true });
+    else acts.push({ act: 'chat', label: '联系买家', ghost: true });
   }
   return acts;
+}
+
+/** 对方 userId：订单字段优先，缺失时退回序列化出来的 brief（列表接口可能只给 brief） */
+function peerIdOf(o, role) {
+  const isBuyer = role === 'buyer';
+  const brief = isBuyer ? o.seller : o.buyer;
+  return (isBuyer ? o.sellerId : o.buyerId) || (brief && brief.id) || 0;
 }
 
 Page({
@@ -87,6 +97,7 @@ Page({
       const role = this.data.role;
       const list = (res.items || []).map((o) => {
         const st = ORDER_STATUS[o.status] || { text: o.status, color: '#9AA0A6' };
+        const cp = role === 'buyer' ? o.seller : o.buyer;
         return Object.assign(o, {
           cover: api.abs((o.snapshot && o.snapshot.image) || ''),
           priceText: util.fmtMoney(o.snapshot ? o.snapshot.price : 0),
@@ -95,7 +106,11 @@ Page({
           statusText2: st.text,
           statusColor: st.color,
           timeText2: util.fmtTime(o.createdAt),
-          counterpart: role === 'buyer' ? o.seller : o.buyer,
+          // 头像走「字标 + 图片」双层：avatar 为空或链接过期时只显示字标
+          counterpart: Object.assign({}, cp || { nickname: '用户' }, {
+            avatar: api.abs((cp && cp.avatar) || ''),
+            avatarErr: false
+          }),
           acts: actionsOf(o, role)
         });
       });
@@ -133,34 +148,48 @@ Page({
       agree: () => this.decide(o, true),
       reject: () => this.decide(o, false),
       remind: () => this.remind(o),
-      chat: () => app.openChat({ peerId: this.data.role === 'buyer' ? o.sellerId : o.buyerId, listingId: o.listingId }),
+      chat: () => app.openChat({ peerId: peerIdOf(o, this.data.role), listingId: o.listingId }),
       rebuy: () => wx.navigateTo({ url: '/pages/detail/detail?id=' + o.listingId })
     };
     if (map[act]) map[act]();
   },
 
   async pay(o) {
-    const w = await api.get('/api/wallet', null, { silent: true }).catch(() => ({ balance: 0 }));
-    const balance = w.balance || 0;
-    wx.showActionSheet({
-      itemList: ['余额支付（可用 ¥' + util.fmtMoney(balance) + '）', '微信支付（演示）'],
-      success: async (r) => {
-        const method = r.tapIndex === 0 ? 'balance' : 'wxpay';
-        if (method === 'balance' && balance < o.payAmount) {
-          return wx.showModal({
-            title: '余额不足',
-            content: '还差 ¥' + util.fmtMoney(o.payAmount - balance) + '，是否去充值？',
-            confirmText: '去充值',
-            success: (m) => { if (m.confirm) wx.navigateTo({ url: '/pages/wallet/wallet?recharge=1' }); }
-          });
-        }
-        try {
-          await api.post('/api/orders/' + o.id + '/pay', { method }, { loading: '支付中' });
-          wx.showToast({ title: '支付成功', icon: 'success' });
-          this.fetch();
-        } catch (e) { /* 已提示 */ }
-      }
-    });
+    // 防双击：连点两下会发两次支付请求（服务端也会拦，但先在这里挡住，体验更好）
+    if (this.__paying) return wx.showToast({ title: '正在支付，请稍候', icon: 'none' });
+    this.__paying = true;
+    const unlock = () => { this.__paying = false; };
+    try {
+      const w = await api.get('/api/wallet', null, { silent: true }).catch(() => ({ balance: 0 }));
+      const balance = w.balance || 0;
+      await new Promise((resolve) => {
+        wx.showActionSheet({
+          itemList: ['余额支付（可用 ¥' + util.fmtMoney(balance) + '）', '微信支付（演示）'],
+          success: async (r) => {
+            const method = r.tapIndex === 0 ? 'balance' : 'wxpay';
+            if (method === 'balance' && balance < o.payAmount) {
+              wx.showModal({
+                title: '余额不足',
+                content: '还差 ¥' + util.fmtMoney(o.payAmount - balance) + '，是否去充值？',
+                confirmText: '去充值',
+                success: (m) => { if (m.confirm) wx.navigateTo({ url: '/pages/wallet/wallet?recharge=1' }); resolve(); },
+                fail: resolve
+              });
+              return;
+            }
+            try {
+              await api.post('/api/orders/' + o.id + '/pay', { method }, { loading: '支付中' });
+              wx.showToast({ title: '支付成功', icon: 'success' });
+              this.fetch();
+            } catch (e) {
+              // 服务端判定「已付过」不是错误，刷新即可
+              if (String(e && e.message || '').indexOf('已经付过款') > -1) this.fetch();
+            } finally { resolve(); }
+          },
+          fail: () => resolve()
+        });
+      });
+    } finally { unlock(); }
   },
 
   cancel(o) {
@@ -237,6 +266,13 @@ Page({
   },
 
   remind(o) {
-    app.openChat({ peerId: this.data.role === 'buyer' ? o.sellerId : o.buyerId, listingId: o.listingId });
+    app.openChat({ peerId: peerIdOf(o, this.data.role), listingId: o.listingId });
+  },
+
+  /** 头像图片加载失败 → 退回字标（不留下破图） */
+  onAvatarErr(e) {
+    const idx = e.currentTarget.dataset.idx;
+    const key = 'list[' + idx + '].counterpart.avatar';
+    this.setData({ [key]: '' });
   }
 });

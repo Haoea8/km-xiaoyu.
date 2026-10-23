@@ -11,7 +11,7 @@
 }
 .role-tab.on {
   background: var(--brand-grad); color: #fff; border-color: transparent;
-  font-weight: 600; box-shadow: 0 8rpx 18rpx rgba(31, 164, 91, 0.24);
+  font-weight: 600; box-shadow: 0 8rpx 18rpx rgba(255, 90, 60, 0.24);
 }
 
 /* ---------- 状态筛选 ---------- */
@@ -30,7 +30,7 @@
 }
 .status-chip.on {
   background: var(--brand-soft); color: var(--brand);
-  border-color: rgba(31, 164, 91, 0.3); font-weight: 600;
+  border-color: rgba(255, 90, 60, 0.3); font-weight: 600;
 }
 
 /* ---------- 订单卡片 ---------- */
@@ -42,10 +42,15 @@
 .o-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 22rpx; }
 .o-shop { display: flex; align-items: center; gap: 12rpx; }
 .o-shop-ico {
+  position: relative; overflow: hidden;
   width: 44rpx; height: 44rpx; border-radius: 50%;
   background: #EEF1F5; color: var(--ink-2);
   display: flex; align-items: center; justify-content: center;
   font-size: 22rpx; font-weight: 600;
+}
+.o-shop-txt { line-height: 1; }
+.o-shop-img {
+  position: absolute; left: 0; top: 0; width: 100%; height: 100%;
 }
 .o-shop-name { font-size: 26rpx; font-weight: 600; }
 .o-status { font-size: 25rpx; font-weight: 600; }
@@ -83,7 +88,7 @@
 }
 .o-btn-main {
   background: var(--brand-grad); color: #fff; border-color: transparent;
-  font-weight: 600; box-shadow: 0 6rpx 16rpx rgba(31, 164, 91, 0.24);
+  font-weight: 600; box-shadow: 0 6rpx 16rpx rgba(255, 90, 60, 0.24);
 }
 .o-btn:active { opacity: 0.86; }
 

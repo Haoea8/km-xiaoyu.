@@ -30,7 +30,12 @@
       <!-- 头部 -->
       <view class="o-head">
         <view class="o-shop">
-          <view class="o-shop-ico">{{item.counterpart.nickname[0]}}</view>
+          <!-- 头像：字标打底 + 图片覆盖；图片为空或加载失败时自然退回字标 -->
+          <view class="o-shop-ico">
+            <text class="o-shop-txt">{{item.counterpart.nickname[0]}}</text>
+            <image wx:if="{{item.counterpart.avatar}}" class="o-shop-img" src="{{item.counterpart.avatar}}"
+              mode="aspectFill" binderror="onAvatarErr" data-idx="{{index}}"></image>
+          </view>
           <text class="o-shop-name">{{item.counterpart.nickname}}</text>
         </view>
         <text class="o-status" style="color:{{item.statusColor}}">{{item.statusText2}}</text>

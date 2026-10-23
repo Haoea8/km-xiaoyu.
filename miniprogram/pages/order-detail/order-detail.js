@@ -141,7 +141,10 @@ Page({
         acts.push({ act: 'agree', label: '同意退款', main: true });
       }
     } else {
-      acts.push({ act: 'rebuy', label: '再次购买', ghost: true });
+      // 终态（done / canceled / refunded）：买家可再次购买，卖家只能联系买家。
+      // 之前不分角色一律给「再次购买」——卖家点进去是自己那件已卖掉的商品。
+      if (isBuyer) acts.push({ act: 'rebuy', label: '再次购买', ghost: true });
+      else acts.push({ act: 'chat', label: '联系买家', ghost: true });
     }
     return acts;
   },
@@ -164,32 +167,53 @@ Page({
     if (map[act]) map[act]();
   },
 
-  chat() { app.openChat({ peerId: this.data.peer.id }); },
+  chat() {
+    const o = this.data.order || {};
+    const isBuyer = !!o.isBuyer;
+    // peer.id 可能为 0（对方用户没被序列化出来）→ 退回订单上的 id，别把 0 发给后端（会提示「对方不存在」）
+    const peerId = (this.data.peer && this.data.peer.id) || (isBuyer ? o.sellerId : o.buyerId) || 0;
+    if (!peerId) {
+      return wx.showToast({ title: '对方信息加载中，请稍后重试', icon: 'none' });
+    }
+    app.openChat({ peerId, listingId: o.listingId });
+  },
 
   toggleGuarantee() { this.setData({ showGuarantee: !this.data.showGuarantee }); },
 
   async pay(o) {
-    const w = await api.get('/api/wallet', null, { silent: true }).catch(() => ({ balance: 0 }));
-    const balance = w.balance || 0;
-    wx.showActionSheet({
-      itemList: ['余额支付（可用 ¥' + util.fmtMoney(balance) + '）', '微信支付（演示）'],
-      success: async (r) => {
-        const method = r.tapIndex === 0 ? 'balance' : 'wxpay';
-        if (method === 'balance' && balance < o.payAmount) {
-          return wx.showModal({
-            title: '余额不足',
-            content: '还差 ¥' + util.fmtMoney(o.payAmount - balance) + '，是否去充值？',
-            confirmText: '去充值',
-            success: (m) => { if (m.confirm) wx.navigateTo({ url: '/pages/wallet/wallet?recharge=1' }); }
-          });
-        }
-        try {
-          await api.post('/api/orders/' + o.id + '/pay', { method }, { loading: '支付中' });
-          wx.showToast({ title: '支付成功', icon: 'success' });
-          this.fetch();
-        } catch (e) { /* 已提示 */ }
-      }
-    });
+    // 防双击（服务端也会拦「已付过」，这里只是别让用户等两次）
+    if (this.__paying) return wx.showToast({ title: '正在支付，请稍候', icon: 'none' });
+    this.__paying = true;
+    try {
+      const w = await api.get('/api/wallet', null, { silent: true }).catch(() => ({ balance: 0 }));
+      const balance = w.balance || 0;
+      await new Promise((resolve) => {
+        wx.showActionSheet({
+          itemList: ['余额支付（可用 ¥' + util.fmtMoney(balance) + '）', '微信支付（演示）'],
+          success: async (r) => {
+            const method = r.tapIndex === 0 ? 'balance' : 'wxpay';
+            if (method === 'balance' && balance < o.payAmount) {
+              wx.showModal({
+                title: '余额不足',
+                content: '还差 ¥' + util.fmtMoney(o.payAmount - balance) + '，是否去充值？',
+                confirmText: '去充值',
+                success: (m) => { if (m.confirm) wx.navigateTo({ url: '/pages/wallet/wallet?recharge=1' }); resolve(); },
+                fail: resolve
+              });
+              return;
+            }
+            try {
+              await api.post('/api/orders/' + o.id + '/pay', { method }, { loading: '支付中' });
+              wx.showToast({ title: '支付成功', icon: 'success' });
+              this.fetch();
+            } catch (e) {
+              if (String(e && e.message || '').indexOf('已经付过款') > -1) this.fetch();
+            } finally { resolve(); }
+          },
+          fail: () => resolve()
+        });
+      });
+    } finally { this.__paying = false; }
   },
 
   cancel(o) {
