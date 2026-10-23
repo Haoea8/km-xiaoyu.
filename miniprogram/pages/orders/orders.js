@@ -57,8 +57,18 @@ function actionsOf(o, role) {
     if (isBuyer) acts.push({ act: 'rebuy', label: '再次购买', ghost: true });
     else acts.push({ act: 'chat', label: '联系买家', ghost: true });
   }
-  // 自买自卖的历史测试单没有「对方」，给联系入口只会弹「不能和自己发起会话」
-  return o.isSelfOrder ? acts.filter((a) => a.act !== 'chat') : acts;
+  // 每个状态都保留一个「联系对方」入口（买到的→联系卖家，卖出的→联系买家）
+  if (!acts.some((a) => a.act === 'chat')) {
+    acts.push({ act: 'chat', label: isBuyer ? '联系卖家' : '联系买家', ghost: true });
+  }
+  // 自买自卖的历史测试单没有「对方」：去掉联系入口，换成一个能点的「查看订单」，
+  // 避免用户点了看到「不能和自己发起会话」这种莫名其妙的报错。
+  if (o.isSelfOrder) {
+    const rest = acts.filter((a) => a.act !== 'chat');
+    rest.push({ act: 'view', label: '查看订单', ghost: true });
+    return rest;
+  }
+  return acts;
 }
 
 /** 对方 userId：订单字段优先，缺失时退回序列化出来的 brief（列表接口可能只给 brief） */
@@ -151,7 +161,8 @@ Page({
       reject: () => this.decide(o, false),
       remind: () => this.remind(o),
       chat: () => app.openChat({ peerId: peerIdOf(o, this.data.role), listingId: o.listingId }),
-      rebuy: () => wx.navigateTo({ url: '/pages/detail/detail?id=' + o.listingId })
+      rebuy: () => wx.navigateTo({ url: '/pages/detail/detail?id=' + o.listingId }),
+      view: () => this.goDetail({ currentTarget: { dataset: { id: o.id } } })
     };
     if (map[act]) map[act]();
   },
