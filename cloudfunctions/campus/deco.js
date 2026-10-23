@@ -57,7 +57,7 @@ function decorateOrder(o, me) {
   out.seller = sellerBrief(o.sellerId);
   out.isBuyer = me ? o.buyerId === me.id : false;
   // 自买自卖（历史测试单）：两侧是同一个人，页面不该出现「联系买家/卖家」
-  out.isSelfOrder = o.buyerId === o.sellerId;
+  out.isSelfOrder = String(o.buyerId) === String(o.sellerId);
   out.statusText = ORDER_STATUS[o.status] || o.status;
   out.timeText = require('./util').relTime(o.createdAt);
   return out;

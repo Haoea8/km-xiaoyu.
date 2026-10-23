@@ -160,7 +160,9 @@ Page({
       agree: () => this.decide(o, true),
       reject: () => this.decide(o, false),
       remind: () => this.remind(o),
-      chat: () => app.openChat({ peerId: peerIdOf(o, this.data.role), listingId: o.listingId }),
+      // ⚠️ 不能传 listingId：后端收到 listingId 会把 peerId 改成商品卖家的 id，
+      // 于是「我卖出的 · 联系买家」永远指向自己 → 报「不能和自己发起会话」。
+      chat: () => app.openChat({ peerId: peerIdOf(o, this.data.role) }),
       rebuy: () => wx.navigateTo({ url: '/pages/detail/detail?id=' + o.listingId }),
       view: () => this.goDetail({ currentTarget: { dataset: { id: o.id } } })
     };
@@ -287,7 +289,7 @@ Page({
     const text = isBuyer
       ? ('你好，我这边已经付款了（订单 ' + (o.orderNo || o.id) + '），麻烦尽快发货，谢谢～')
       : ('你好，订单 ' + (o.orderNo || o.id) + ' 还在等待付款，方便的时候付一下，谢谢～');
-    app.openChat({ peerId: peerIdOf(o, this.data.role), listingId: o.listingId, text });
+    app.openChat({ peerId: peerIdOf(o, this.data.role), text });
   },
 
   /** 头像图片加载失败 → 退回字标（不留下破图） */

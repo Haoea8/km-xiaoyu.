@@ -183,7 +183,7 @@ Page({
       : ('你好，订单 ' + (o.orderNo || o.id) + ' 还在等待付款，方便的时候付一下，谢谢～');
     const peerId = (this.data.peer && this.data.peer.id) || (isBuyer ? o.sellerId : o.buyerId) || 0;
     if (!peerId) return wx.showToast({ title: '对方信息加载中', icon: 'none' });
-    app.openChat({ peerId, listingId: o.listingId, text });
+    app.openChat({ peerId, text });
   },
 
   chat() {
@@ -194,7 +194,7 @@ Page({
     if (!peerId) {
       return wx.showToast({ title: '对方信息加载中，请稍后重试', icon: 'none' });
     }
-    app.openChat({ peerId, listingId: o.listingId });
+    app.openChat({ peerId });
   },
 
   toggleGuarantee() { this.setData({ showGuarantee: !this.data.showGuarantee }); },
