@@ -44,6 +44,8 @@ function actionsOf(o, role) {
       acts.push({ act: 'confirm', label: '确认收货', main: true });
     } else {
       acts.push({ act: 'chat', label: '联系买家', ghost: true });
+      // 卖家视角的「待收货」：催买家确认收货（钱才结算）
+      acts.push({ act: 'remind', label: '提醒收货', ghost: true });
     }
   } else if (o.status === 'refunding') {
     if (isBuyer) acts.push({ act: 'chat', label: '联系卖家', ghost: true });
@@ -289,9 +291,10 @@ Page({
    */
   remind(o) {
     const isBuyer = (o && o.isBuyer !== undefined) ? !!o.isBuyer : this.data.role === 'buyer';
-    const text = isBuyer
-      ? ('你好，我这边已经付款了（订单 ' + (o.orderNo || o.id) + '），麻烦尽快发货，谢谢～')
-      : ('你好，订单 ' + (o.orderNo || o.id) + ' 还在等待付款，方便的时候付一下，谢谢～');
+    let text;
+    if (isBuyer) text = '你好，我这边已经付款了（订单 ' + (o.orderNo || o.id) + '），麻烦尽快发货，谢谢～';
+    else if (o.status === 'shipped') text = '你好，宝贝已经交付了（订单 ' + (o.orderNo || o.id) + '），麻烦确认收货，货款才会到账，谢谢～';
+    else text = '你好，订单 ' + (o.orderNo || o.id) + ' 还在等待付款，方便的时候付一下，谢谢～';
     app.openChat({ peerId: peerIdOf(o, this.data.role), text });
   },
 
