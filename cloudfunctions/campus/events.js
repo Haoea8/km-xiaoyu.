@@ -147,6 +147,22 @@ function notifyUser(userId, text, orderCard, opts) {
   if (!conv) {
     conv = db.insert('conversations', { members: [Number(userId), aiUser.id], lastMessage: '', lastTime: Date.now() });
   }
+  /**
+   * 同一订单的同类通知去重（10 分钟内）。
+   *
+   * 一次下单/支付/发货会连着推好几条，用户看到的是一屏「同一个订单卡」；
+   * 而卡片本身不带状态，看起来就像系统在刷屏。
+   */
+  if (orderCard && orderCard.orderId) {
+    const now = Date.now();
+    const dup = db.one('messages', (m) =>
+      m.convId === conv.id &&
+      m.type === 'order' &&
+      m.card && m.card.orderId === orderCard.orderId &&
+      String(m.content || '') === String(text || '') &&
+      now - (m.createdAt || 0) < 10 * 60 * 1000);
+    if (dup) return;
+  }
   const msg = createMessage(conv, aiUser.id, orderCard ? 'order' : 'system', text, orderCard || null);
   if (opts && opts.preRead && (msg.readBy || []).indexOf(Number(userId)) === -1) {
     msg.readBy.push(Number(userId));

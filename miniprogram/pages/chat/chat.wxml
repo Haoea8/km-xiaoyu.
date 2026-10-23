@@ -53,7 +53,7 @@
             <image class="m-img" src="{{item.content}}" mode="widthFix"></image>
           </view>
 
-          <view wx:elif="{{item.isListing}}" class="card-msg" data-id="{{item.card.listingId}}" bindtap="tapCard">
+          <view wx:elif="{{item.isListing}}" class="card-msg" data-id="{{item.card.listingId}}" data-type="listing" bindtap="tapCard">
             <image class="cm-img" src="{{item.cardImg}}" mode="aspectFill"></image>
             <view class="cm-main">
               <view class="cm-title">{{item.card.title}}</view>
@@ -62,11 +62,11 @@
             <view class="cm-badge">宝贝</view>
           </view>
 
-          <view wx:elif="{{item.isOrder}}" class="card-msg" data-id="{{item.card.orderId}}" bindtap="tapCard">
-            <image class="cm-img" src="{{item.cardImg}}" mode="aspectFill"></image>
+          <view wx:elif="{{item.isOrder}}" class="card-msg" data-id="{{item.card.orderId}}" data-type="order" bindtap="tapCard">
+            <image wx:if="{{item.cardImg}}" class="cm-img" src="{{item.cardImg}}" mode="aspectFill"></image>
             <view class="cm-main">
-              <view class="cm-title">{{item.card.title || item.content}}</view>
-              <view class="cm-price cm-order">订单金额 ¥{{item.cardPrice}}</view>
+              <view class="cm-title">{{item.card.title || item.content || '订单'}}</view>
+              <view class="cm-price cm-order">订单金额 ¥{{item.cardPrice || '—'}}</view>
             </view>
             <view class="cm-badge cm-badge-order">订单</view>
           </view>

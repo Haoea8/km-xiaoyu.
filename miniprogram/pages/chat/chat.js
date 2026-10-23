@@ -361,7 +361,7 @@ Page({
       isSystem: m.type === 'system',
       read: (m.readBy || []).length > 1,
       cardImg: card && card.image ? api.abs(card.image) : '',
-      cardPrice: card && card.price !== undefined ? util.fmtPrice(card.price) : '',
+      cardPrice: card && card.amount !== undefined ? util.fmtPrice(card.amount) : (card && card.price !== undefined ? util.fmtPrice(card.price) : ''),
       cards: Array.isArray(card) ? card.map((x) => Object.assign({}, x, {
         cover: api.abs(x.image || (x.images && x.images[0]) || ''),
         priceText: util.fmtPrice(x.price || 0)
@@ -789,7 +789,14 @@ Page({
 
   tapCard(e) {
     const id = e.currentTarget.dataset.id;
-    if (id) wx.navigateTo({ url: '/pages/detail/detail?id=' + id });
+    const type = e.currentTarget.dataset.type;
+    if (!id) return;
+    // 订单卡带的是 orderId，之前一律当商品 id 打开 → 提示「商品不存在」
+    if (type === 'order') {
+      wx.navigateTo({ url: '/pages/order-detail/order-detail?id=' + id });
+      return;
+    }
+    wx.navigateTo({ url: '/pages/detail/detail?id=' + id });
   },
 
   previewImg(e) {

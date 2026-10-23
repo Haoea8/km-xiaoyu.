@@ -121,6 +121,14 @@ function notifyUser(userId, text, orderCard) {
   if (!conv) {
     conv = db.insert('conversations', { members: [Number(userId), aiUser.id], lastMessage: '', lastTime: Date.now() });
   }
+  // 同一订单的同类通知 10 分钟内去重（否则一次操作会推出一屏相同卡片）
+  if (orderCard && orderCard.orderId) {
+    const now = Date.now();
+    const dup = db.one('messages', (m) =>
+      m.convId === conv.id && m.type === 'order' && m.card && m.card.orderId === orderCard.orderId &&
+      String(m.content || '') === String(text || '') && now - (m.createdAt || 0) < 10 * 60 * 1000);
+    if (dup) return;
+  }
   const msg = createMessage(conv, aiUser.id, orderCard ? 'order' : 'system', text, orderCard || null);
   pushTo(userId, { type: 'message', convId: conv.id, message: msg });
 }
