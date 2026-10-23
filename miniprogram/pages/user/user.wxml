@@ -54,11 +54,12 @@
     <!-- TA 的宝贝 -->
     <view class="sec">
       <view class="sec-head">
-        <text class="sec-title">在售宝贝（{{listings.length}}）</text>
+        <text class="sec-title">宝贝（{{listings.length}}）</text>
       </view>
       <view class="grid">
         <view class="g-card" wx:for="{{listings}}" wx:key="id" data-id="{{item.id}}" bindtap="goDetail">
           <image class="g-img" src="{{item.cover}}" mode="aspectFill" lazy-load></image>
+          <view class="g-sold" wx:if="{{item.status === 'sold' || item.picked}}">已卖出</view>
           <view class="g-body">
             <view class="g-title ellipsis2">{{item.title}}</view>
             <view class="g-price"><text class="yuan">¥</text>{{item.priceText}}</view>

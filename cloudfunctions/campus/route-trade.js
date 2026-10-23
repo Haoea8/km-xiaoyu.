@@ -91,6 +91,7 @@ module.exports = function register(route) {
      * 自己拍下的那件保留（否则付不了款）。
      */
     const ACTIVE_ORDER_STATES = ['pending', 'paid', 'shipped', 'refunding'];
+    let lockedAllIds = new Set();
     if (!sellerId) {                     // 卖家看「我的发布」时不隐藏，否则自己的商品凭空消失
       try {
         const allOrders = await db.readAllFromDb('orders');
@@ -100,6 +101,7 @@ module.exports = function register(route) {
           // 拍下即下架：谁拍的都隐藏（买家从「我的订单 · 待付款」里付款，不需要再从首页找到商品）
           lockedByOthers.add(o.listingId);
         }
+        lockedAllIds = lockedByOthers;
         if (lockedByOthers.size) {
           list = list.filter((l) => {
             // 拼团 / 服务是「一件多人各付各的」，被拍下仍应可下单
@@ -108,6 +110,14 @@ module.exports = function register(route) {
           });
         }
       } catch (e) { /* 读订单失败就不隐藏，不影响主流程 */ }
+    } else {
+      // 卖家主页 / 我的发布：不隐藏，但要标出「已卖出」，否则会出现在「在售宝贝」里
+      try {
+        const allOrders = await db.readAllFromDb('orders');
+        for (const o of allOrders) {
+          if (ACTIVE_ORDER_STATES.indexOf(o.status) > -1) lockedAllIds.add(o.listingId);
+        }
+      } catch (e) { /* 忽略 */ }
     }
     if (sort === 'new') list.sort((a, b) => b.createdAt - a.createdAt);
     else if (sort === 'price_asc') list.sort((a, b) => a.price - b.price);
@@ -119,7 +129,11 @@ module.exports = function register(route) {
       list.sort((a, b) => score(b) - score(a));
     }
     const page = util.paginate(list, q.get('page'), q.get('pageSize'));
-    return Object.assign({}, page, { list: page.list.map((l) => deco.decorateListing(l, me)) });
+    return Object.assign({}, page, {
+      list: page.list.map((l) => Object.assign(deco.decorateListing(l, me), {
+        picked: lockedAllIds.has(l.id) && l.status !== 'sold'
+      }))
+    });
   });
 
   /* ---------- 商品详情 ---------- */

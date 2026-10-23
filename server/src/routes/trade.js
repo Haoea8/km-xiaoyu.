@@ -74,7 +74,14 @@ module.exports = function register(route) {
       list.sort((a, b) => score(b) - score(a));
     }
     const page = util.paginate(list, q.get('page'), q.get('pageSize'));
-    return Object.assign({}, page, { list: page.list.map((l) => deco.decorateListing(l, me)) });
+    // 被拍下（含未付款）的商品打上 picked，供「卖家主页 / 我的发布」显示「已卖出」
+    const ACTIVE_P = ['pending', 'paid', 'shipped', 'refunding'];
+    const pickedIds = new Set(db.find('orders', (o) => ACTIVE_P.indexOf(o.status) > -1).map((o) => o.listingId));
+    return Object.assign({}, page, {
+      list: page.list.map((l) => Object.assign(deco.decorateListing(l, me), {
+        picked: pickedIds.has(l.id) && l.status !== 'sold'
+      }))
+    });
   });
 
   /* ---------- 商品详情 ---------- */

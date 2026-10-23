@@ -83,3 +83,11 @@
 .uid { text-align: center; font-size: 21rpx; color: var(--ink-4); padding: 34rpx 0 0; }
 .bottom-pad { height: 80rpx; }
 .skeleton-wrap { padding-top: 20rpx; }
+
+/* 已卖出角标（商品被拍下或已售出） */
+.g-card { position: relative; }
+.g-sold {
+  position: absolute; left: 14rpx; top: 14rpx;
+  background: rgba(0, 0, 0, 0.6); color: #fff;
+  font-size: 20rpx; padding: 4rpx 14rpx; border-radius: 999rpx;
+}
