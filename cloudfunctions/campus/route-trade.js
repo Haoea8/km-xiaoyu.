@@ -188,6 +188,14 @@ module.exports = function register(route) {
         };
       }
     }
+    // 展示层自愈：标了 sold 却没有任何进行中订单 —— 多半是退款/取消后没回滚的脏数据。
+    // 不回滚的话，商品永远显示「已卖出」、也永远搜不到，等于白丢一件货。
+    if (l.status === 'sold' && !lock) {
+      try {
+        await db.updateFresh('listings', l.id, { status: 'on' });
+        l.status = 'on';
+      } catch (e) { /* 忽略，只影响本次展示 */ }
+    }
     return { listing: Object.assign(deco.decorateListing(l, me), { isWanted, lock }), related };
   });
 

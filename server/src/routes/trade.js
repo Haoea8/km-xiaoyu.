@@ -111,6 +111,8 @@ module.exports = function register(route) {
         };
       }
     }
+    // 展示层自愈：sold 但没有进行中订单 → 视为在售（退款/取消后未回滚）
+    if (l.status === 'sold' && !lock) { try { l.status = 'on'; db.update('listings', l.id, { status: 'on' }); db.saveSoon(); } catch (e) {} }
     return { listing: Object.assign(deco.decorateListing(l, me), { isWanted, lock }), related };
   });
 
