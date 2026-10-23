@@ -89,7 +89,7 @@
 
     <!-- 支付方式 -->
     <view class="card">
-      <view class="card-title">支付方式</view>
+      <view class="card-title">支付方式（提交订单后确认支付）</view>
       <view class="pay-item {{payMethod==='balance'?'active':''}}" data-v="balance" bindtap="onPay">
         <view class="pay-left">
           <view class="pay-icon balance">余</view>
@@ -105,7 +105,7 @@
           <view class="pay-icon wx">微</view>
           <view>
             <view class="pay-name">微信支付</view>
-            <view class="pay-sub">演示环境，点击即视为支付成功</view>
+            <view class="pay-sub">先创建订单，进入订单页确认后才付款</view>
           </view>
         </view>
         <view class="radio"><view class="radio-dot"></view></view>
@@ -123,7 +123,7 @@
       </view>
       <view class="foot-btns">
         <view class="btn-ghost" bindtap="goChat">聊一聊</view>
-        <view class="btn-main {{submitting?'disabled':''}}" bindtap="onSubmit">{{submitting?'处理中…':'立即支付'}}</view>
+        <view class="btn-main {{submitting?'disabled':''}}" bindtap="onSubmit">{{submitting?'处理中…':'提交订单'}}</view>
       </view>
     </view>
   </block>

@@ -144,12 +144,8 @@ Page({
   async onSubmit() {
     if (this.data.submitting) return;
     if (!app.guard()) return;
-    const p = this.data.payMethod;
-    if (p === 'balance' && this.data.balanceFen < this.data.totalFen) {
-      return wx.showToast({ title: '余额不足，请先充值', icon: 'none' });
-    }
     this.setData({ submitting: true });
-    wx.showLoading({ title: '正在下单', mask: true });
+    wx.showLoading({ title: '正在创建订单', mask: true });
     try {
       let orderId = this.data.presetOrderId;
       if (!orderId) {
@@ -160,17 +156,23 @@ Page({
           remark: this.data.remark
         }, { silent: true });
         orderId = created.order.id;
-        // ⚠️ 立刻记下 orderId：建单与支付是两次请求，若「建单成功、支付失败」
-        // 用户重试时必须复用这笔单，否则会再建一笔 —— 结果就是同一商品出现
-        // 两笔订单（一笔已付、一笔永远卡在待付款），用户会以为钱被吞了。
+        // ⚠️ 立刻记下 orderId：若用户随后取消支付，回来重试时要复用这笔单，
+        // 否则会再建一笔 —— 同一商品两笔订单（一笔已付、一笔永远待付款）。
         this.setData({ presetOrderId: orderId, isPreOrder: true });
       }
-      wx.showLoading({ title: '正在支付', mask: true });
-      await api.post('/api/orders/' + orderId + '/pay', { method: p }, { silent: true });
       wx.hideLoading();
-      wx.showToast({ title: '支付成功', icon: 'success', duration: 900 });
+      /**
+       * 只建单，不在这里扣款。
+       *
+       * 原来这里是「建单 → 立即支付」两步连做，结果订单从不下车到「待付款」，
+       * 「待付款」列表永远空着、也就没有作用；用户也没有「确认支付」的机会，
+       * 点一下钱就出去了。现在改为：
+       *   建单 → 跳订单详情（状态=待付款）→ 用户在详情里点「立即支付」并二次确认
+       * 取消支付时订单就停在待付款，可以去列表里继续付或取消。
+       */
+      wx.showToast({ title: '订单已创建，请完成支付', icon: 'none', duration: 1200 });
       setTimeout(() => {
-        wx.redirectTo({ url: '/pages/order-detail/order-detail?id=' + orderId + '&paid=1' });
+        wx.redirectTo({ url: '/pages/order-detail/order-detail?id=' + orderId + '&pending=1' });
       }, 900);
     } catch (e) {
       wx.hideLoading();

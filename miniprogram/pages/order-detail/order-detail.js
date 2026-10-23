@@ -186,6 +186,21 @@ Page({
     if (this.__paying) return wx.showToast({ title: '正在支付，请稍候', icon: 'none' });
     this.__paying = true;
     try {
+      // 支付前二次确认：钱一出去就是托管状态，必须让用户明确「确认支付」
+      const go = await new Promise((resolve) => {
+        wx.showModal({
+          title: '确认支付',
+          content: '需支付 ¥' + util.fmtMoney(o.payAmount) + '，货款先由平台托管，确认收货后才打给卖家。',
+          confirmText: '确认支付',
+          cancelText: '稍后支付',
+          success: (r) => resolve(!!r.confirm),
+          fail: () => resolve(false)
+        });
+      });
+      if (!go) {
+        wx.showToast({ title: '订单已保存到「待付款」', icon: 'none' });
+        return;
+      }
       const w = await api.get('/api/wallet', null, { silent: true }).catch(() => ({ balance: 0 }));
       const balance = w.balance || 0;
       await new Promise((resolve) => {

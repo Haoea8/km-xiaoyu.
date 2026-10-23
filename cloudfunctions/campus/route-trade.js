@@ -83,6 +83,32 @@ module.exports = function register(route) {
       list = list.filter((l) => util.match(l.title, kw) || util.match(l.desc, kw) ||
         (l.tags || []).some((t) => util.match(t, kw)));
     }
+    /**
+     * 已被「别人」拍下的单件商品不出现在列表/搜索结果里。
+     *
+     * 之前只在商品详情页做「拍下即锁」，列表照旧展示 —— 用户搜到的商品点进去
+     * 才发现「已被拍下」，体验上等于「买不到的东西还一直被别人看到」。
+     * 自己拍下的那件保留（否则付不了款）。
+     */
+    const ACTIVE_ORDER_STATES = ['pending', 'paid', 'shipped', 'refunding'];
+    if (!sellerId) {                     // 卖家看「我的发布」时不隐藏，否则自己的商品凭空消失
+      try {
+        const allOrders = await db.readAllFromDb('orders');
+        const lockedByOthers = new Set();
+        for (const o of allOrders) {
+          if (ACTIVE_ORDER_STATES.indexOf(o.status) === -1) continue;
+          if (me && o.buyerId === me.id) continue;      // 自己拍下的留着（要能继续付款）
+          lockedByOthers.add(o.listingId);
+        }
+        if (lockedByOthers.size) {
+          list = list.filter((l) => {
+            // 拼团 / 服务是「一件多人各付各的」，被拍下仍应可下单
+            if (l.tradeMode === 'group' || l.tradeMode === 'service') return true;
+            return !lockedByOthers.has(l.id);
+          });
+        }
+      } catch (e) { /* 读订单失败就不隐藏，不影响主流程 */ }
+    }
     if (sort === 'new') list.sort((a, b) => b.createdAt - a.createdAt);
     else if (sort === 'price_asc') list.sort((a, b) => a.price - b.price);
     else if (sort === 'price_desc') list.sort((a, b) => b.price - a.price);

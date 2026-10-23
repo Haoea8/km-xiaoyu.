@@ -52,6 +52,18 @@ module.exports = function register(route) {
       list = list.filter((l) => util.match(l.title, kw) || util.match(l.desc, kw) ||
         (l.tags || []).some((t) => util.match(t, kw)));
     }
+    // 已被别人拍下的单件商品不在列表/搜索里露出（拼团、服务除外；卖家看自己的不隐藏）
+    if (!sellerId) {
+      const ACTIVE = ['pending', 'paid', 'shipped', 'refunding'];
+      const locked = new Set();
+      for (const o of db.find('orders', (x) => ACTIVE.indexOf(x.status) > -1)) {
+        if (me && o.buyerId === me.id) continue;
+        locked.add(o.listingId);
+      }
+      if (locked.size) {
+        list = list.filter((l) => (l.tradeMode === 'group' || l.tradeMode === 'service') ? true : !locked.has(l.id));
+      }
+    }
     if (sort === 'new') list.sort((a, b) => b.createdAt - a.createdAt);
     else if (sort === 'price_asc') list.sort((a, b) => a.price - b.price);
     else if (sort === 'price_desc') list.sort((a, b) => b.price - a.price);
