@@ -35,7 +35,9 @@ function abs(path) {
   if (!path) return '';
   if (/^(https?|cloud|data):/i.test(path)) return path;
   if (path.startsWith('/static/')) {
-    return 'cloud://' + CLOUD_ENV + '.' + CLOUD_BUCKET + path;
+    // 种子图片已打进小程序包（miniprogram/static/...），直接用包内路径。
+    // 不要再拼 cloud://：云存储里从来没有这批文件，拼出来的 fileID 请求必然 404 → 灰块。
+    return path;
   }
   return path;
 }
