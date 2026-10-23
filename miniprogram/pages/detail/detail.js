@@ -59,7 +59,7 @@ Page({
       const takenByOther = !!(lock && !lock.mine);
       const myPending = !!(lock && lock.mine && lock.status === 'pending');
       const myBought = !!(lock && lock.mine && lock.status !== 'pending');
-      const buyText = l.status === 'sold' ? '已售出'
+      const buyText = l.status === 'sold' ? '已卖掉'
         : l.status === 'off' ? '已下架'
           : takenByOther ? (l.tradeMode === 'group' ? '已成团' : '已被拍下')
             : myBought ? '已购买'
@@ -155,7 +155,7 @@ Page({
     if (lock) {
       if (!lock.mine) {
         return wx.showToast({
-          title: lock.status === 'pending' ? '已被其他同学拍下（待付款），暂时无法购买' : '该宝贝已被其他同学拍下',
+          title: lock.status === 'pending' ? '这件宝贝已经被拍下了，暂时买不到' : '这件宝贝已经卖掉了',
           icon: 'none', duration: 2200
         });
       }
