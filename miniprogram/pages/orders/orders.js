@@ -23,7 +23,8 @@ const STATUS_TABS = [
 
 /** 每个状态下的操作按钮（按角色） */
 function actionsOf(o, role) {
-  const isBuyer = role === 'buyer';
+  // 以订单上的真实角色为准：tab 只是筛选器，混进买家单时不能按 tab 判断
+  const isBuyer = (o && o.isBuyer !== undefined) ? !!o.isBuyer : role === 'buyer';
   const acts = [];
   if (o.status === 'pending') {
     acts.push({ act: 'cancel', label: '取消订单', ghost: true });
@@ -62,7 +63,7 @@ function actionsOf(o, role) {
 
 /** 对方 userId：订单字段优先，缺失时退回序列化出来的 brief（列表接口可能只给 brief） */
 function peerIdOf(o, role) {
-  const isBuyer = role === 'buyer';
+  const isBuyer = (o && o.isBuyer !== undefined) ? !!o.isBuyer : role === 'buyer';
   const brief = isBuyer ? o.seller : o.buyer;
   return (isBuyer ? o.sellerId : o.buyerId) || (brief && brief.id) || 0;
 }
