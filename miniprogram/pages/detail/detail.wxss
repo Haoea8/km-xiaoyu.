@@ -9,7 +9,8 @@
   backdrop-filter: blur(8rpx);
 }
 .d-status {
-  position: absolute; left: 28rpx; top: 60rpx;
+  /* 放图片左下角：右上被胶囊挡、左上被返回箭头挡，之前用户根本看不到 */
+  position: absolute; left: 28rpx; bottom: 28rpx;
   background: rgba(0, 0, 0, 0.55); color: #fff;
   font-size: 24rpx; padding: 8rpx 22rpx; border-radius: 999rpx;
   backdrop-filter: blur(8rpx);

@@ -59,7 +59,7 @@ Page({
       const takenByOther = !!(lock && !lock.mine);
       const myPending = !!(lock && lock.mine && lock.status === 'pending');
       const myBought = !!(lock && lock.mine && lock.status !== 'pending');
-      const buyText = l.status === 'sold' ? '已卖掉'
+      const buyText = l.status === 'sold' ? '已卖出'
         : l.status === 'off' ? '已下架'
           : takenByOther ? (l.tradeMode === 'group' ? '已成团' : '已被拍下')
             : myBought ? '已购买'
@@ -80,7 +80,9 @@ Page({
         // 从而报「Failed to load image」且头像显示空白。
         seller: l.seller ? Object.assign({}, l.seller, { avatar: api.abs(l.seller.avatar) }) : null,
         isGroup: l.tradeMode === 'group',
-        buyText,
+        // 已卖掉：商品售出，或已经被别人拍下（含未付款）
+      isSoldOut: l.status === 'sold' || (lock && !lock.mine),
+      buyText,
         buyDisabled: l.status !== 'on' || takenByOther || myBought,
         related: (res.related || []).map((r) => Object.assign(r, {
           cover: api.abs((r.images && r.images[0]) || ''),

@@ -15,7 +15,7 @@
       </swiper-item>
     </swiper>
     <view class="d-count">{{current}} / {{images.length}}</view>
-    <view class="d-status" wx:if="{{listing.status !== 'on'}}">{{listing.status === 'sold' ? '已卖掉' : '已下架'}}</view>
+    <view class="d-status" wx:if="{{listing.status !== 'on' || isSoldOut}}">{{listing.status === 'sold' || isSoldOut ? '已卖出' : '已下架'}}</view>
   </view>
 
   <!-- 价格与标题 -->
