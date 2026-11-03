@@ -1,3 +1,4 @@
+const __BASE = require('path').resolve(__dirname, '..');
 /**
  * 自定义 tabBar 红点同步测试。
  *
@@ -14,7 +15,7 @@
  */
 const Module = require('module');
 
-const TABBAR = 'D:/wx/campus-xianyu/miniprogram/custom-tab-bar/index.js';
+const TABBAR = (__BASE + '/miniprogram/custom-tab-bar/index.js');
 
 let bad = 0;
 const ok = (m) => console.log('  ✓ ' + m);

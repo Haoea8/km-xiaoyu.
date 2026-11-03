@@ -1,3 +1,4 @@
+const __BASE = require('path').resolve(__dirname, '..');
 /**
  * 检查「横向 scroll-view」是否设置了显式高度。
  *
@@ -18,7 +19,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const MP = 'D:/wx/campus-xianyu/miniprogram';
+const MP = (__BASE + '/miniprogram');
 const stripComments = (s) => s.replace(/<!--[\s\S]*?-->/g, '').replace(/\/\*[\s\S]*?\*\//g, '');
 
 let bad = 0;

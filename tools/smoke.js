@@ -1,3 +1,4 @@
+const __BASE = require('path').resolve(__dirname, '..');
 // 全链路冒烟测试：登录 -> 充值 -> 发布 -> 下单 -> 支付 -> 聊天 -> 管理端
 const http = require('http');
 
@@ -137,7 +138,7 @@ function check(name, ok, extra) {
   }
 
   P('==== 11. WebSocket 实时通道 ====');
-  const WebSocket = require('D:/wx/campus-xianyu/node_modules/ws');
+  const WebSocket = require((__BASE + '/node_modules/ws'));
   const wsA = new WebSocket('ws://127.0.0.1:3000/ws?token=' + tokenA);
   await new Promise((res) => { wsA.on('open', res); wsA.on('error', res); setTimeout(res, 2500); });
   let got = null;

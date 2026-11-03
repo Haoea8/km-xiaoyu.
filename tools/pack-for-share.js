@@ -1,10 +1,11 @@
+const __BASE = require('path').resolve(__dirname, '..');
 /**
  * 打包项目给团队成员（只含源码：不含依赖、本地数据、个人配置）
  *
  * 用法（在项目根目录）：
  *   node tools/pack-for-share.js
  *   node tools/pack-for-share.js --out D:\somewhere\share.zip
- * 产出：D:\wx\campus-xianyu-share.zip
+ * 产出：项目所在目录下 campus-xianyu-share.zip
  *
  * ── 为什么用 Node 而不是原来的 .ps1 ──────────────────────────────
  * 原来的 tools/pack-for-share.ps1 是坏的：它含中文注释但没有 BOM，
@@ -33,7 +34,7 @@ const path = require('path');
 const zlib = require('zlib');
 
 const ROOT = path.resolve(__dirname, '..');
-const DEFAULT_OUT = 'D:\\wx\\campus-xianyu-share.zip';
+const DEFAULT_OUT = path.join(ROOT, '..', 'campus-xianyu-share.zip');
 
 /* ---------- 包含 / 排除 规则 ---------- */
 

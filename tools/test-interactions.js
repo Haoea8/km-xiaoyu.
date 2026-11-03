@@ -1,3 +1,4 @@
+const __BASE = require('path').resolve(__dirname, '..');
 /**
  * 互动消息（点赞 / 评论 / 回复 / 收藏 / 想要 / 关注 / 校园墙）专项测试。
  *
@@ -19,7 +20,7 @@
  */
 const Module = require('module');
 
-const FN = 'D:/wx/campus-xianyu/cloudfunctions/campus';
+const FN = (__BASE + '/cloudfunctions/campus');
 
 let bad = 0;
 const ok = (m) => console.log('  ✓ ' + m);

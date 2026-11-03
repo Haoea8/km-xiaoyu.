@@ -1,3 +1,4 @@
+const __BASE = require('path').resolve(__dirname, '..');
 /**
  * 聊天页发送链路仿真测试。
  *
@@ -16,7 +17,7 @@
 const Module = require('module');
 const fs = require('fs');
 
-const CHAT = 'D:/wx/campus-xianyu/miniprogram/pages/chat/chat.js';
+const CHAT = (__BASE + '/miniprogram/pages/chat/chat.js');
 
 let bad = 0;
 const ok = (m) => console.log('  ✓ ' + m);

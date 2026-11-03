@@ -1,3 +1,4 @@
+const __BASE = require('path').resolve(__dirname, '..');
 /**
  * 验证 api.abs() 的路径映射逻辑
  * 在沙箱里加载真实 utils/api.js，喂入种子数据里的真实路径，断言输出。
@@ -9,8 +10,8 @@ const ENV = 'cloud1-d1gm4yssj28112256';
 // 云存储 fileID 的第二段是「存储桶 ID」，不是环境 ID（写成 envId.envId 会让 image 报错）。
 // 这里必须与 miniprogram/utils/config.js 的 CLOUD_BUCKET 保持一致。
 const BUCKET = '636c-cloud1-d1gm4yssj28112256-1505193768';
-const API = 'D:/wx/campus-xianyu/miniprogram/utils/api.js';
-const CONFIG = 'D:/wx/campus-xianyu/miniprogram/utils/config.js';
+const API = (__BASE + '/miniprogram/utils/api.js');
+const CONFIG = (__BASE + '/miniprogram/utils/config.js');
 
 let bad = 0;
 const ok = (m) => console.log('  ✓ ' + m);
@@ -86,7 +87,7 @@ console.log('\n=== 6. 头像字段必须过 api.abs（源文件静态核对）==
   //   Failed to load image http://127.0.0.1:xxxx/__pageframe__/static/avatars/a04.jpg
   // 真机上表现为头像空白。
   // 曾经详情页卖家和两个卡片组件都踩了这个坑，这里用断言钉住，防止再漏。
-  const ROOT = 'D:/wx/campus-xianyu/miniprogram/';
+  const ROOT = (__BASE + '/miniprogram/');
 
   const read = (rel) => {
     try { return fs.readFileSync(ROOT + rel, 'utf8'); }

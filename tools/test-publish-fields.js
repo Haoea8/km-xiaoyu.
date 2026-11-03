@@ -1,3 +1,4 @@
+const __BASE = require('path').resolve(__dirname, '..');
 /**
  * 发布页「数量 + 单位」与「预设 + 其他」类字段的测试。
  *
@@ -21,8 +22,8 @@
 const Module = require('module');
 const fs = require('fs');
 
-const PUBLISH = 'D:/wx/campus-xianyu/miniprogram/pages/publish/publish.js';
-const PUBLISH_WXML = 'D:/wx/campus-xianyu/miniprogram/pages/publish/publish.wxml';
+const PUBLISH = (__BASE + '/miniprogram/pages/publish/publish.js');
+const PUBLISH_WXML = (__BASE + '/miniprogram/pages/publish/publish.wxml');
 /** 后端上限（cloudfunctions/campus/route-trade.js） */
 const BE_LOCATION_MAX = 30;   // clampText(b.location, 30)
 const BE_UNIT_MAX = 12;       // clampText(b.priceUnit, 12) ← 拼接后必须不超过它

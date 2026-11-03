@@ -1,3 +1,4 @@
+const __BASE = require('path').resolve(__dirname, '..');
 /**
  * 复现并验证「多实例登录态丢失」问题。
  *
@@ -18,7 +19,7 @@ const fs = require('fs');
 const path = require('path');
 const Module = require('module');
 
-const FN = 'D:/wx/campus-xianyu/cloudfunctions/campus';
+const FN = (__BASE + '/cloudfunctions/campus');
 const origLoad = Module._load;
 
 /* ---------- 共享底层数据库（模拟真实云数据库） ---------- */

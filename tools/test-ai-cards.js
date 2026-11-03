@@ -1,3 +1,4 @@
+const __BASE = require('path').resolve(__dirname, '..');
 /**
  * AI 商品卡片（商品链接）专项测试。
  *
@@ -21,7 +22,7 @@
  */
 const Module = require('module');
 
-const FN = 'D:/wx/campus-xianyu/cloudfunctions/campus';
+const FN = (__BASE + '/cloudfunctions/campus');
 
 let bad = 0;
 const ok = (m) => console.log('  ✓ ' + m);

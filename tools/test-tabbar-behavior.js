@@ -1,3 +1,4 @@
+const __BASE = require('path').resolve(__dirname, '..');
 /**
  * tabBar 行为测试（真跑逻辑，不只是正则匹配）
  *
@@ -11,8 +12,8 @@ const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
 
-const FILE = 'D:/wx/campus-xianyu/miniprogram/custom-tab-bar/index.js';
-const APPJSON = 'D:/wx/campus-xianyu/miniprogram/app.json';
+const FILE = (__BASE + '/miniprogram/custom-tab-bar/index.js');
+const APPJSON = (__BASE + '/miniprogram/app.json');
 
 let bad = 0;
 const ok = (m) => console.log('  ✓ ' + m);

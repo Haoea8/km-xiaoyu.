@@ -1,3 +1,4 @@
+const __BASE = require('path').resolve(__dirname, '..');
 /**
  * 上线前体检（提交体验版 / 正式发布前跑一遍）
  *
@@ -17,7 +18,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const ROOT = 'D:/wx/campus-xianyu';
+const ROOT = (__BASE + '');
 const MP = path.join(ROOT, 'miniprogram');
 
 let bad = 0;

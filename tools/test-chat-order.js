@@ -1,3 +1,4 @@
+const __BASE = require('path').resolve(__dirname, '..');
 /**
  * 聊天「消息乱跑 / 接收不同步 / 头像空白」回归测试。
  *
@@ -22,7 +23,7 @@ let bad = 0;
 const ok = (m) => console.log('  ✓ ' + m);
 const no = (m) => { console.log('  ✗ ' + m); bad++; };
 
-const ROOT = 'D:/wx/campus-xianyu';
+const ROOT = (__BASE + '');
 const T0 = 1700000000000;
 
 /* =========================================================================

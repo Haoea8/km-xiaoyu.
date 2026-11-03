@@ -2,7 +2,7 @@
 #
 # 用法（需开发者工具已打开本项目窗口、且部署确认已点过）：
 #   powershell -File tools\verify-recommend-live.ps1
-# 结果写入 D:\wx\_verify.txt，用 Read 工具查看。
+# 结果写入 %TEMP%\_verify.txt，用 Read 工具查看。
 #
 # 判据：
 #   hasUnseen=true            → 新后端已上线（旧版本没有 unseen 字段）
@@ -11,8 +11,8 @@
 #   任一批 len 为 0           → 有 bug
 
 $ErrorActionPreference = 'Continue'
-$exe  = "D:\微信web开发者工具\wechatide.cmd"
-$proj = "D:\wx\campus-xianyu"
+$exe  = "D:\微信web开发者工具\wechatide.cmd"   # 按本机开发者工具安装位置修改
+$proj = Split-Path -Parent $PSScriptRoot        # 项目根目录（本脚本在 tools/ 下）
 $log  = @()
 
 function Eval($label, $fn) {
@@ -32,5 +32,5 @@ Eval "batch1" "function(){ var t=wx.getStorageSync('vtoken'); return wx.cloud.ca
 # 3) 第二批：排除第一批
 Eval "batch2" "function(){ var t=wx.getStorageSync('vtoken'); var b1=wx.getStorageSync('b1'); return wx.cloud.callFunction({name:'campus',data:{path:'/api/recommend/home?seed=2&exclude='+b1,method:'GET',data:null,token:t,scope:'api'}}).then(function(r){ var d=r.result.data||{}; var L=d.list; var ids=Array.isArray(L)?L.map(function(x){return x.id}):[]; var arr1=String(b1).split(','); var dup=ids.filter(function(i){return arr1.indexOf(String(i))>-1}).length; return 'RESULT len='+ids.length+' dupWithBatch1='+dup+' unseen='+d.unseen }).catch(function(e){ return 'ERR '+String(e&&e.errMsg) }) }" | Out-Null
 
-Set-Content -Path "D:\wx\_verify.txt" -Value ($log -join "`n") -Encoding UTF8
+Set-Content -Path (Join-Path $env:TEMP "_verify.txt") -Value ($log -join "`n") -Encoding UTF8
 "written len=" + ($log -join "`n").Length

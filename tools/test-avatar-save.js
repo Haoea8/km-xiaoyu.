@@ -1,3 +1,4 @@
+const __BASE = require('path').resolve(__dirname, '..');
 /**
  * 头像保存回归测试：「传一次就该生效」。
  *
@@ -19,7 +20,7 @@ let bad = 0;
 const ok = (m) => console.log('  ✓ ' + m);
 const no = (m) => { console.log('  ✗ ' + m); bad++; };
 
-const SETTINGS = 'D:/wx/campus-xianyu/miniprogram/pages/settings/settings.js';
+const SETTINGS = (__BASE + '/miniprogram/pages/settings/settings.js');
 
 const calls = { upload: 0, patch: [], get: 0 };
 const impl = {

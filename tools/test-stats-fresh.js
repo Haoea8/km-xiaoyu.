@@ -1,3 +1,4 @@
+const __BASE = require('path').resolve(__dirname, '..');
 /**
  * 主页统计「收藏一会 1 一会 2」回归测试。
  *
@@ -22,7 +23,7 @@ let bad = 0;
 const ok = (m) => console.log('  ✓ ' + m);
 const no = (m) => { console.log('  ✗ ' + m); bad++; };
 
-const ROOT = 'D:/wx/campus-xianyu';
+const ROOT = (__BASE + '');
 
 /* ---------- 内存镜像（旧）与云库（新）故意不一致 ---------- */
 const mem = {

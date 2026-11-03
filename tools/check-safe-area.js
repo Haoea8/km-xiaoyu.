@@ -1,3 +1,4 @@
+const __BASE = require('path').resolve(__dirname, '..');
 /**
  * 底部固定栏 / 安全区体检。
  *
@@ -24,7 +25,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const MP = 'D:/wx/campus-xianyu/miniprogram';
+const MP = (__BASE + '/miniprogram');
 const SAFE = /env\(safe-area-inset-bottom\)|constant\(safe-area-inset-bottom\)/;
 
 let bad = 0;

@@ -1,3 +1,4 @@
+const __BASE = require('path').resolve(__dirname, '..');
 /**
  * 布局自适应性体检。
  *
@@ -25,7 +26,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const MP = 'D:/wx/campus-xianyu/miniprogram';
+const MP = (__BASE + '/miniprogram');
 
 /** 余量下限（rpx）。低于它就有取整溢出的风险。 */
 const MIN_SLACK = 8;

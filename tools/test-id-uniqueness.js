@@ -1,3 +1,4 @@
+const __BASE = require('path').resolve(__dirname, '..');
 /**
  * 多实例「id 不重复」回归测试 —— 专治**静默丢数据**。
  *
@@ -25,7 +26,7 @@
  */
 const Module = require('module');
 
-const FN = 'D:/wx/campus-xianyu/cloudfunctions/campus';
+const FN = (__BASE + '/cloudfunctions/campus');
 const SPAN = 65536;   // 与 db.js 的 ID_SLOT_SPAN 保持一致
 
 let bad = 0;

@@ -1,3 +1,4 @@
+const __BASE = require('path').resolve(__dirname, '..');
 /**
  * 评论区「小红书式两级结构」回归测试 —— 专治用户反馈的两类现象：
  *
@@ -21,7 +22,7 @@
 const Module = require('module');
 const fs = require('fs');
 
-const ROOT = 'D:/wx/campus-xianyu';
+const ROOT = (__BASE + '');
 const PAGE = ROOT + '/miniprogram/pages/post-detail/post-detail.js';
 const UTIL = ROOT + '/miniprogram/utils/util.js';
 

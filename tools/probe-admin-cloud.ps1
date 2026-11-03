@@ -1,6 +1,6 @@
 $ErrorActionPreference = 'Continue'
-$exe  = "D:\微信web开发者工具\wechatide.cmd"
-$proj = "D:\wx\campus-xianyu"
+$exe  = "D:\微信web开发者工具\wechatide.cmd"   # 按本机开发者工具安装位置修改
+$proj = Split-Path -Parent $PSScriptRoot        # 项目根目录（本脚本在 tools/ 下）
 $log  = @()
 
 function Eval($label, $fn) {
@@ -16,5 +16,5 @@ Eval "alive" "function(){ return 'ALIVE' }"
 # 2) 云端 admin 登录（admin/admin）—— 这一步同时验证部署与自愈是否生效
 Eval "admin-login" "function(){ return wx.cloud.callFunction({name:'campus',data:{path:'/admin-api/login',method:'POST',data:{username:'admin',password:'admin'},token:'',scope:'api'}}).then(function(r){ var d=r.result.data||{}; if(d.token) wx.setStorageSync('atoken', d.token); return 'code='+r.result.code+' hasToken='+(!!d.token)+' username='+d.username+' msg='+(r.result.message||'-') }).catch(function(e){ return 'ERR '+String(e&&e.errMsg) }) }"
 
-Set-Content -Path "D:\wx\_adm.txt" -Value ($log -join "`n") -Encoding UTF8
+Set-Content -Path (Join-Path $env:TEMP "_adm.txt") -Value ($log -join "`n") -Encoding UTF8
 "written len=" + ($log -join "`n").Length

@@ -1,3 +1,4 @@
+const __BASE = require('path').resolve(__dirname, '..');
 /**
  * 图片签名（cloudfunctions/campus/sign.js）回归测试。**离线**，不需要联网、不需要部署。
  *
@@ -13,7 +14,7 @@
 const Module = require('module');
 const path = require('path');
 
-const SIGN = 'D:/wx/campus-xianyu/cloudfunctions/campus/sign.js';
+const SIGN = (__BASE + '/cloudfunctions/campus/sign.js');
 
 let bad = 0;
 const ok = (m) => console.log('  ✓ ' + m);

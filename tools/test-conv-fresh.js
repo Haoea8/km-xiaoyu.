@@ -1,3 +1,4 @@
+const __BASE = require('path').resolve(__dirname, '..');
 /**
  * 复现「进卖家会话后又被丢进 AI 会话」。
  *
@@ -26,7 +27,7 @@
 const Module = require('module');
 const path = require('path');
 
-const FN = 'D:/wx/campus-xianyu/cloudfunctions/campus';
+const FN = (__BASE + '/cloudfunctions/campus');
 // Windows 下 Module._cache 的键是反斜杠路径（D:\wx\...\db.js），
 // 用正斜杠前缀去比会永远匹配不上 → 清缓存静默失效 → 两个实例共享同一份内存。
 const FN_NORM = path.resolve(FN).replace(/\\/g, '/');

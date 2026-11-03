@@ -1,3 +1,4 @@
+const __BASE = require('path').resolve(__dirname, '..');
 /**
  * AI 大模型通道端到端测试。
  *
@@ -11,7 +12,7 @@ const http = require('http');
 const fs = require('fs');
 const Module = require('module');
 
-const FN = 'D:/wx/campus-xianyu/cloudfunctions/campus';
+const FN = (__BASE + '/cloudfunctions/campus');
 
 let bad = 0;
 const ok = (m) => console.log('  ✓ ' + m);

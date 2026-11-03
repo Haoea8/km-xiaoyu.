@@ -1,3 +1,4 @@
+const __BASE = require('path').resolve(__dirname, '..');
 /**
  * 「直接改字段也要落库」回归测试。
  *
@@ -23,7 +24,7 @@
  */
 const Module = require('module');
 
-const FN = 'D:/wx/campus-xianyu/cloudfunctions/campus';
+const FN = (__BASE + '/cloudfunctions/campus');
 
 /* ---------- mock 数据库（写入即体现在 store 里，可被断言） ---------- */
 const store = {};

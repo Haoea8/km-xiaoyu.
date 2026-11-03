@@ -1,7 +1,8 @@
+const __BASE = require('path').resolve(__dirname, '..');
 /** 校验 app.json 中每个页面的必需文件是否存在 */
 const fs = require('fs');
 const path = require('path');
-const ROOT = 'D:/wx/campus-xianyu/miniprogram';
+const ROOT = (__BASE + '/miniprogram');
 const app = JSON.parse(fs.readFileSync(path.join(ROOT, 'app.json'), 'utf8'));
 
 let bad = 0;

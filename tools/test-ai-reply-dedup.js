@@ -1,3 +1,4 @@
+const __BASE = require('path').resolve(__dirname, '..');
 /**
  * AI 回复「一条消息被回几次」的专项测试。
  *
@@ -15,7 +16,7 @@
  */
 const Module = require('module');
 
-const FN = 'D:/wx/campus-xianyu/cloudfunctions/campus';
+const FN = (__BASE + '/cloudfunctions/campus');
 
 let bad = 0;
 const ok = (m) => console.log('  ✓ ' + m);

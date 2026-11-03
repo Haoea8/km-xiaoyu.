@@ -1,12 +1,13 @@
+const __BASE = require('path').resolve(__dirname, '..');
 const fs = require('fs');
 const files = [
-  'D:/wx/campus-xianyu/miniprogram/custom-tab-bar/index.js',
-  'D:/wx/campus-xianyu/miniprogram/pages/index/index.js',
-  'D:/wx/campus-xianyu/miniprogram/pages/circle/circle.js',
-  'D:/wx/campus-xianyu/miniprogram/pages/message/message.js',
-  'D:/wx/campus-xianyu/miniprogram/pages/profile/profile.js',
-  'D:/wx/campus-xianyu/miniprogram/utils/config.js',
-  'D:/wx/campus-xianyu/project.config.json'
+  (__BASE + '/miniprogram/custom-tab-bar/index.js'),
+  (__BASE + '/miniprogram/pages/index/index.js'),
+  (__BASE + '/miniprogram/pages/circle/circle.js'),
+  (__BASE + '/miniprogram/pages/message/message.js'),
+  (__BASE + '/miniprogram/pages/profile/profile.js'),
+  (__BASE + '/miniprogram/utils/config.js'),
+  (__BASE + '/project.config.json')
 ];
 
 console.log('=== 项目目录：D:/wx/campus-xianyu ===');
@@ -14,7 +15,7 @@ console.log('=== 改动落点核对 ===');
 for (const f of files) {
   const st = fs.statSync(f);
   const src = fs.readFileSync(f, 'utf8');
-  const rel = f.replace('D:/wx/campus-xianyu/', '');
+  const rel = f.replace((__BASE + '/'), '');
   let note = '';
 
   if (f.indexOf('custom-tab-bar') > -1) {

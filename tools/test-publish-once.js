@@ -1,3 +1,4 @@
+const __BASE = require('path').resolve(__dirname, '..');
 /**
  * 「点一次发布，出来好几件/好几条」回归测试。
  *
@@ -22,7 +23,7 @@ let bad = 0;
 const ok = (m) => console.log('  ✓ ' + m);
 const no = (m) => { console.log('  ✗ ' + m); bad++; };
 
-const ROOT = 'D:/wx/campus-xianyu';
+const ROOT = (__BASE + '');
 
 /* ========================= 通用：内存库 + 依赖桩 ========================= */
 const store = { listings: [], posts: [], circles: [{ id: 1, name: '跳蚤市场' }] };

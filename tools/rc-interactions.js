@@ -1,3 +1,4 @@
+const __BASE = require('path').resolve(__dirname, '..');
 /**
  * 互动消息测试的**反向对照**。
  *
@@ -20,7 +21,7 @@ const fs = require('fs');
 const path = require('path');
 const os = require('os');
 
-const SRC = 'D:/wx/campus-xianyu/cloudfunctions/campus';
+const SRC = (__BASE + '/cloudfunctions/campus');
 const TMP = path.join(os.tmpdir(), 'campus-rc-' + Date.now());
 
 let bad = 0;

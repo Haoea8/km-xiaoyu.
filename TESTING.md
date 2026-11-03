@@ -93,7 +93,7 @@ zip 来回传没法真正协作：冲突只能靠人眼比对，也没法回滚�
 2. 本机首次推送：
 
    ```bash
-   cd D:\wx\campus-xianyu
+   cd 项目根目录
    git remote add origin <仓库地址>
    git push -u origin main
    ```
@@ -109,10 +109,10 @@ zip 来回传没法真正协作：冲突只能靠人眼比对，也没法回滚�
 # 在项目根目录执行
 node tools/pack-for-share.js
 # 也可指定输出位置
-node tools/pack-for-share.js --out D:\somewhere\share.zip
+node tools/pack-for-share.js --out <输出路径>.zip
 ```
 
-产出 `D:\wx\campus-xianyu-share.zip`（约 3.5 MB），直接发微信/邮件都行。
+产出 `campus-xianyu-share.zip`（默认在项目所在目录，约 3.5 MB），直接发微信/邮件都行。
 
 脚本会**边遍历边过滤**（不建临时目录、不删任何文件），并在写 zip 前自检：
 必需条目齐全、无 `node_modules` 残留、无个人配置、种子图片在；

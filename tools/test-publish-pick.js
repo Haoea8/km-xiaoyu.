@@ -1,3 +1,4 @@
+const __BASE = require('path').resolve(__dirname, '..');
 /**
  * 发布页「交易方式 / 支持方式」可点性 + 导航栏右侧插槽不被胶囊遮挡 + 列表封面兜底。
  *
@@ -20,7 +21,7 @@
 const Module = require('module');
 const fs = require('fs');
 
-const ROOT = 'D:/wx/campus-xianyu/miniprogram';
+const ROOT = (__BASE + '/miniprogram');
 const PUBLISH = ROOT + '/pages/publish/publish.js';
 const PUBLISH_WXML = ROOT + '/pages/publish/publish.wxml';
 const NAVBAR_JS = ROOT + '/components/navbar/navbar.js';

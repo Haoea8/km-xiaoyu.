@@ -1,3 +1,4 @@
+const __BASE = require('path').resolve(__dirname, '..');
 /**
  * 图片/头像路径检查（静态）。
  *
@@ -20,7 +21,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const MP = 'D:/wx/campus-xianyu/miniprogram';
+const MP = (__BASE + '/miniprogram');
 
 /** 允许的写法：这些字段名说明已经在 js 里处理过（扁字段，非原始深层属性） */
 const SAFE_SUFFIX = /(Abs|Avatar)$/;   // avatarAbs / peerAvatar / sellerAvatar / authorAvatar / uploaderAvatar

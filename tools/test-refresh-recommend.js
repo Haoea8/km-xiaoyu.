@@ -1,3 +1,4 @@
+const __BASE = require('path').resolve(__dirname, '..');
 /**
  * 「换一批」推荐测试。
  *
@@ -13,7 +14,7 @@
  */
 const Module = require('module');
 
-const FN = 'D:/wx/campus-xianyu/cloudfunctions/campus';
+const FN = (__BASE + '/cloudfunctions/campus');
 
 let bad = 0;
 const ok = (m) => console.log('  ✓ ' + m);

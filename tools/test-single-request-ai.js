@@ -1,3 +1,4 @@
+const __BASE = require('path').resolve(__dirname, '..');
 /**
  * 单次请求 AI 对话测试（真实 GLM）。
  *
@@ -11,7 +12,7 @@
  */
 const Module = require('module');
 
-const FN = 'D:/wx/campus-xianyu/cloudfunctions/campus';
+const FN = (__BASE + '/cloudfunctions/campus');
 const KEY = 'af2ec2082198416e92ea8ac3367b4af0.tPVlngh68k1YM9Bv';
 const BASE = 'https://open.bigmodel.cn/api/paas/v4';
 

@@ -1,3 +1,4 @@
+const __BASE = require('path').resolve(__dirname, '..');
 /**
  * 多实例「内存镜像过期」回归测试 —— 专治「不同人看到的数据不一致」。
  *
@@ -17,7 +18,7 @@
  */
 const Module = require('module');
 
-const FN = 'D:/wx/campus-xianyu/cloudfunctions/campus';
+const FN = (__BASE + '/cloudfunctions/campus');
 const FN_DIR = FN;
 
 let bad = 0;

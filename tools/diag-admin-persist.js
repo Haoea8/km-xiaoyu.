@@ -1,3 +1,4 @@
+const __BASE = require('path').resolve(__dirname, '..');
 /**
  * 诊断：admin 凭据在云端能否跨「冷启动」保留？
  *
@@ -14,7 +15,7 @@
  */
 const Module = require('module');
 
-const FN = 'D:/wx/campus-xianyu/cloudfunctions/campus';
+const FN = (__BASE + '/cloudfunctions/campus');
 
 /* ---------- mock：与云端一致的「集合 -> 文档」模型 ---------- */
 const store = {};

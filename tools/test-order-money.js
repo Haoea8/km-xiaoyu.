@@ -1,3 +1,4 @@
+const __BASE = require('path').resolve(__dirname, '..');
 /**
  * 订单 / 钱包「钱相关」回归测试。
  *
@@ -23,7 +24,7 @@
 const Module = require('module');
 const fs = require('fs');
 
-const PN = 'D:/wx/campus-xianyu/';
+const PN = (__BASE + '/');
 const FN = PN + 'cloudfunctions/campus';
 
 let bad = 0;

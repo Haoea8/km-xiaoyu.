@@ -1,3 +1,4 @@
+const __BASE = require('path').resolve(__dirname, '..');
 /**
  * 分片初始化逻辑的纯逻辑测试。
  *
@@ -13,8 +14,8 @@ const fs = require('fs');
 const path = require('path');
 
 // 注意：云函数已从 lib/ 扁平化，db.js 直接在 campus/ 根下。
-const DB = 'D:/wx/campus-xianyu/cloudfunctions/campus/db.js';
-const IDX = 'D:/wx/campus-xianyu/cloudfunctions/campus/index.js';
+const DB = (__BASE + '/cloudfunctions/campus/db.js');
+const IDX = (__BASE + '/cloudfunctions/campus/index.js');
 
 let bad = 0;
 const ok = (m) => console.log('  ✓ ' + m);

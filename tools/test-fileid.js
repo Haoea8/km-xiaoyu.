@@ -1,3 +1,4 @@
+const __BASE = require('path').resolve(__dirname, '..');
 /**
  * 验证图片 fileID 拼接是否正确。
  * 加载真实 utils/api.js，检查 abs() 输出格式。
@@ -7,7 +8,7 @@ const vm = require('vm');
 
 const ENV = 'cloud1-d1gm4yssj28112256';
 const BUCKET = '636c-cloud1-d1gm4yssj28112256-1505193768';
-const API = 'D:/wx/campus-xianyu/miniprogram/utils/api.js';
+const API = (__BASE + '/miniprogram/utils/api.js');
 
 let bad = 0;
 const ok = (m) => console.log('  ✓ ' + m);

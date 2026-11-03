@@ -1,3 +1,4 @@
+const __BASE = require('path').resolve(__dirname, '..');
 /**
  * 管理后台「数据源」测试。
  *
@@ -15,7 +16,7 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 
-const P = 'D:/wx/campus-xianyu/';
+const P = (__BASE + '/');
 const CLOUD_JS = P + 'server/src/cloud.js';
 const CONF = P + 'server/.cloudbase.json';
 

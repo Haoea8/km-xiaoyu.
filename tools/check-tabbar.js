@@ -1,7 +1,8 @@
+const __BASE = require('path').resolve(__dirname, '..');
 const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
-const ROOT = 'D:/wx/campus-xianyu/miniprogram';
+const ROOT = (__BASE + '/miniprogram');
 
 let bad = 0;
 const fail = (m) => { console.log('  ❌ ' + m); bad++; };

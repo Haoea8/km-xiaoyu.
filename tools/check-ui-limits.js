@@ -1,3 +1,4 @@
+const __BASE = require('path').resolve(__dirname, '..');
 /**
  * 小程序 UI 接口的「硬限制」体检。
  *
@@ -17,7 +18,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const MP = 'D:/wx/campus-xianyu/miniprogram';
+const MP = (__BASE + '/miniprogram');
 
 let bad = 0;
 const ok = (m) => console.log('  ✓ ' + m);

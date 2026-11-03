@@ -1,3 +1,4 @@
+const __BASE = require('path').resolve(__dirname, '..');
 /**
  * 公告交互回归测试。
  *
@@ -21,7 +22,7 @@ const Module = require('module');
 const fs = require('fs');
 const path = require('path');
 
-const ROOT = 'D:/wx/campus-xianyu';
+const ROOT = (__BASE + '');
 const FN = ROOT + '/cloudfunctions/campus';
 
 let bad = 0;

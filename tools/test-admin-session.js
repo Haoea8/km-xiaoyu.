@@ -1,3 +1,4 @@
+const __BASE = require('path').resolve(__dirname, '..');
 /**
  * 云端「管理员会话」回归测试。
  *
@@ -21,7 +22,7 @@
  */
 const Module = require('module');
 
-const FN = 'D:/wx/campus-xianyu/cloudfunctions/campus';
+const FN = (__BASE + '/cloudfunctions/campus');
 
 /* ============================================================
  * mock 数据库：**像 CloudBase 一样拒绝非法值**

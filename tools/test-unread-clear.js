@@ -1,3 +1,4 @@
+const __BASE = require('path').resolve(__dirname, '..');
 /**
  * 「红点点进去看了不消失」回归测试（真实加载 interactions.js，只 mock db/deco/util）。
  *
@@ -59,7 +60,7 @@ Module._load = function (request, parent, isMain) {
   return orig.apply(this, arguments);
 };
 
-const it = require('D:/wx/campus-xianyu/cloudfunctions/campus/interactions.js');
+const it = require((__BASE + '/cloudfunctions/campus/interactions.js'));
 
 const seed = () => {
   mem.length = 0; disk.length = 0;

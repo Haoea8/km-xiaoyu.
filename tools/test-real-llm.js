@@ -1,3 +1,4 @@
+const __BASE = require('path').resolve(__dirname, '..');
 /**
  * 真实大模型端到端测试。
  *
@@ -9,7 +10,7 @@
  */
 const Module = require('module');
 
-const FN = 'D:/wx/campus-xianyu/cloudfunctions/campus';
+const FN = (__BASE + '/cloudfunctions/campus');
 const KEY = process.argv[2] || 'af2ec2082198416e92ea8ac3367b4af0.tPVlngh68k1YM9Bv';
 const BASE = 'https://open.bigmodel.cn/api/paas/v4';
 const MODEL = 'glm-4-flash';

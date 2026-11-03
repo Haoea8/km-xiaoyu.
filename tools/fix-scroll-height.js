@@ -1,3 +1,4 @@
+const __BASE = require('path').resolve(__dirname, '..');
 /**
  * 批量给横向 scroll-view 补显式高度。
  *
@@ -10,7 +11,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const ROOT = 'D:/wx/campus-xianyu/miniprogram/pages';
+const ROOT = (__BASE + '/miniprogram/pages');
 
 const FIXES = [
   { page: 'index',    cls: 'rt-scroll',     h: '86rpx'  },

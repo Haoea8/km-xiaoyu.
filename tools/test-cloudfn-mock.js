@@ -1,3 +1,4 @@
+const __BASE = require('path').resolve(__dirname, '..');
 /**
  * 用 mock 的 wx-server-sdk 真正「加载并调用」云函数，捕捉语法检查抓不到的
  * 运行时错误（如引用已删除的变量、拼错字段名）。
@@ -8,7 +9,7 @@
 const path = require('path');
 const Module = require('module');
 
-const FN = 'D:/wx/campus-xianyu/cloudfunctions/campus';
+const FN = (__BASE + '/cloudfunctions/campus');
 
 /* ---------- 极简内存数据库 ---------- */
 const store = {};                 // { collection: { id: doc } }
