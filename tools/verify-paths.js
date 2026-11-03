@@ -10,7 +10,7 @@ const files = [
   (__BASE + '/project.config.json')
 ];
 
-console.log('=== 项目目录：D:/wx/campus-xianyu ===');
+console.log('=== 项目目录：' + __BASE + ' ===');
 console.log('=== 改动落点核对 ===');
 for (const f of files) {
   const st = fs.statSync(f);
