@@ -86,16 +86,46 @@ module.exports = function register(route) {
   });
 
   /* ---------- 他人主页 ---------- */
-  route('GET', '/api/users/:id', (ctx) => {
+  route('GET', '/api/users/:id', async (ctx) => {
     const u = db.findById('users', ctx.params.id);
     if (!u) fail('用户不存在', 404);
     const me = ctx.user;
-    const listings = db.find('listings', (l) => l.sellerId === u.id && l.status === 'on')
+    /**
+     * 返回范围：
+     *   在售(on) + 已售出(sold) —— 所有人都能看
+     *   已下架(off)            —— 只有本人能看，别人的主页不该出现他下架的宝贝
+     *
+     * 「已被拍下 / 已售出」：单件商品只要存在 pending~done 的订单就算成交，
+     * 与 route-trade 的 ONE_SHOT_MODES 同口径。不这么判的话，卖家主页会把它
+     * 挂在在售里，别人还能对它下单（实测踩过：已完成订单的商品仍显示在售）。
+     */
+    const isOwner = !!(me && Number(me.id) === Number(u.id));
+    const takenIds = new Set();
+    for (const o of db.find('orders', (x) =>
+      ['pending', 'paid', 'shipped', 'refunding', 'done'].indexOf(x.status) > -1)) {
+      takenIds.add(Number(o.listingId));
+    }
+    const listings = db.find('listings', (l) => Number(l.sellerId) === Number(u.id))
+      .filter((l) => {
+        // 拼团 / 服务是「一件多人」，被拍下仍算在售（与首页、/api/listings 同口径）
+        const isMulti = l.tradeMode === 'group' || l.tradeMode === 'service';
+        const taken = !isMulti && takenIds.has(Number(l.id));
+        if (l.status === 'on' && !taken) return true;        // 真在售：所有人可见
+        if (l.status === 'sold' || taken) return isOwner;    // 已成交：仅本人可见
+        if (isOwner && l.status === 'off') return true;      // 已下架：仅本人可见
+        return false;
+      })
       .sort((a, b) => b.createdAt - a.createdAt)
-      .map((l) => deco.decorateListing(l, me));
+      .map((l) => {
+        const out = deco.decorateListing(l, me);
+        const isMulti = l.tradeMode === 'group' || l.tradeMode === 'service';
+        out.taken = !isMulti && (takenIds.has(Number(l.id)) || l.status === 'sold');
+        return out;
+      });
     const isFollowed = me ? !!db.one('follows', (f) => f.userId === me.id && f.targetUserId === u.id) : false;
     const out = util.publicUser(u);
-    out.stats = deco.userStats(u.id);
+    // 数字以库为准，避免「在售数一会儿 11 一会儿 12」的抖动
+    out.stats = await deco.userStatsFresh(u.id);
     return { user: out, listings, isFollowed };
   });
 

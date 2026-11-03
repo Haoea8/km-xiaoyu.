@@ -17,7 +17,23 @@ module.exports = function register(route) {
   /* ---------- 首页聚合 ---------- */
   route('GET', '/api/home', async (ctx) => {
     const me = ctx.user;
-    const on = db.find('listings', (l) => l.status === 'on');
+    /**
+     * 首页只推「真在售」：除了 status=on，还要排除已有订单占用的商品。
+     *
+     * 只信 status 会被历史脏数据蒙住 —— 有「订单已完成、status 却被详情页的
+     * 展示层自愈改回 on」的商品，结果卖掉的还在首页挂着、点进去还能下单。
+     * 拼团/服务是「一件多人」，被占用仍应展示（与 /api/listings 同口径）。
+     */
+    const takenIds = new Set();
+    for (const o of db.find('orders', (x) =>
+      ['pending', 'paid', 'shipped', 'refunding', 'done'].indexOf(x.status) > -1)) {
+      takenIds.add(Number(o.listingId));
+    }
+    const on = db.find('listings', (l) => {
+      if (l.status !== 'on') return false;
+      if (!takenIds.has(Number(l.id))) return true;
+      return l.tradeMode === 'group' || l.tradeMode === 'service';
+    });
     const score = (l) => (l.views || 0) + (l.favoriteCount || 0) * 20 + (l.wantCount || 0) * 10 +
       (Date.now() - l.createdAt < 86400e3 ? 500 : 0);
     const feed = on.slice().sort((a, b) => score(b) - score(a)).slice(0, 14).map((l) => deco.decorateListing(l, me));
@@ -52,16 +68,22 @@ module.exports = function register(route) {
       list = list.filter((l) => util.match(l.title, kw) || util.match(l.desc, kw) ||
         (l.tags || []).some((t) => util.match(t, kw)));
     }
-    // 已被别人拍下的单件商品不在列表/搜索里露出（拼团、服务除外；卖家看自己的不隐藏）
+    /**
+     * 已被拍下的单件商品不在列表/搜索里露出（拼团、服务除外；卖家看自己的不隐藏）。
+     *
+     * 屏蔽口径 = 进行中 + 已完成：只屏蔽进行中会漏掉「订单已完成、status 却被
+     * 详情页的展示层自愈改回 on」的脏数据 —— 卖掉的商品仍在列表里、还能下单。
+     * id 统一 Number 化：库里 listingId 可能是字符串，用原始值比较会静默失配。
+     */
+    const ACTIVE = ['pending', 'paid', 'shipped', 'refunding'];
+    const BLOCKING = ACTIVE.concat(['done']);
+    const lockedIds = new Set();
+    for (const o of db.find('orders', (x) => BLOCKING.indexOf(x.status) > -1)) {
+      lockedIds.add(Number(o.listingId));
+    }
     if (!sellerId) {
-      const ACTIVE = ['pending', 'paid', 'shipped', 'refunding'];
-      const locked = new Set();
-      for (const o of db.find('orders', (x) => ACTIVE.indexOf(x.status) > -1)) {
-        // 拍下即下架：谁拍的都隐藏
-        locked.add(o.listingId);
-      }
-      if (locked.size) {
-        list = list.filter((l) => (l.tradeMode === 'group' || l.tradeMode === 'service') ? true : !locked.has(l.id));
+      if (lockedIds.size) {
+        list = list.filter((l) => (l.tradeMode === 'group' || l.tradeMode === 'service') ? true : !lockedIds.has(Number(l.id)));
       }
     }
     if (sort === 'new') list.sort((a, b) => b.createdAt - a.createdAt);
@@ -74,12 +96,10 @@ module.exports = function register(route) {
       list.sort((a, b) => score(b) - score(a));
     }
     const page = util.paginate(list, q.get('page'), q.get('pageSize'));
-    // 被拍下（含未付款）的商品打上 picked，供「卖家主页 / 我的发布」显示「已卖出」
-    const ACTIVE_P = ['pending', 'paid', 'shipped', 'refunding'];
-    const pickedIds = new Set(db.find('orders', (o) => ACTIVE_P.indexOf(o.status) > -1).map((o) => o.listingId));
+    // 被拍下（含已完成）的商品打上 picked，供「卖家主页 / 我的发布」显示「已卖出」
     return Object.assign({}, page, {
       list: page.list.map((l) => Object.assign(deco.decorateListing(l, me), {
-        picked: pickedIds.has(l.id) && l.status !== 'sold'
+        picked: lockedIds.has(Number(l.id)) && l.status !== 'sold'
       }))
     });
   });
@@ -101,7 +121,13 @@ module.exports = function register(route) {
     // 拍下即锁：单件商品若已被占用，详情页要把「立即购买」换成「已被拍下」
     let lock = null;
     if (UNIQUE_TRADE_MODES.indexOf(l.tradeMode) > -1) {
-      const occupied = findActiveOrder(l.id);
+      /**
+       * 一次性交易（sell/free/barter）把「已完成」也算占用：
+       * 已经卖掉的东西，详情页不该再显示「立即购买」。
+       * 这也顺带堵住了下面那段「展示层自愈」把 sold 改回 on 的错误回滚。
+       */
+      const includeDone = ONE_SHOT_MODES.indexOf(l.tradeMode) > -1;
+      const occupied = findActiveOrder(l.id, 0, { includeDone });
       if (occupied) {
         lock = {
           orderId: occupied.id,
@@ -111,7 +137,10 @@ module.exports = function register(route) {
         };
       }
     }
-    // 展示层自愈：sold 但没有进行中订单 → 视为在售（退款/取消后未回滚）
+    // 展示层自愈：sold 但没有订单 → 视为在售（退款/取消后未回滚）
+    // ⚠️ 有「已完成」订单时绝不会走到这里（上面的 lock 已包含 done）。
+    //    历史事故：done 不在 findActiveOrder 里 → lock 为空 → 每次打开详情页
+    //    都把 sold 改回 on，已售出的商品自己复活，还能被无限次重复下单。
     if (l.status === 'sold' && !lock) { try { l.status = 'on'; db.update('listings', l.id, { status: 'on' }); db.saveSoon(); } catch (e) {} }
     return { listing: Object.assign(deco.decorateListing(l, me), { isWanted, lock }), related };
   });
@@ -224,6 +253,14 @@ module.exports = function register(route) {
    * 拼团可多人参团、服务可多次提供 —— 这两类不锁。
    */
   const UNIQUE_TRADE_MODES = ['sell', 'rent', 'free', 'barter'];
+  /**
+   * 一次性交易：卖掉就是卖掉了，有了「已完成」订单后不能再买、也不能再上架售卖。
+   *
+   * `rent`（租借）刻意排除：租期结束归还后，同一件东西还能再租给下一个人。
+   * 之前的坑：findActiveOrder 不认 done，订单完成后商品被当成「无人占用」，
+   * 详情页的「展示层自愈」还会把 sold 改回 on —— 卖了的东西自己复活、能无限次下单。
+   */
+  const ONE_SHOT_MODES = ['sell', 'free', 'barter'];
 
   /**
    * 查某件商品是否已被「未完成订单」占用。
@@ -231,13 +268,17 @@ module.exports = function register(route) {
    *
    * @param {number} listingId
    * @param {number} [exceptOrderId] 排除这笔订单
+   * @param {object} [opts] { includeDone } 一次性交易把「已完成」也算占用
    * @returns {object|null}
    */
-  function findActiveOrder(listingId, exceptOrderId) {
+  function findActiveOrder(listingId, exceptOrderId, opts) {
     const skip = Number(exceptOrderId) || 0;
+    const states = (opts && opts.includeDone)
+      ? ACTIVE_ORDER_STATES.concat(['done'])
+      : ACTIVE_ORDER_STATES;
     return db.find('orders', (o) =>
       o.listingId === listingId &&
-      ACTIVE_ORDER_STATES.indexOf(o.status) > -1 &&
+      states.indexOf(o.status) > -1 &&
       o.id !== skip)[0] || null;
   }
 
@@ -287,8 +328,14 @@ module.exports = function register(route) {
     //    「该宝贝已被你拍下，暂时无法购买」—— 自己拍下的却被告知"无法购买"，
     //    语义自相矛盾，用户看不懂自己到底买没买（前端据此改成了「已购买」并禁用按钮）。
     if (UNIQUE_TRADE_MODES.indexOf(l.tradeMode) > -1) {
-      const occupied = findActiveOrder(l.id);
+      // 一次性交易把「已完成」也算占用：卖掉的东西不能再下单（否则会出现
+      // 「拍下 → 支付时才被告知已付过款」这种先让用户白填一遍的体验）。
+      const includeDone = ONE_SHOT_MODES.indexOf(l.tradeMode) > -1;
+      const occupied = findActiveOrder(l.id, 0, { includeDone });
       if (occupied) {
+        if (occupied.status === 'done') {
+          fail('这件商品已经卖出去了，不能重复下单');
+        }
         if (occupied.buyerId === me.id) {
           // 走到这里不可能是 pending —— pending 已在上面被幂等复用返回
           fail('你已经拍下过这件商品了，请到「我的订单」里继续付款或查看进度', 409);

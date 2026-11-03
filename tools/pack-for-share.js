@@ -42,6 +42,7 @@ const INCLUDE_DIRS = ['miniprogram', 'cloudfunctions', 'server', 'tools', 'autom
 
 // 要打包的顶层文件
 const INCLUDE_FILES = [
+  '.env.example',          // 环境变量模板（竞赛要求：环境配置说明含模板）
   'README.md',              // 仓库门面：项目简介 / 部署 / 运行 / 环境变量（竞赛明确要求）
   'project.config.json',   // 必需：appid / miniprogramRoot / cloudfunctionRoot
   'package.json',

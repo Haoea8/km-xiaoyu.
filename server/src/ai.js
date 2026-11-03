@@ -14,7 +14,14 @@ function listingCard(l) {
 function searchListings(kw) {
   const k = String(kw || '').toLowerCase();
   if (!k) return [];
-  const hits = db.find('listings', (l) => l.status === 'on' && (
+  /**
+   * 排除「已被拍下 / 已售出」的商品：有人下过单（pending 起）就不该再被别人
+   * 检索到，直到订单取消 / 退款成功释放。口径与 /api/listings 一致，拼团/服务豁免。
+   * 不排的话，AI 客服会把别人刚拍下的东西继续推给下一个人。
+   */
+  const taken = require('./ai-assist').takenListingIds();
+  const hits = db.find('listings', (l) => l.status === 'on' &&
+    ((taken.size === 0) || l.tradeMode === 'group' || l.tradeMode === 'service' || !taken.has(Number(l.id))) && (
     String(l.title).toLowerCase().includes(k) ||
     String(l.desc || '').toLowerCase().includes(k) ||
     (l.tags || []).some((t) => String(t).toLowerCase().includes(k))

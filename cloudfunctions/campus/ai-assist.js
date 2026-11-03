@@ -194,16 +194,22 @@ function guessCategories(text) {
  * 对校园二手这种品类密度来讲，关键词检索的召回已经够用；
  * 也正因为简单，它**不依赖任何外部服务**，断网时照样能给出建议价。
  */
-function findSamples(input, limit) {
+/**
+ * 取同类在售样本（用于建议价）。
+ *
+ * ⚠️ 直查数据库：内存镜像是冷启动快照、永不刷新，多实例下会拿到已下架商品的
+ * 价格去算建议价，也可能漏掉别的实例刚发布的同类商品。
+ */
+async function findSamples(input, limit) {
   const zone = String((input && input.zone) || '');
   const text = [input && input.title, input && input.desc].filter(Boolean).join(' ');
   const kws = guessCategories(text);
   const max = limit || 8;
 
-  let list = [];
-  try {
-    list = db.find('listings', (l) => l && l.status === 'on' && Number(l.price) > 0);
-  } catch (e) { list = []; }
+  let list = null;
+  try { list = await db.readAllFromDb('listings'); } catch (e) { /* 退回内存 */ }
+  if (!list || !list.length) list = db.find('listings', () => true);
+  list = list.filter((l) => l && l.status === 'on' && Number(l.price) > 0);
 
   const scored = list.map((l) => {
     let score = 0;
@@ -282,7 +288,7 @@ function ruleListingAssist(input, samples) {
  */
 async function listingAssist(input) {
   const src = input || {};
-  const samples = findSamples(src, 8);
+  const samples = await findSamples(src, 8);
   const fallback = ruleListingAssist(src, samples);
 
   const priceStats = samples.length ? (function () {
@@ -416,12 +422,44 @@ function parseQuery(query) {
   return out;
 }
 
-/** 召回：关键词命中计分，预算作为过滤（预算内一条都没有时放宽并标注） */
-function recall(intent, limit) {
-  let all = [];
+/**
+ * 「已被拍下 / 已售出」的商品 id 集合。
+ *
+ * 口径与 /api/listings 的 BLOCKING_STATES 一致：从 pending 起就算占用
+ * （拍下即不该被别人找到），只有订单被取消 / 退款成功才会释放。
+ * 多实例下必须直查库，内存镜像里的订单是冷启动快照。
+ */
+async function takenListingIds() {
+  const set = new Set();
   try {
-    all = db.find('listings', (l) => l && l.status === 'on');
-  } catch (e) { all = []; }
+    const os = await db.readAllFromDb('orders');
+    for (const o of (os || [])) {
+      if (['pending', 'paid', 'shipped', 'refunding', 'done'].indexOf(o.status) > -1) {
+        set.add(Number(o.listingId));
+      }
+    }
+  } catch (e) { /* 读订单失败就当没有占用，不影响搜索可用性 */ }
+  return set;
+}
+
+/** 召回：关键词命中计分，预算作为过滤（预算内一条都没有时放宽并标注）
+ *  ⚠️ 直查数据库：内存镜像永不刷新，多实例下会把已下架商品当成在售召回并推给用户。
+ *  ⚠️ 还要排除「已被拍下 / 已售出」：只要有人下过单（pending 起），这件东西就
+ *     不该再出现在别人的 AI 找货结果里 —— 直到订单取消/退款成功释放它。
+ *     与 /api/listings 的 BLOCKING_STATES 同口径，拼团/服务豁免。
+ */
+async function recall(intent, limit) {
+  let all = null;
+  try { all = await db.readAllFromDb('listings'); } catch (e) { /* 退回内存 */ }
+  if (!all || !all.length) all = db.find('listings', () => true);
+  all = all.filter((l) => l && l.status === 'on');
+  const taken = await takenListingIds();
+  if (taken.size) {
+    all = all.filter((l) => {
+      if (l.tradeMode === 'group' || l.tradeMode === 'service') return true;
+      return !taken.has(Number(l.id));
+    });
+  }
 
   const kws = intent.keywords;
   const scored = all.map((l) => {
@@ -480,7 +518,7 @@ function intentText(intent, relaxed) {
  */
 async function smartSearch(query) {
   const intent = parseQuery(query);
-  const rec = recall(intent, 12);
+  const rec = await recall(intent, 12);
   const items = rec.items;
 
   const base = {
@@ -670,5 +708,6 @@ module.exports = {
   parseQuery, recall, intentText,
   findSamples, ruleListingAssist, listingAssist,
   smartSearch, cardOf,
+  takenListingIds,
   RULES, ruleModerate, moderateText
 };

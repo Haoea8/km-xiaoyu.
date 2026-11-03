@@ -121,7 +121,23 @@ function recommendListings(user, limit) {
   const meId = user ? user.id : 0;
   const seen = new Set(db.find('histories', (h) => h.userId === meId).map((h) => h.listingId));
 
-  let cands = db.find('listings', (l) => l.status === 'on' && l.sellerId !== meId);
+  let cands = db.find('listings', (l) => l.status === 'on' && Number(l.sellerId) !== Number(meId));
+  /**
+   * 排除「已被拍下 / 已售出」：有人下过单（pending 起）就不该再被推给下一个人，
+   * 直到订单取消 / 退款成功释放。口径与 /api/listings 一致，拼团/服务豁免
+   * （一件多人）。不排的话推荐位会把别人刚拍下的东西继续推出去。
+   */
+  const taken = new Set();
+  for (const o of db.find('orders', (x) =>
+    ['pending', 'paid', 'shipped', 'refunding', 'done'].indexOf(x.status) > -1)) {
+    taken.add(Number(o.listingId));
+  }
+  if (taken.size) {
+    cands = cands.filter((l) => {
+      if (l.tradeMode === 'group' || l.tradeMode === 'service') return true;
+      return !taken.has(Number(l.id));
+    });
+  }
   const scored = cands.map((l) => {
     let score = 0;
     const reasons = [];

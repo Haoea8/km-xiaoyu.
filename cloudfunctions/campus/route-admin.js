@@ -109,12 +109,33 @@ module.exports = function register(route) {
         amount: orders.filter((o) => inDay(o.createdAt) && PAID.includes(o.status)).reduce((s, o) => s + o.payAmount, 0)
       });
     }
+    /**
+     * 商品口径拆成四类（相加 = 商品总数），不再用模糊的「在售」一个数：
+     *   在售   status=on 且没有被任何人拍下 —— 真正能买到
+     *   已拍下 status=on 但躺着 pending~done 的订单 —— 买不到，从「在售」里剔除
+     *   已售出 status=sold
+     *   已下架 status=off
+     * 拼团/服务是一件多人，被拍下仍算在售（与小程序端同口径）。
+     */
+    const TAKEN_STATES = ['pending', 'paid', 'shipped', 'refunding', 'done'];
+    const takenIds = new Set();
+    for (const o of orders) {
+      if (TAKEN_STATES.indexOf(o.status) > -1) takenIds.add(Number(o.listingId));
+    }
+    const isMulti = (l) => l.tradeMode === 'group' || l.tradeMode === 'service';
+    const onSale = listings.filter((l) => l.status === 'on' && (isMulti(l) || !takenIds.has(Number(l.id))));
+    const lockedCount = listings.filter((l) => l.status === 'on' && !isMulti(l) && takenIds.has(Number(l.id))).length;
+    const soldCount = listings.filter((l) => l.status === 'sold').length;
+    const offCount = listings.filter((l) => l.status === 'off').length;
+
     return {
       totals: {
         users: users.length,
         listings: listings.length,
-        onSale: listings.filter((l) => l.status === 'on').length,
-        sold: listings.filter((l) => l.status === 'sold').length,
+        onSale: onSale.length,
+        locked: lockedCount,
+        sold: soldCount,
+        off: offCount,
         orders: orders.length,
         doneOrders: orders.filter((o) => o.status === 'done').length,
         posts: posts.length,
@@ -149,10 +170,26 @@ module.exports = function register(route) {
     if (kw) list = list.filter((l) => util.match(l.title, kw) || util.match(String(l.desc), kw));
     list.sort((a, b) => b.createdAt - a.createdAt);
     const page = util.paginate(list, q.get('page'), 12);
+    /**
+     * 带上订单状态：运营看到的「在售」可能已经被某人拍下（买不到）。
+     * 不标出来的话会误判库存，也会对着已成交的商品点「标记售出」。
+     * 同一件商品可能有多笔单，取「最靠后」的那个状态展示。
+     */
+    const RANK = { pending: 2, refunding: 3, paid: 4, shipped: 4, done: 5 };
+    const orderState = {};
+    try {
+      const os = await db.readAllFromDb('orders');
+      for (const o of (os || [])) {
+        const k = Number(o.listingId);
+        const r = RANK[o.status] || 0;
+        if (r && (!orderState[k] || r > (RANK[orderState[k]] || 0))) orderState[k] = o.status;
+      }
+    } catch (e) { /* 读订单失败就只显示商品状态 */ }
     return Object.assign({}, page, {
       list: page.list.map((l) => {
         const out = deco.decorateListing(l, null);
         out.zoneName = (ZONES.find((z) => z.code === l.zone) || {}).name || l.zone;
+        out.orderStatus = orderState[Number(l.id)] || '';
         return out;
       })
     });
@@ -183,10 +220,47 @@ module.exports = function register(route) {
     if (kw) list = list.filter((u) => util.match(u.nickname, kw) || util.match(String(u.college), kw));
     list.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
     const page = util.paginate(list, q.get('page'), 12);
+    /**
+     * 统计以数据库为准（与 deco.userStatsFresh 同口径）。
+     *
+     * 原来直接用 deco.userStats —— 它走 db.find 读**本实例内存镜像**，
+     * 多实例下「在售 / 已卖出 / 收藏」会一会儿一个数（用户反馈过抖动）。
+     * 这里不逐个调 userStatsFresh（12 个用户 × 5 个集合 = 60 次查询），
+     * 而是**一次拉齐 5 个集合**，再在本地按用户归并，总查询数固定为 5。
+     */
+    const pull = async (name) => {
+      try {
+        const rows = await db.readAllFromDb(name);
+        if (rows && rows.length) return rows;
+      } catch (e) { /* 读库失败退回内存 */ }
+      return db.find(name, () => true);
+    };
+    const [allL2, allP2, allO2, allF2, allFol2] = await Promise.all([
+      pull('listings'), pull('posts'), pull('orders'), pull('favorites'), pull('follows')
+    ]);
+    const statsOf = (uid) => {
+      const id = Number(uid);
+      const mine = (rows, f) => rows.filter((x) => Number(x[f]) === id);
+      const myL = mine(allL2, 'sellerId');
+      const sellerO = allO2.filter((o) => Number(o.sellerId) === id);
+      const myO = allO2.filter((o) => Number(o.buyerId) === id || Number(o.sellerId) === id);
+      // 「在售 / 已卖出」走 deco.computeListingStats —— 与个人主页、小程序端同一口径：
+      // 被拍下的商品不再算在售，且同一件商品不会在 sold 状态与 done 订单之间重复计数。
+      const ls = deco.computeListingStats(myL, sellerO);
+      return {
+        published: ls.published,
+        sold: ls.sold,
+        bought: myO.filter((o) => Number(o.buyerId) === id && o.status === 'done').length,
+        favorites: mine(allF2, 'userId').length,
+        posts: mine(allP2, 'authorId').length,
+        following: mine(allFol2, 'userId').length,
+        followers: allFol2.filter((f) => Number(f.targetUserId) === id).length
+      };
+    };
     return Object.assign({}, page, {
       list: page.list.map((u) => {
         const out = util.publicUser(u);
-        out.stats = deco.userStats(u.id);
+        out.stats = statsOf(u.id);
         out.timeText = util.fmtTime(u.createdAt || u.joinedAt || 0);
         return out;
       })
@@ -214,6 +288,43 @@ module.exports = function register(route) {
     list.sort((a, b) => b.createdAt - a.createdAt);
     const page = util.paginate(list, q.get('page'), 12);
     return Object.assign({}, page, { list: page.list.map((o) => deco.decorateOrder(o, null)) });
+  }, 'admin');
+
+  /**
+   * 后台取消订单（处理孤儿单 / 异常单）。
+   *
+   * 为什么需要：买家下单后商品被判「已占用」，如果买家一直不付款、也不再进小程序，
+   * 这件商品在公开列表里就永远消失（卖家也没法自己处理）。后台必须能兜底取消。
+   *
+   * 规则：
+   *   - 只有 pending / paid / shipped / refunding 能取消；done / canceled / refunded 不行
+   *   - 取消后**释放商品**：单件商品重新变回 on（除非它已经是 sold 且有成交订单）
+   *   - 已付款的单走取消会让钱对不上，所以只允许 refunding 状态下的取消由退款流程收尾
+   */
+  route('POST', '/admin-api/orders/:id/cancel', async (ctx) => {
+    const o = await db.findByIdFresh('orders', ctx.params.id);
+    if (!o) fail('订单不存在', 404);
+    const CANCELABLE = ['pending', 'paid', 'shipped', 'refunding'];
+    if (CANCELABLE.indexOf(o.status) === -1) fail('该订单当前状态不可取消（' + o.status + '）');
+    const reason = util.clampText((ctx.body || {}).reason, 60) || '管理员取消';
+    const timeline = (o.timeline || []).concat([{
+      status: 'canceled', time: Date.now(), note: '管理员取消：' + reason
+    }]);
+    const saved = await db.updateFresh('orders', o.id, { status: 'canceled', timeline });
+    if (!saved) fail('取消失败，请重试');
+
+    // 释放商品：单件类商品，若没有其它有效订单占着，就回到在售
+    const l = await db.findByIdFresh('listings', o.listingId);
+    if (l && l.status === 'sold') {
+      const others = (await db.readAllFromDb('orders')).filter(
+        (x) => Number(x.listingId) === Number(o.listingId) && x.id !== o.id &&
+          ['pending', 'paid', 'shipped', 'refunding', 'done'].indexOf(x.status) > -1
+      );
+      if (!others.length) await db.updateFresh('listings', l.id, { status: 'on' });
+    }
+    if (o.buyerId) ws.notifyUser(o.buyerId, '管理员已取消你的订单：「' + o.snapshot.title + '」', { orderId: o.id });
+    if (o.sellerId) ws.notifyUser(o.sellerId, '订单已取消：「' + o.snapshot.title + '」商品已重新上架', { orderId: o.id });
+    return { order: deco.decorateOrder(saved, null) };
   }, 'admin');
 
   /* ---------- 举报处理 ---------- */

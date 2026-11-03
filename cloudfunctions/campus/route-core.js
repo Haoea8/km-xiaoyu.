@@ -202,12 +202,64 @@ module.exports = function register(route) {
     // force：主页是「被人盯着看」的页面，不能被 TTL 挡在旧头像上。
     await db.refreshUsers([u.id], { force: true });
     const fresh = db.findById('users', u.id) || u;
-    const listings = db.find('listings', (l) => l.sellerId === fresh.id && l.status === 'on')
+    /**
+     * ⚠️ 直查数据库 —— 个人主页是「下架/删除后还挂着」最显眼的地方。
+     *
+     * 内存镜像是冷启动快照、永不刷新：商品在实例 A 下架或删除，这次请求落到
+     * 实例 B，`db.find` 仍把它当在售返回。前端现象就是「下架了主页还在，
+     * 点进去却提示商品不存在，退出再进又正常」（各次请求路由到不同实例）。
+     * 刚发布的商品同理：写进实例 A，在实例 B 上的个人主页看不到，要反复刷新。
+     *
+     * 与 /api/listings、/api/my-listings 保持一致：以库为准，读失败才退回内存。
+     */
+    let allListings = null;
+    try { allListings = await db.readAllFromDb('listings'); } catch (e) { /* 读库失败退回内存 */ }
+    if (!allListings || !allListings.length) allListings = db.find('listings', () => true);
+    /**
+     * 返回范围：
+     *   在售(on) + 已售出(sold) —— 所有人都能看
+     *   已下架(off)            —— **只有本人**能看，别人的主页不该出现他下架的宝贝
+     *
+     * 「删除」是物理删（DELETE /api/listings/:id 走 db.removeFresh），库里已无此文档，
+     * 因此永远不会出现在这里 —— 这就是「下架可恢复、删除恢复不了」在数据层的区别。
+     */
+    const isOwner = !!(me && Number(me.id) === Number(fresh.id));
+    /**
+     * 「已被拍下 / 已售出」标记：单件商品只要存在 pending~done 的订单，就视为已成交。
+     * 与 route-trade 的 ONE_SHOT_MODES 同一口径 —— 卖家主页不该把它挂在在售里，
+     * 别人更不该还能对它下单（用户实测踩过：已完成的订单商品仍显示在售、可重复下单）。
+     */
+    let takenIds = new Set();
+    try {
+      const os = await db.readAllFromDb('orders');
+      for (const o of (os || [])) {
+        if (['pending', 'paid', 'shipped', 'refunding', 'done'].indexOf(o.status) > -1) {
+          takenIds.add(Number(o.listingId));
+        }
+      }
+    } catch (e) { /* 读订单失败就不标记，不影响主流程 */ }
+    const listings = allListings
+      .filter((l) => Number(l.sellerId) === Number(fresh.id))
+      .filter((l) => {
+        // 拼团 / 服务是「一件多人」，被拍下仍算在售（与首页、/api/listings 同口径）
+        const isMulti = l.tradeMode === 'group' || l.tradeMode === 'service';
+        const taken = !isMulti && takenIds.has(Number(l.id));
+        if (l.status === 'on' && !taken) return true;        // 真在售：所有人可见
+        if (l.status === 'sold' || taken) return isOwner;    // 已成交：仅本人可见
+        if (isOwner && l.status === 'off') return true;      // 已下架：仅本人可见
+        return false;
+      })
       .sort((a, b) => b.createdAt - a.createdAt)
-      .map((l) => deco.decorateListing(l, me));
+      .map((l) => {
+        const out = deco.decorateListing(l, me);
+        const isMulti = l.tradeMode === 'group' || l.tradeMode === 'service';
+        out.taken = !isMulti && (takenIds.has(Number(l.id)) || l.status === 'sold');
+        return out;
+      });
     const isFollowed = me ? !!db.one('follows', (x) => x.userId === me.id && x.targetUserId === fresh.id) : false;
     const out = util.publicUser(fresh);
-    out.stats = deco.userStats(fresh.id);
+    // 数字也走「以库为准」：同 userStats 的抖动问题（在售数一会儿 11 一会儿 12）
+    out.stats = await deco.userStatsFresh(fresh.id);
     return { user: out, listings, isFollowed };
   });
 

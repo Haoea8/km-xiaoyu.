@@ -58,8 +58,13 @@
 
 /* ---------- 宝贝 ---------- */
 .sec { margin-top: 34rpx; }
-.sec-head { padding: 0 32rpx 18rpx; }
+.sec-head { padding: 0 32rpx 18rpx; display: flex; align-items: center; justify-content: space-between; }
 .sec-title { font-size: 30rpx; font-weight: 700; }
+
+/* 宝贝区筛选：在售 / 全部（仅本人可见） */
+.tabs { display: flex; gap: 6rpx; padding: 4rpx; background: #F1F3F5; border-radius: 999rpx; }
+.tab { font-size: 22rpx; color: #6B7280; padding: 8rpx 22rpx; border-radius: 999rpx; line-height: 1.2; }
+.tab.on { background: #fff; color: var(--brand, #FF5A36); font-weight: 700; box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, .08); }
 .grid { display: flex; flex-wrap: wrap; padding: 0 24rpx; gap: 20rpx; }
 /* ⚠️ 14rpx 不能改小。
    卡片宽度必须**略小于**容器的一半：
@@ -90,4 +95,14 @@
   position: absolute; left: 14rpx; top: 14rpx;
   background: rgba(0, 0, 0, 0.6); color: #fff;
   font-size: 20rpx; padding: 4rpx 14rpx; border-radius: 999rpx;
+}
+
+/* 已下架水印：盖住封面（高度与 .g-img 一致），浅色压暗 + 中间一行淡字。
+   卡片本身仍可点击 → 进详情页「重新上架 / 删除」。 */
+.g-off {
+  position: absolute; left: 0; top: 0; right: 0; height: 320rpx;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(255, 255, 255, 0.58);
+  color: rgba(0, 0, 0, 0.3);
+  font-size: 30rpx; font-weight: 700; letter-spacing: 8rpx;
 }

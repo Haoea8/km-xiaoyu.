@@ -118,14 +118,59 @@ async function realCommentCounts(posts) {
   return arr;
 }
 
+/**
+ * 商品统计的「占用」口径：与 /api/listings 的 BLOCKING_STATES 完全一致。
+ * 从 pending 起就算已被拍下 —— 这类商品不该再计入「在售」。
+ */
+const TAKEN_STATES = ['pending', 'paid', 'shipped', 'refunding', 'done'];
+const isMultiMode = (l) => l.tradeMode === 'group' || l.tradeMode === 'service';
+
+/**
+ * 由「我的商品 + 我的（卖家侧）订单」算出主页那两个数字。
+ *
+ * 为什么不能各算各的（用户实测反馈，2026-11-03）：
+ *   「在售 3，点进去宝贝（2）」—— 在售只按 status=on 数，列表却剔除了被拍下的；
+ *   「已卖出 2」其实只有 1 件 —— sold 状态条数 与 done 订单数 把同一件算了两次。
+ *
+ * 统一口径：
+ *   在售   = status=on 且没被任何订单占用（拼团/服务一件多人，豁免）
+ *   已卖出 = 已被拍下或已售出的**件数**（拼团/服务按 done 订单数，一件多人各算一笔）
+ * 两者相加 = 该用户全部商品（不含下架），既自洽，也和前端「已卖出」角标一致。
+ */
+function computeListingStats(myListings, sellerOrders) {
+  const takenIds = new Set();
+  for (const o of sellerOrders) {
+    if (TAKEN_STATES.indexOf(o.status) > -1) takenIds.add(Number(o.listingId));
+  }
+  const published = myListings.filter((l) =>
+    l.status === 'on' && (isMultiMode(l) || !takenIds.has(Number(l.id)))).length;
+
+  let sold = 0;
+  for (const l of myListings) {
+    if (isMultiMode(l)) continue;                        // 一件多人：下面按订单数算
+    if (l.status === 'sold' || takenIds.has(Number(l.id))) sold++;
+  }
+  for (const o of sellerOrders) {
+    if (o.status !== 'done') continue;
+    const id = Number(o.listingId);
+    const l = myListings.filter((x) => Number(x.id) === id)[0];
+    if (!l) { sold++; continue; }                        // 商品已删除，成交记录还在
+    if (isMultiMode(l)) sold++;                          // 拼团/服务按成交笔数
+    // 单件商品已在上面按件数计过，这里不再重复
+  }
+  return { published, sold };
+}
+
 function userStats(userId) {
   const listings = db.find('listings', (l) => l.sellerId === userId);
   const posts = db.find('posts', (p) => p.authorId === userId);
   const orders = db.find('orders', (o) => o.buyerId === userId || o.sellerId === userId);
+  const sellerOrders = orders.filter((o) => Number(o.sellerId) === Number(userId));
+  const ls = computeListingStats(listings, sellerOrders);
   return {
-    published: listings.filter((l) => l.status === 'on').length,
-    sold: listings.filter((l) => l.status === 'sold').length + orders.filter((o) => o.sellerId === userId && o.status === 'done').length,
-    bought: orders.filter((o) => o.buyerId === userId && o.status === 'done').length,
+    published: ls.published,
+    sold: ls.sold,
+    bought: orders.filter((o) => Number(o.buyerId) === Number(userId) && o.status === 'done').length,
     favorites: db.find('favorites', (f) => f.userId === userId).length,
     posts: posts.length,
     following: db.find('follows', (f) => f.userId === userId).length,
@@ -162,10 +207,11 @@ async function userStatsFresh(userId) {
   const mine = (rows, field) => rows.filter((x) => Number(x[field]) === uid);
   const myListings = mine(listings, 'sellerId');
   const myOrders = orders.filter((o) => Number(o.buyerId) === uid || Number(o.sellerId) === uid);
+  const sellerOrders = orders.filter((o) => Number(o.sellerId) === uid);
+  const ls = computeListingStats(myListings, sellerOrders);
   return {
-    published: myListings.filter((l) => l.status === 'on').length,
-    sold: myListings.filter((l) => l.status === 'sold').length +
-      myOrders.filter((o) => Number(o.sellerId) === uid && o.status === 'done').length,
+    published: ls.published,
+    sold: ls.sold,
     bought: myOrders.filter((o) => Number(o.buyerId) === uid && o.status === 'done').length,
     favorites: mine(favorites, 'userId').length,
     posts: mine(posts, 'authorId').length,
@@ -174,4 +220,4 @@ async function userStatsFresh(userId) {
   };
 }
 
-module.exports = { sellerBrief, briefOf, decorateListing, decorateOrder, decoratePost, realCommentCounts, userStats, userStatsFresh, isFav };
+module.exports = { sellerBrief, briefOf, decorateListing, decorateOrder, decoratePost, realCommentCounts, userStats, userStatsFresh, computeListingStats, isFav };

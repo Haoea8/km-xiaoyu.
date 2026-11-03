@@ -63,7 +63,12 @@ Page({
 
   onShow() {
     app.syncTabBar(this, 'home');
-    if (!this.data.loading) this.loadRecommend(true);
+    if (!this.data.loading) {
+      this.loadRecommend(true);
+      // 静默刷新瀑布流：下架 / 重新上架 / 删除后切回首页，列表应立刻同步，
+      // 不该再要求用户手动下拉刷新（切 tab 频率不高，多一次请求可以接受）
+      this.loadAll(true);
+    }
   },
 
   onPullDownRefresh() {
@@ -75,8 +80,8 @@ Page({
     this.loadMore();
   },
 
-  async loadAll() {
-    this.setData({ loading: true });
+  async loadAll(silent) {
+    if (!silent) this.setData({ loading: true });
     try {
       const res = await api.get('/api/home');
       const feed = (res.feed || []).map((x) => Object.assign(x, {
@@ -105,8 +110,9 @@ Page({
       this.setData({ loading: false });
     }
     this.loadTopics();
-    // 下拉刷新 / 首次进入：重置推荐循环，从头给一批
-    this.loadRecommend(false, true);
+    // 下拉刷新 / 首次进入：重置推荐循环，从头给一批。
+    // 静默刷新（从详情页切回来）不重置 —— 否则用户刚翻到的推荐会跳回第一批。
+    if (!silent) this.loadRecommend(false, true);
   },
 
   async loadTopics() {

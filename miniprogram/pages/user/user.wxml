@@ -55,18 +55,24 @@
     <view class="sec">
       <view class="sec-head">
         <text class="sec-title">宝贝（{{listings.length}}）</text>
+        <!-- 只有本人能在「在售 / 全部」之间切换：别人的主页不该出现他下架的宝贝 -->
+        <view class="tabs" wx:if="{{isMe}}">
+          <view class="tab {{tab === 'selling' ? 'on' : ''}}" data-k="selling" bindtap="onTab">在售</view>
+          <view class="tab {{tab === 'all' ? 'on' : ''}}" data-k="all" bindtap="onTab">全部</view>
+        </view>
       </view>
       <view class="grid">
         <view class="g-card" wx:for="{{listings}}" wx:key="id" data-id="{{item.id}}" bindtap="goDetail">
           <image class="g-img" src="{{item.cover}}" mode="aspectFill" lazy-load></image>
-          <view class="g-sold" wx:if="{{item.status === 'sold' || item.picked}}">已卖出</view>
+          <view class="g-off" wx:if="{{item.status === 'off'}}">已下架</view>
+          <view class="g-sold" wx:if="{{item.status === 'sold' || item.picked || item.taken}}">已卖出</view>
           <view class="g-body">
             <view class="g-title ellipsis2">{{item.title}}</view>
             <view class="g-price"><text class="yuan">¥</text>{{item.priceText}}</view>
           </view>
         </view>
       </view>
-      <empty wx:if="{{!listings.length}}" text="TA 还没有在售的宝贝" sub=""></empty>
+      <empty wx:if="{{!listings.length}}" text="{{tab === 'all' ? '这里还没有宝贝' : 'TA 还没有在售的宝贝'}}" sub=""></empty>
     </view>
 
     <view class="uid" bindtap="copyUid">UID {{user.id}} · 点击复制</view>

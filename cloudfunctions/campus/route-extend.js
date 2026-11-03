@@ -159,14 +159,43 @@ function seededShuffle(arr, seed) {
  *
  * 返回附带的 meta 由调用方组装（是否已轮完全部候选）。
  */
-function recommendListings(user, limit, opts) {
+async function recommendListings(user, limit, opts) {
   const seed = (opts && opts.seed) || 0;
   const exclude = new Set((opts && opts.exclude) || []);
   const { zoneScore, tagScore, medianPrice, cold } = buildProfile(user);
   const meId = user ? user.id : 0;
   const seen = new Set(db.find('histories', (h) => h.userId === meId).map((h) => h.listingId));
 
-  let cands = db.find('listings', (l) => l.status === 'on' && l.sellerId !== meId);
+  /**
+   * ⚠️ 直查数据库，不用 db.find 的内存镜像。
+   *
+   * 内存镜像是冷启动快照、永不刷新 → 在实例 A 下架/删除的商品，落到实例 B
+   * 的推荐位仍会被当成在售推出来（「下架了首页还推」）；反过来刚发布的也
+   * 推不出来（「发了要反复刷新才出现」）。候选池以库为准，读失败才退回内存。
+   */
+  let allListings = null;
+  try { allListings = await db.readAllFromDb('listings'); } catch (e) { /* 读库失败退回内存 */ }
+  if (!allListings || !allListings.length) allListings = db.find('listings', () => true);
+  /**
+   * 排除「已被拍下 / 已售出」：有人下过单（pending 起）就不该再被推给下一个人，
+   * 直到订单取消 / 退款成功释放。口径与 /api/listings 一致，拼团/服务豁免
+   * （一件多人）。不排的话推荐位会把别人刚拍下的东西继续推出去。
+   */
+  let taken = new Set();
+  try {
+    const os = await db.readAllFromDb('orders');
+    for (const o of (os || [])) {
+      if (['pending', 'paid', 'shipped', 'refunding', 'done'].indexOf(o.status) > -1) {
+        taken.add(Number(o.listingId));
+      }
+    }
+  } catch (e) { /* 读订单失败就只按 status 过滤 */ }
+  let cands = allListings.filter((l) => {
+    if (l.status !== 'on' || Number(l.sellerId) === Number(meId)) return false;
+    if (!taken.size) return true;
+    if (l.tradeMode === 'group' || l.tradeMode === 'service') return true;
+    return !taken.has(Number(l.id));
+  });
   const scored = cands.map((l) => {
     let score = 0;
     const reasons = [];
@@ -688,10 +717,10 @@ module.exports = function register(route) {
 
   /* ================= 4. AI 智能推荐 ================= */
 
-  route('GET', '/api/recommend', (ctx) => {
+  route('GET', '/api/recommend', async (ctx) => {
     const me = ctx.user || null;
     const limit = Math.max(4, Math.min(30, util.num(ctx.query.get('limit'), 12)));
-    const r = recommendListings(me, limit);
+    const r = await recommendListings(me, limit);
     return {
       list: r.items,
       poolSize: r.poolSize,
@@ -705,7 +734,7 @@ module.exports = function register(route) {
   /** 首页个性化聚合：推荐 + 猜你喜欢 + 你的分区
    *  换一批：前端传 seed（自增）+ exclude（上批 id），后端在同分档内重新打散并优先返回新面孔
    */
-  route('GET', '/api/recommend/home', (ctx) => {
+  route('GET', '/api/recommend/home', async (ctx) => {
     const me = ctx.user || null;
     const profile = buildProfile(me);
     const seed = util.num(ctx.query.get('seed'));
@@ -713,7 +742,7 @@ module.exports = function register(route) {
     const exclude = excludeRaw
       ? excludeRaw.split(',').map((x) => util.num(x)).filter(Boolean)
       : [];
-    const r = recommendListings(me, 12, { seed, exclude });
+    const r = await recommendListings(me, 12, { seed, exclude });
     return {
       list: r.items,
       /** 候选池总量 / 还没看过的数量 —— 前端据此判断「是否已看完一轮」并重置循环 */

@@ -77,8 +77,24 @@ const dbRow = (c, id) => (store[c] || {})[String(id)] || null;
   // 找一件别人在卖的单件商品
   const list = (await app.main({ path: '/api/listings?page=1', method: 'GET', data: {}, token: buyer })).data.list;
   const mine = (await app.main({ path: '/api/me', method: 'GET', data: {}, token: buyer })).data.user;
-  const target = list.find((l) => l.sellerId !== mine.id && l.status === 'on' && !l.tradeMode) || list.find((l) => l.sellerId !== mine.id && l.status === 'on');
-  if (!target) { no('没有可下单的商品'); process.exit(1); }
+  /**
+   * 只挑「一次性交易」的单件商品（sell / free / barter），并取**最便宜的一件**。
+   *
+   * 为什么必须限定：
+   *   1) group（拼团）/ service（服务）是「一件多人各付各的」，支付后**刻意不标 sold**
+   *      —— 断言的「商品应为 sold」对这些模式天然不成立，挑到就是假阳性；
+   *   2) 高价商品（如几千元的游戏账号）会让固定测试账号余额不足，第 1 步支付就失败，
+   *      失败原因跟本用例要测的状态机毫无关系。
+   * 找不到可用商品时明确报错，**不再** fallback 到「任意在售商品」。
+   */
+  const SHOT_MODES = ['sell', 'free', 'barter'];
+  const target = list
+    .filter((l) => l.sellerId !== mine.id && l.status === 'on' &&
+      SHOT_MODES.indexOf(l.tradeMode || 'sell') > -1)
+    .sort((a, b) => Number(a.price) - Number(b.price))[0];
+  if (!target) { no('没有可下单的单件商品（sell/free/barter）'); process.exit(1); }
+  console.log('  [目标] id=' + target.id + ' mode=' + (target.tradeMode || 'sell') +
+    ' price=' + target.price + ' ' + (target.title || ''));
 
   console.log('\n=== 1. 下单 → 支付 ===');
   const ordered = await app.main({ path: '/api/orders', method: 'POST', data: { listingId: target.id, qty: 1 }, token: buyer });
@@ -113,12 +129,21 @@ const dbRow = (c, id) => (store[c] || {})[String(id)] || null;
   if (st === 'shipped') ok('详情 status=' + st + '（未回退）');
   else no('详情 status=' + st + '（应为 shipped）');
 
-  console.log('\n=== 5. 重复付款：内存改回 pending + 商品改回 on，再付一次 ===');
+  console.log('\n=== 5. 重复付款：内存订单改回 pending，再付一次 ===');
   const mem2 = db.findById('orders', orderId);
   mem2.status = 'pending';
   mem2.timeline = mem2.timeline.filter((t) => t.status !== 'paid');
-  const memL = db.findById('listings', target.id);
-  if (memL) memL.status = 'on';
+  /**
+   * 这里**刻意不**把商品状态手工改成 on。
+   *
+   * 原因：flush() 的差异扫描语义是「本实例内存相对**本实例基线**被改过的文档要落库」，
+   * 而基线是本实例自己的快照、不是从库读的最新值。手工改商品状态等于伪造一次
+   * 本实例的真实写入，必然会落库 —— 那是实现机制的既定行为，不是「旧值覆盖」。
+   * 多实例下，没被本实例改过的文档与基线一致，差异扫描根本不会写它。
+   *
+   * 所以这条用例验证的是：**订单内存回退后重复付款被拒，且商品状态不被改坏**
+   * （第 6 项断言商品仍为 sold）。
+   */
   const pay2 = await app.main({ path: '/api/orders/' + orderId + '/pay', method: 'POST', data: { method: 'balance' }, token: buyer });
   if (pay2.code !== 0) ok('二次支付被拒：' + pay2.message);
   else no('二次支付竟然成功了（会重复扣钱）');

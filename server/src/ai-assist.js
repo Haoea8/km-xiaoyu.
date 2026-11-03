@@ -416,12 +416,41 @@ function parseQuery(query) {
   return out;
 }
 
-/** 召回：关键词命中计分，预算作为过滤（预算内一条都没有时放宽并标注） */
+/**
+ * 「已被拍下 / 已售出」的商品 id 集合。
+ *
+ * 口径与 /api/listings 的 BLOCKING_STATES 一致：从 pending 起就算占用
+ * （拍下即不该被别人找到），只有订单被取消 / 退款成功才会释放。
+ * 本机是单进程，内存即真相，直接 db.find 即可。
+ */
+function takenListingIds() {
+  const set = new Set();
+  for (const o of db.find('orders', (x) =>
+    ['pending', 'paid', 'shipped', 'refunding', 'done'].indexOf(x.status) > -1)) {
+    set.add(Number(o.listingId));
+  }
+  return set;
+}
+
+/**
+ * 召回：关键词命中计分，预算作为过滤（预算内一条都没有时放宽并标注）
+ * ⚠️ 还要排除「已被拍下 / 已售出」：只要有人下过单（pending 起），这件东西就
+ *     不该再出现在别人的 AI 找货结果里 —— 直到订单取消/退款成功释放它。
+ *     与 /api/listings 的 BLOCKING_STATES 同口径，拼团/服务豁免。
+ */
 function recall(intent, limit) {
   let all = [];
   try {
     all = db.find('listings', (l) => l && l.status === 'on');
   } catch (e) { all = []; }
+
+  const taken = takenListingIds();
+  if (taken.size) {
+    all = all.filter((l) => {
+      if (l.tradeMode === 'group' || l.tradeMode === 'service') return true;
+      return !taken.has(Number(l.id));
+    });
+  }
 
   const kws = intent.keywords;
   const scored = all.map((l) => {
@@ -668,6 +697,7 @@ async function moderateText(title, desc) {
 module.exports = {
   llmConfig, chat, parseJsonLoose, toYuan, toFen, median,
   parseQuery, recall, intentText,
+  takenListingIds,
   findSamples, ruleListingAssist, listingAssist,
   smartSearch, cardOf,
   RULES, ruleModerate, moderateText

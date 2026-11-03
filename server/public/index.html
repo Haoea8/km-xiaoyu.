@@ -395,6 +395,11 @@ const API = {
 /* ==================== 通用渲染件 ==================== */
 const STATUS_TXT = { on: '在售', off: '已下架', sold: '已售出', reviewing: '审核中' };
 const statusTag = (s) => '<span class="tag t-' + esc(s) + '">' + esc(STATUS_TXT[s] || s) + '</span>';
+/* 订单状态：商品列表里要标出「这件在售的其实已经被人拍下了」 */
+const ORDER_TXT = { pending: '待付款', paid: '待发货', shipped: '待收货', done: '已完成', refunding: '退款中', canceled: '已取消', refunded: '已退款' };
+const orderTag = (s) => (s
+  ? '<span class="tag t-' + esc(s) + '">' + esc(ORDER_TXT[s] || s) + '</span>'
+  : '<span class="muted">—</span>');
 
 function pager(p, onGo) {
   const total = p.total || 0, size = p.pageSize || 12, cur = p.page || 1;
@@ -509,7 +514,10 @@ const App = {
     const t = d.totals || {};
     const cards = [
       ['用户数', num(t.users), '👥'], ['商品总数', num(t.listings), '📦'],
-      ['在售商品', num(t.onSale), '🏷️'], ['已成交', num(t.sold), '✅'],
+      // 商品拆成四类，相加 = 商品总数。不再用一个模糊的「在售」：
+      // 被拍下/已售出/已下架都买不到，混在一起会让运营误判库存。
+      ['在售商品', num(t.onSale), '🏷️'], ['已被拍下', num(t.locked), '🔒'],
+      ['已售出', num(t.sold), '✅'], ['已下架', num(t.off), '📤'],
       ['订单总数', num(t.orders), '🧾'], ['完成订单', num(t.doneOrders), '🎉'],
       ['成交额', yuan(t.gmv), '💰'], ['圈子帖子', num(t.posts), '💬'],
       // 内容侧：首页那几个入口（校园墙 / 学习资源 / 拼团）与评论量 ——
@@ -592,7 +600,7 @@ const App = {
         '<button class="btn" id="fGo">筛选</button>' +
       '</div>' +
       '<div class="card">' + (d.list && d.list.length
-        ? '<table><thead><tr><th>商品</th><th>分区</th><th>价格</th><th>卖家</th><th>状态</th><th style="text-align:right">操作</th></tr></thead><tbody>' +
+        ? '<table><thead><tr><th>商品</th><th>分区</th><th>价格</th><th>卖家</th><th>状态</th><th>订单</th><th style="text-align:right">操作</th></tr></thead><tbody>' +
           d.list.map((l) =>
             '<tr><td><div class="row">' +
               thumbRow(l.images, l.id) +
@@ -603,6 +611,7 @@ const App = {
             '<td class="mono" style="white-space:nowrap">' + yuan(l.price) + '</td>' +
             '<td>' + esc((l.seller && l.seller.nickname) || '—') + '</td>' +
             '<td>' + statusTag(l.status) + '</td>' +
+            '<td>' + orderTag(l.orderStatus) + '</td>' +
             '<td style="text-align:right;white-space:nowrap">' +
               (l.status === 'on'
                 ? '<button class="btn ghost sm" data-op="off" data-id="' + l.id + '">下架</button> '
@@ -697,7 +706,7 @@ const App = {
           '<input class="inp" id="fKw" placeholder="订单号或商品名" value="' + esc(q.keyword) + '"></div>' +
         '<button class="btn" id="fGo">筛选</button></div>' +
       '<div class="card">' + (d.list && d.list.length
-        ? '<table><thead><tr><th>订单</th><th>买家</th><th>卖家</th><th>金额</th><th>状态</th><th>时间</th></tr></thead><tbody>' +
+        ? '<table><thead><tr><th>订单</th><th>买家</th><th>卖家</th><th>金额</th><th>状态</th><th>时间</th><th style="text-align:right">操作</th></tr></thead><tbody>' +
           d.list.map((o) =>
             '<tr><td><div style="font-weight:500">' + esc((o.snapshot && o.snapshot.title) || '—') + '</div>' +
             '<div class="muted mono" style="font-size:12px">' + esc(o.orderNo || '') + '</div></td>' +
@@ -705,7 +714,12 @@ const App = {
             '<td>' + esc((o.seller && o.seller.nickname) || '—') + '</td>' +
             '<td class="mono" style="white-space:nowrap">' + yuan(o.payAmount) + '</td>' +
             '<td><span class="tag t-' + esc(o.status) + '">' + esc(o.statusText || o.status) + '</span></td>' +
-            '<td class="muted" style="white-space:nowrap">' + esc(o.timeText || '') + '</td></tr>'
+            '<td class="muted" style="white-space:nowrap">' + esc(o.timeText || '') + '</td>' +
+            '<td style="text-align:right;white-space:nowrap">' +
+              (['pending', 'paid', 'shipped', 'refunding'].indexOf(o.status) > -1
+                ? '<button class="btn danger sm" data-cancel="' + o.id + '">取消订单</button>'
+                : '') +
+            '</td></tr>'
           ).join('') + '</tbody></table>' + pager(d, null)
         : '<div class="empty">没有符合条件的订单</div>') + '</div>';
 
@@ -713,6 +727,18 @@ const App = {
       q.status = $('#fStatus').value; q.keyword = $('#fKw').value.trim(); q.page = 1; this.render_orders();
     };
     $('#fKw').onkeydown = (e) => { if (e.key === 'Enter') $('#fGo').click(); };
+    // 后台取消订单：处理买家一直不付款的孤儿单，取消后商品自动回到在售
+    $('#view').querySelectorAll('[data-cancel]').forEach((b) => {
+      b.onclick = async () => {
+        if (!confirm('确认取消该订单？取消后这件商品会重新回到在售。')) return;
+        b.disabled = true;
+        try {
+          await API.post('/admin-api/orders/' + b.getAttribute('data-cancel') + '/cancel', { reason: '后台取消' });
+          toast('订单已取消，商品已释放', 'ok');
+          this.render_orders();
+        } catch (e) { toast(e.message, 'err'); b.disabled = false; }
+      };
+    });
     bindPager((p) => { q.page = p; this.render_orders(); });
   },
 

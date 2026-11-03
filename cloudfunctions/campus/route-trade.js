@@ -29,7 +29,27 @@ module.exports = function register(route) {
     // 作者/卖家资料都要以库为准刷一遍：他们可能刚改过头像昵称，
     // 也可能根本不在本实例的内存快照里 —— 不刷的话首页/卡片上就是空白或旧头像。
     await db.warmUsers(allListings.map((l) => l.sellerId).concat(allPosts.map((p) => p.authorId)));
-    const on = allListings.filter((l) => l.status === 'on');
+    /**
+     * 首页只推「真在售」：除了 status=on，还要排除已有订单占用的商品。
+     *
+     * 为什么不能只信 status：历史脏数据里有「订单已完成、status 却被详情页的
+     * 展示层自愈改回 on」的商品 —— 只按 status 过滤会让已卖掉的东西继续挂在首页，
+     * 点进去还能下单。拼团/服务是「一件多人」，被占用仍应展示（与 /api/listings 同口径）。
+     */
+    let takenIds = new Set();
+    try {
+      const os = await db.readAllFromDb('orders');
+      for (const o of (os || [])) {
+        if (['pending', 'paid', 'shipped', 'refunding', 'done'].indexOf(o.status) > -1) {
+          takenIds.add(Number(o.listingId));
+        }
+      }
+    } catch (e) { /* 读订单失败就只按 status 过滤，不影响首页可用性 */ }
+    const on = allListings.filter((l) => {
+      if (l.status !== 'on') return false;
+      if (!takenIds.has(Number(l.id))) return true;
+      return l.tradeMode === 'group' || l.tradeMode === 'service';
+    });
     const score = (l) => (l.views || 0) + (l.favoriteCount || 0) * 20 + (l.wantCount || 0) * 10 +
       (Date.now() - l.createdAt < 86400e3 ? 500 : 0);
     const feed = on.slice().sort((a, b) => score(b) - score(a)).slice(0, 14).map((l) => deco.decorateListing(l, me));
@@ -91,22 +111,30 @@ module.exports = function register(route) {
      * 自己拍下的那件保留（否则付不了款）。
      */
     const ACTIVE_ORDER_STATES = ['pending', 'paid', 'shipped', 'refunding'];
+    /**
+     * 列表/搜索的屏蔽口径 = 进行中 + **已完成**。
+     *
+     * 只屏蔽进行中会漏掉一种脏数据：订单已完成、商品 status 却被详情页的
+     * 「展示层自愈」改回 on —— 结果卖掉的商品仍在列表里、还能下单。
+     * id 统一 Number 化：库里 listingId 可能是字符串，用原始值比较会静默失配。
+     */
+    const BLOCKING_STATES = ACTIVE_ORDER_STATES.concat(['done']);
     let lockedAllIds = new Set();
     if (!sellerId) {                     // 卖家看「我的发布」时不隐藏，否则自己的商品凭空消失
       try {
         const allOrders = await db.readAllFromDb('orders');
         const lockedByOthers = new Set();
         for (const o of allOrders) {
-          if (ACTIVE_ORDER_STATES.indexOf(o.status) === -1) continue;
+          if (BLOCKING_STATES.indexOf(o.status) === -1) continue;
           // 拍下即下架：谁拍的都隐藏（买家从「我的订单 · 待付款」里付款，不需要再从首页找到商品）
-          lockedByOthers.add(o.listingId);
+          lockedByOthers.add(Number(o.listingId));
         }
         lockedAllIds = lockedByOthers;
         if (lockedByOthers.size) {
           list = list.filter((l) => {
             // 拼团 / 服务是「一件多人各付各的」，被拍下仍应可下单
             if (l.tradeMode === 'group' || l.tradeMode === 'service') return true;
-            return !lockedByOthers.has(l.id);
+            return !lockedByOthers.has(Number(l.id));
           });
         }
       } catch (e) { /* 读订单失败就不隐藏，不影响主流程 */ }
@@ -115,7 +143,7 @@ module.exports = function register(route) {
       try {
         const allOrders = await db.readAllFromDb('orders');
         for (const o of allOrders) {
-          if (ACTIVE_ORDER_STATES.indexOf(o.status) > -1) lockedAllIds.add(o.listingId);
+          if (BLOCKING_STATES.indexOf(o.status) > -1) lockedAllIds.add(Number(o.listingId));
         }
       } catch (e) { /* 忽略 */ }
     }
@@ -131,7 +159,7 @@ module.exports = function register(route) {
     const page = util.paginate(list, q.get('page'), q.get('pageSize'));
     return Object.assign({}, page, {
       list: page.list.map((l) => Object.assign(deco.decorateListing(l, me), {
-        picked: lockedAllIds.has(l.id) && l.status !== 'sold'
+        picked: lockedAllIds.has(Number(l.id)) && l.status !== 'sold'
       }))
     });
   });
@@ -160,7 +188,13 @@ module.exports = function register(route) {
     }
     // 相关推荐：先取出原始文档、把卖家补进内存，**再** deco
     // （顺序不能反：deco 里的 sellerBrief 是同步读内存的，补晚了就是 null）
-    let relatedRaw = db.find('listings', (x) => x.status === 'on' && x.zone === l.zone && x.id !== l.id)
+    // ⚠️ 候选池同样直查数据库：内存镜像会把别处已下架的商品继续推出来，
+    // 用户点进去又提示「商品不存在」—— 与「下架了还挂在页面上」同一根因。
+    let relAll = null;
+    try { relAll = await db.readAllFromDb('listings'); } catch (e) { /* 读库失败退回内存 */ }
+    if (!relAll || !relAll.length) relAll = db.find('listings', () => true);
+    let relatedRaw = relAll
+      .filter((x) => x.status === 'on' && x.zone === l.zone && x.id !== l.id)
       .sort((a, b) => b.createdAt - a.createdAt);
     // 相关推荐同样排除「已被拍下」的，避免点进去全是买不到的东西
     try {
@@ -178,7 +212,13 @@ module.exports = function register(route) {
     // 不能等用户点了才报错（否则体验像"按钮坏了"）。
     let lock = null;
     if (UNIQUE_TRADE_MODES.indexOf(l.tradeMode) > -1) {
-      const occupied = await findActiveOrder(l.id);
+      /**
+       * 一次性交易（sell/free/barter）把「已完成」也算占用：
+       * 已经卖掉的东西，详情页不该再显示「立即购买」。
+       * 这也顺带堵住了下面那段「展示层自愈」把 sold 改回 on 的错误回滚。
+       */
+      const includeDone = ONE_SHOT_MODES.indexOf(l.tradeMode) > -1;
+      const occupied = await findActiveOrder(l.id, 0, { includeDone });
       if (occupied) {
         lock = {
           orderId: occupied.id,
@@ -188,8 +228,12 @@ module.exports = function register(route) {
         };
       }
     }
-    // 展示层自愈：标了 sold 却没有任何进行中订单 —— 多半是退款/取消后没回滚的脏数据。
+    // 展示层自愈：标了 sold 却没有任何订单 —— 多半是退款/取消后没回滚的脏数据。
     // 不回滚的话，商品永远显示「已卖出」、也永远搜不到，等于白丢一件货。
+    //
+    // ⚠️ 有「已完成」订单时绝不能走到这里（上面的 lock 已经包含 done）。
+    //    历史事故：done 不在 findActiveOrder 里 → lock 为空 → 每次打开详情页
+    //    都把 sold 改回 on，已售出的商品自己复活，还能被无限次重复下单。
     if (l.status === 'sold' && !lock) {
       try {
         await db.updateFresh('listings', l.id, { status: 'on' });
@@ -328,6 +372,14 @@ module.exports = function register(route) {
    * 这也与「支付后标记 sold」的既有语义保持一致（那里同样只处理 sell/rent）。
    */
   const UNIQUE_TRADE_MODES = ['sell', 'rent', 'free', 'barter'];
+  /**
+   * 一次性交易：卖掉就是卖掉了，有了「已完成」订单后**不能再买、也不能再上架售卖**。
+   *
+   * `rent`（租借）刻意排除：租期结束归还后，同一件东西还能再租给下一个人。
+   * 之前的坑：`findActiveOrder` 不认 done，于是订单完成后商品被当成「无人占用」，
+   * 详情页的「展示层自愈」还会把 sold 改回 on —— 卖了的东西自己复活、能无限次下单。
+   */
+  const ONE_SHOT_MODES = ['sell', 'free', 'barter'];
 
   /**
    * 查某件商品是否已被「未完成订单」占用。
@@ -339,8 +391,13 @@ module.exports = function register(route) {
    * @param {number} [exceptOrderId] 排除这笔订单（查「除它之外」是否还占用）
    * @returns {Promise<object|null>} 占用中的订单，没有则 null
    */
-  async function findActiveOrder(listingId, exceptOrderId) {
-    const hit = (o) => ACTIVE_ORDER_STATES.indexOf(o.status) > -1;
+  async function findActiveOrder(listingId, exceptOrderId, opts) {
+    // includeDone：一次性交易（sell/free/barter）把「已完成」也算占用 ——
+    // 卖掉的东西不能再卖第二次。不传则保持原语义（只看进行中的订单）。
+    const states = (opts && opts.includeDone)
+      ? ACTIVE_ORDER_STATES.concat(['done'])
+      : ACTIVE_ORDER_STATES;
+    const hit = (o) => states.indexOf(o.status) > -1;
     let list = db.find('orders', (o) => o.listingId === listingId && hit(o));
     try {
       const fresh = await db.fetchByField('orders', 'listingId', listingId);
@@ -405,8 +462,14 @@ module.exports = function register(route) {
     //    「该宝贝已被你拍下，暂时无法购买」—— 自己拍下的却被告知"无法购买"，
     //    语义自相矛盾，用户看不懂自己到底买没买（前端据此改成了「已购买」并禁用按钮）。
     if (UNIQUE_TRADE_MODES.indexOf(l.tradeMode) > -1) {
-      const occupied = await findActiveOrder(l.id);
+      // 一次性交易把「已完成」也算占用：卖掉的东西不能再下单（否则会出现
+      // 「拍下 → 支付时才被告知已付过款」这种先让用户白填一遍的体验）。
+      const includeDone = ONE_SHOT_MODES.indexOf(l.tradeMode) > -1;
+      const occupied = await findActiveOrder(l.id, 0, { includeDone });
       if (occupied) {
+        if (occupied.status === 'done') {
+          fail('这件商品已经卖出去了，不能重复下单');
+        }
         if (occupied.buyerId === me.id) {
           // 走到这里不可能是 pending —— pending 已在上面被幂等复用返回
           fail('你已经拍下过这件商品了，请到「我的订单」里继续付款或查看进度', 409);

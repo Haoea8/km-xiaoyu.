@@ -57,10 +57,27 @@ function listingCard(l) {
   return { listingId: l.id, title: l.title, image: l.images[0], price: l.price, priceUnit: l.priceUnit };
 }
 
-function searchListings(kw) {
+/**
+ * 商品关键词检索。
+ *
+ * ⚠️ 直查数据库，不用 db.find 的内存镜像：云函数是多实例的，内存镜像是冷启动
+ * 快照、永不刷新 → 在别的实例下架/删除的商品，本实例仍会当成在售推荐给用户
+ * （「AI 客服推荐了一个已经不存在的东西，点进去提示商品不存在」）。
+ */
+async function searchListings(kw) {
   const k = String(kw || '').toLowerCase();
   if (!k) return [];
-  const hits = db.find('listings', (l) => l.status === 'on' && (
+  let all = null;
+  try { all = await db.readAllFromDb('listings'); } catch (e) { /* 读库失败退回内存 */ }
+  if (!all || !all.length) all = db.find('listings', () => true);
+  /**
+   * 排除「已被拍下 / 已售出」的商品：有人下过单（pending 起）就不该再被别人
+   * 检索到，直到订单取消 / 退款成功释放。口径与 /api/listings 一致，拼团/服务豁免。
+   * 不定这几行的话，AI 客服会把别人刚拍下的东西继续推给下一个人。
+   */
+  const taken = await require('./ai-assist').takenListingIds();
+  const hits = all.filter((l) => l.status === 'on' &&
+    ((taken.size === 0) || l.tradeMode === 'group' || l.tradeMode === 'service' || !taken.has(Number(l.id))) && (
     String(l.title).toLowerCase().includes(k) ||
     String(l.desc || '').toLowerCase().includes(k) ||
     (l.tags || []).some((t) => String(t).toLowerCase().includes(k))
@@ -88,7 +105,7 @@ function orderAnswer(user) {
   };
 }
 
-function rulesReply(user, text) {
+async function rulesReply(user, text) {
   const t = String(text || '').trim();
   const lc = t.toLowerCase();
 
@@ -102,7 +119,7 @@ function rulesReply(user, text) {
   if (m) {
     const kw = m[1].replace(/(的|吗|呢|啊|吧|了)$/g, '');
     if (kw && !/^(东西|闲置|商品)$/.test(kw)) {
-      const hits = searchListings(kw);
+      const hits = await searchListings(kw);
       if (hits.length) {
         return {
           text: '帮你找到 ' + hits.length + ' 件和「' + kw + '」相关的在售商品，按价格从低到高排好了，点卡片可以直接看详情：',
@@ -276,7 +293,7 @@ function extractKeywords(text) {
  * 构造 system prompt：注入平台规则 + 用户实时数据 + 商品命中结果。
  * 这是「AI 以本系统身份回答」的核心 —— 它拿到的是真实业务数据，不是泛泛闲聊。
  */
-function buildSystemPrompt(user, text) {
+async function buildSystemPrompt(user, text) {
   const lines = [];
 
   lines.push('你是大学生校园生活服务平台「科贸小鱼」的官方 AI 客服，名字叫「小校助手」。');
@@ -310,9 +327,12 @@ function buildSystemPrompt(user, text) {
     lines.push('【当前用户】未登录。涉及订单/发布等问题时，先引导其登录。');
   }
 
-  // 平台实时概况
+  // 平台实时概况（在售数同样以库为准，避免给出过期数字）
   try {
-    const onSale = db.find('listings', (l) => l.status === 'on');
+    let allOn = null;
+    try { allOn = await db.readAllFromDb('listings'); } catch (e2) { /* 退回内存 */ }
+    if (!allOn || !allOn.length) allOn = db.find('listings', () => true);
+    const onSale = allOn.filter((l) => l.status === 'on');
     lines.push('平台当前在售商品 ' + onSale.length + ' 件。');
   } catch (e) { /* 忽略 */ }
 
@@ -322,7 +342,7 @@ function buildSystemPrompt(user, text) {
     let hits = [];
     let usedKw = '';
     for (const kw of kws) {
-      hits = searchListings(kw).slice(0, 5);
+      hits = (await searchListings(kw)).slice(0, 5);
       if (hits.length) { usedKw = kw; break; }
     }
     if (hits.length) {
@@ -355,7 +375,7 @@ async function llmReply(user, text) {
   if (!cfg.enabled) return null;
 
   const messages = [
-    { role: 'system', content: buildSystemPrompt(user, text) },
+    { role: 'system', content: await buildSystemPrompt(user, text) },
     { role: 'user', content: String(text || '') }
   ];
 
@@ -391,21 +411,21 @@ async function llmReply(user, text) {
  * 而「找东西」本该给出可点击的商品卡片。
  * 因此这里在文字之外补一次商品检索，把 cards 挂上去，与规则引擎行为一致。
  */
-function findListingsByText(text) {
+async function findListingsByText(text) {
   const t = String(text || '').trim();
   const m = t.match(/(?:找|收|想要|有没有|求购|蹲|买)[一个一件个把套本台辆]?\s*([^\s，。！？!?、]{1,12})/) ||
     t.match(/([^\s，。！？!?、]{2,10})(?:还有吗|有人出吗|在哪买)/);
   if (m) {
     const kw = m[1].replace(/(的|吗|呢|啊|吧|了)$/g, '');
     if (kw && !/^(东西|闲置|商品)$/.test(kw)) {
-      const hits = searchListings(kw);
+      const hits = await searchListings(kw);
       if (hits.length) return { kw, hits };
     }
   }
   // 退化：直接按关键词提取再试一轮（例如「英语的」这种没带动词的说法）
   try {
     for (const kw of extractKeywords(t)) {
-      const hits = searchListings(kw);
+      const hits = await searchListings(kw);
       if (hits.length) return { kw, hits };
     }
   } catch (e) { /* 忽略 */ }
@@ -420,7 +440,7 @@ async function generateReply(user, text) {
   if (llm && llm.text) {
     if (!llm.cards || !llm.cards.length) {
       try {
-        const { hits } = findListingsByText(text);
+        const { hits } = await findListingsByText(text);
         if (hits.length) llm.cards = hits.slice(0, 4).map(listingCard);
       } catch (e) { /* 卡片失败不影响文字回复 */ }
     }

@@ -119,8 +119,21 @@ module.exports = function register(route) {
       totals: {
         users: users.length,
         listings: listings.length,
-        onSale: listings.filter((l) => l.status === 'on').length,
+        /**
+         * 商品拆四类（相加 = 总数），不要用模糊的「在售」：
+         * 被拍下 / 已售出 / 已下架都买不到，混一起会让运营误判库存。
+         * 拼团/服务是一件多人，被拍下仍算在售（与云函数、小程序端同口径）。
+         */
+        onSale: listings.filter((l) => l.status === 'on' &&
+          (l.tradeMode === 'group' || l.tradeMode === 'service' ||
+            !orders.some((o) => Number(o.listingId) === Number(l.id) &&
+              ['pending', 'paid', 'shipped', 'refunding', 'done'].indexOf(o.status) > -1))).length,
+        locked: listings.filter((l) => l.status === 'on' &&
+          l.tradeMode !== 'group' && l.tradeMode !== 'service' &&
+          orders.some((o) => Number(o.listingId) === Number(l.id) &&
+            ['pending', 'paid', 'shipped', 'refunding', 'done'].indexOf(o.status) > -1)).length,
         sold: listings.filter((l) => l.status === 'sold').length,
+        off: listings.filter((l) => l.status === 'off').length,
         orders: orders.length,
         doneOrders: orders.filter((o) => o.status === 'done').length,
         posts: posts.length,
@@ -155,10 +168,23 @@ module.exports = function register(route) {
     if (kw) list = list.filter((l) => util.match(l.title, kw) || util.match(String(l.desc), kw));
     list.sort((a, b) => b.createdAt - a.createdAt);
     const page = util.paginate(list, q.get('page'), 12);
+    // 带上订单状态：运营看到的「在售」可能已经被某人拍下（买不到），
+    // 不标出来会误判库存、也会对着已成交的商品点「标记售出」。
+    const RANK = { pending: 2, refunding: 3, paid: 4, shipped: 4, done: 5 };
+    const orderState = {};
+    try {
+      const os = await db.readAllFromDb('orders');
+      for (const o of (os || [])) {
+        const k = Number(o.listingId);
+        const r = RANK[o.status] || 0;
+        if (r && (!orderState[k] || r > (RANK[orderState[k]] || 0))) orderState[k] = o.status;
+      }
+    } catch (e) { /* 读订单失败就只显示商品状态 */ }
     return Object.assign({}, page, {
       list: page.list.map((l) => {
         const out = deco.decorateListing(l, null);
         out.zoneName = (ZONES.find((z) => z.code === l.zone) || {}).name || l.zone;
+        out.orderStatus = orderState[Number(l.id)] || '';
         return out;
       })
     });
@@ -220,6 +246,38 @@ module.exports = function register(route) {
     list.sort((a, b) => b.createdAt - a.createdAt);
     const page = util.paginate(list, q.get('page'), 12);
     return Object.assign({}, page, { list: page.list.map((o) => deco.decorateOrder(o, null)) });
+  }, 'admin');
+
+  /**
+   * 后台取消订单（处理孤儿单 / 异常单）。
+   *
+   * 买家下单后商品被判「已占用」，若他一直不付款也不再进小程序，
+   * 这件商品在公开列表里就永远消失（卖家也没法自己处理）。后台必须能兜底。
+   * 取消后释放商品：单件类商品在没有其它有效订单时回到在售。
+   */
+  route('POST', '/admin-api/orders/:id/cancel', async (ctx) => {
+    const o = await db.findByIdFresh('orders', ctx.params.id);
+    if (!o) fail('订单不存在', 404);
+    const CANCELABLE = ['pending', 'paid', 'shipped', 'refunding'];
+    if (CANCELABLE.indexOf(o.status) === -1) fail('该订单当前状态不可取消（' + o.status + '）');
+    const reason = util.clampText((ctx.body || {}).reason, 60) || '管理员取消';
+    const timeline = (o.timeline || []).concat([{
+      status: 'canceled', time: Date.now(), note: '管理员取消：' + reason
+    }]);
+    const saved = await db.updateFresh('orders', o.id, { status: 'canceled', timeline });
+    if (!saved) fail('取消失败，请重试');
+
+    const l = await db.findByIdFresh('listings', o.listingId);
+    if (l && l.status === 'sold') {
+      const others = (await db.readAllFromDb('orders')).filter(
+        (x) => Number(x.listingId) === Number(o.listingId) && x.id !== o.id &&
+          ['pending', 'paid', 'shipped', 'refunding', 'done'].indexOf(x.status) > -1
+      );
+      if (!others.length) await db.updateFresh('listings', l.id, { status: 'on' });
+    }
+    if (o.buyerId) ws.notifyUser(o.buyerId, '管理员已取消你的订单：「' + o.snapshot.title + '」', { orderId: o.id });
+    if (o.sellerId) ws.notifyUser(o.sellerId, '订单已取消：「' + o.snapshot.title + '」商品已重新上架', { orderId: o.id });
+    return { order: deco.decorateOrder(saved, null) };
   }, 'admin');
 
   /* ---------- 举报处理 ---------- */
