@@ -10,7 +10,9 @@ Page({
     loading: false,
     accounts: [],
     // 合规要求：协议必须由用户主动勾选，不得默认同意
-    agree: false
+    agree: false,
+    // 协议弹窗显隐（内容较长，用自定义弹窗 + scroll-view，避免 showModal 截断）
+    agreeShow: false
   },
 
   onLoad() {
@@ -80,25 +82,12 @@ Page({
 
   toggleAgree() { this.setData({ agree: !this.data.agree }); },
 
-  showAgree() {
-    /**
-     * 协议摘要：分条写，便于阅读。
-     * 说明：本小程序未接入在线支付，交易在线下当面完成，故第 ④ 条明确平台边界与免责。
-     */
-    const content = [
-      '本小程序为第九届传智杯参赛作品，仅供学习交流与校内小范围体验，非商业运营。',
-      '① 收集：微信昵称、头像、你主动发布的内容',
-      '② 用途：账号识别与内容展示，数据存于微信云开发',
-      '③ 权利：可随时删除自己发布的内容',
-      '④ 边界：本平台现阶段仅提供信息展示与沟通工具，不参与交易、不经手资金、不对物品质量与真伪作担保；在线交易等功能待完善后另行开放。现阶段交易须线下当面完成，请自行核实对方身份与物品状况，风险与纠纷由双方自行承担。'
-    ].join('\n');
-    wx.showModal({
-      title: '用户协议与隐私政策',
-      content,
-      showCancel: false,
-      confirmText: '我知道了'
-    });
-  },
+  showAgree() { this.setData({ agreeShow: true }); },
+
+  hideAgree() { this.setData({ agreeShow: false }); },
+
+  /** 阻止点击卡片时冒泡关闭弹窗 */
+  noop() {},
 
   onSkip() {
     const pages = getCurrentPages();
