@@ -54,19 +54,19 @@
       <scroll-view class="policy-body" scroll-y>
         <view class="policy-lead">本小程序为第九届传智杯参赛作品，仅供学习交流与校内小范围体验，非商业运营。</view>
         <view class="policy-item">
-          <text class="policy-k">① 收集</text>
+          <text class="policy-k">① 收集：</text>
           <text class="policy-v">微信昵称、头像、你主动发布的内容。</text>
         </view>
         <view class="policy-item">
-          <text class="policy-k">② 用途</text>
+          <text class="policy-k">② 用途：</text>
           <text class="policy-v">账号识别与内容展示，数据存于微信云开发。</text>
         </view>
         <view class="policy-item">
-          <text class="policy-k">③ 权利</text>
+          <text class="policy-k">③ 权利：</text>
           <text class="policy-v">可随时删除自己发布的内容。</text>
         </view>
         <view class="policy-item">
-          <text class="policy-k">④ 边界</text>
+          <text class="policy-k">④ 边界：</text>
           <text class="policy-v">本平台现阶段仅提供信息展示与沟通工具，不参与交易、不经手资金、不对物品质量与真伪作担保；在线交易等功能待完善后另行开放。现阶段交易须线下当面完成，请自行核实对方身份与物品状况，风险与纠纷由双方自行承担。</text>
         </view>
       </scroll-view>
