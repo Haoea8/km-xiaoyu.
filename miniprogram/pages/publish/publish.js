@@ -117,7 +117,8 @@ Page({
     groupDeadline: '',
 
     submitting: false,
-    agree: true,
+    // 合规要求：承诺项必须由用户主动勾选，不得默认同意
+    agree: false,
 
     /* ---- AI 帮我写 ---- */
     aiBusy: false,

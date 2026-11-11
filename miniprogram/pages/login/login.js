@@ -9,7 +9,8 @@ Page({
     statusBar: 20,
     loading: false,
     accounts: [],
-    agree: true
+    // 合规要求：协议必须由用户主动勾选，不得默认同意
+    agree: false
   },
 
   onLoad() {
@@ -54,6 +55,7 @@ Page({
 
   /** 演示账号一键登录 */
   async onAccount(e) {
+    if (!this.data.agree) return wx.showToast({ title: '请先同意用户协议', icon: 'none' });
     if (this.data.loading) return;
     this.setData({ loading: true });
     try {
