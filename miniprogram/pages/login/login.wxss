@@ -5,7 +5,7 @@
 }
 
 /* ---------- Logo ---------- */
-.logo-wrap { padding: 60rpx 0 0; text-align: center; }
+.logo-wrap { padding: 0; text-align: center; }
 .logo {
   width: 160rpx; height: 160rpx; border-radius: 48rpx; margin: 0 auto;
   background: var(--brand-grad); color: #fff;

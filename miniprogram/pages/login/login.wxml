@@ -1,7 +1,8 @@
 <view class="page">
   <navbar title="" transparent="{{true}}" back="{{true}}"></navbar>
 
-  <view class="logo-wrap">
+  <!-- navbar 为透明模式，不输出占位块，这里手动补状态栏 + 导航栏高度 -->
+  <view class="logo-wrap" style="padding-top: {{statusBar + 52}}px;">
     <view class="logo">集</view>
     <view class="app-name">科贸小鱼</view>
     <view class="app-slogan">校园生活服务与二手交易综合平台</view>
