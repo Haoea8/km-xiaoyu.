@@ -100,12 +100,12 @@
 }
 .policy-body { max-height: 54vh; padding: 0 36rpx; box-sizing: border-box; }
 .policy-lead {
-  font-size: 26rpx; line-height: 1.75; color: var(--ink-2);
+  font-size: 28rpx; line-height: 1.75; color: var(--ink-2);
   padding-bottom: 20rpx; border-bottom: 1rpx solid #F0F2F5; margin-bottom: 22rpx;
 }
 .policy-item { margin-bottom: 20rpx; }
-.policy-k { font-size: 26rpx; font-weight: 700; color: #1A1D22; }
-.policy-v { font-size: 26rpx; line-height: 1.75; color: var(--ink-2); }
+.policy-k { font-size: 28rpx; font-weight: 700; color: #1A1D22; }
+.policy-v { font-size: 28rpx; line-height: 1.75; color: var(--ink-2); }
 .policy-foot {
   border-top: 1rpx solid #EFF1F4;
   text-align: center; font-size: 30rpx; font-weight: 600; color: var(--brand);
