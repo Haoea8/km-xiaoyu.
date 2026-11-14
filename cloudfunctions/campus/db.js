@@ -150,7 +150,12 @@ function resetAndSeed() {
   clearDirty();
   loaded = true;
   withPlainIds(() => {
-    require('./seed').build();
+    // 优先使用真实运营数据（seed-real-data.json）；缺失时回退到程序化种子
+    try {
+      require('./seed-real').build();
+    } catch (e) {
+      require('./seed').build();
+    }
     require('./seed2').build();
   });
   snapshotBaseline();
@@ -1066,7 +1071,12 @@ async function initialize(deadline) {
   // 5) 生成种子数据（纯内存）
   try {
     withPlainIds(() => {
-      require('./seed').build();
+      // 优先使用真实运营数据（seed-real-data.json）；缺失时回退到程序化种子
+      try {
+        require('./seed-real').build();
+      } catch (e) {
+        require('./seed').build();
+      }
       require('./seed2').build();
     });
   } catch (e) {
