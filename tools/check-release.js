@@ -109,7 +109,8 @@ else {
   for (const f of js) {
     const s = fs.readFileSync(path.join(FN_DIR, f), 'utf8');
     for (const m of s.matchAll(/require\('\.\/([^']+)'\)/g)) {
-      const target = m[1].endsWith('.js') ? m[1] : m[1] + '.js';
+      // 允许 require('./x.json')：种子数据以 JSON 形式与代码同目录（如 seed-real-data.json）
+      const target = /\.(js|json)$/.test(m[1]) ? m[1] : m[1] + '.js';
       if (!fs.existsSync(path.join(FN_DIR, target))) { console.log('      ❌ ' + f + ' 引用了不存在的 ./' + m[1]); missMod++; }
     }
   }

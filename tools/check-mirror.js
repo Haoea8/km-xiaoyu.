@@ -73,6 +73,10 @@ const SKIP_PAIR = new Set([
   'cloud.js',     // 只有本地有：调线上云函数的 HTTP 网关
   'sign.js',      // 只有云端有：给私有存储桶的图片签发临时链接。本地 REST 直接由
                   // server/static/ 出图（http 可访问），既不需要、也不该改写成云端链接
+  'seed-real.js', // 只有云端有：把 seed-real-data.json 灌进云数据库。本地后台读的是
+                  // server/data/db.demo.json 快照，没有「初始化种子」这一步
+  'demo-files.js',// 只有云端有：学习资源演示文件以 base64 内置，首次下载时上传到云存储。
+                  // 本地后台直接由 server/static/uploads/ 出文件，不需要上云
   'package.json',
 ]);
 
