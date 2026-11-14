@@ -42,6 +42,22 @@ const db = require('./db');
  * 而云函数环境变量只有函数自身与管理员可见，且不会随接口返回给前端。
  * 保留库配置是为了「没配环境变量时仍能用后台改」，否则会把现有部署一刀切断。
  */
+/**
+ * 内置兜底配置（第四层，最后才用）。
+ *
+ * 优先级：环境变量 > 数据库 meta.config.ai > 本常量。
+ * 目的：让克隆/解压本项目的人**不改任何配置**就能试出 AI 效果（发布助手、语义搜索、审核），
+ * 不必先去注册模型账号。用的是免费模型 glm-4-flash。
+ *
+ * 正式部署请换成自己的 key：去 open.bigmodel.cn 手机号注册即得（免费额度）。
+ * 作者可随时在模型平台吊销这个 key，届时本兜底自动失效，系统退回内置规则引擎，接口不会报错。
+ */
+const BUILTIN_FALLBACK = {
+  baseUrl: 'https://open.bigmodel.cn/api/paas/v4',
+  model: 'glm-4-flash',
+  apiKey: '6c576fe3789444239bac699b50a7fb08.EhPpFFozQybOXXyK'
+};
+
 function llmConfig() {
   let meta = {};
   try {
@@ -54,18 +70,24 @@ function llmConfig() {
   const envUrl = String(env.AI_BASE_URL || '').trim();
   const envModel = String(env.AI_MODEL || '').trim();
 
-  const baseUrl = envUrl || String(meta.baseUrl || '').trim();
-  const model = envModel || String(meta.model || '').trim();
-  const apiKey = envKey || String(meta.apiKey || '').trim();
+  const metaKey = String(meta.apiKey || '').trim();
+  const metaUrl = String(meta.baseUrl || '').trim();
+  const metaModel = String(meta.model || '').trim();
+
+  const baseUrl = envUrl || metaUrl || BUILTIN_FALLBACK.baseUrl;
+  const model = envModel || metaModel || BUILTIN_FALLBACK.model;
+  const apiKey = envKey || metaKey || BUILTIN_FALLBACK.apiKey;
 
   let source = 'none';
-  if (apiKey) source = envKey ? 'env' : 'db';
+  if (envKey) source = 'env';
+  else if (metaKey) source = 'db';
+  else if (apiKey) source = 'builtin';
 
   return {
     baseUrl,
     model,
     apiKey,
-    source,                       // env | db | none —— 只暴露来源，永不回显 key
+    source,                       // env | db | builtin | none —— 只暴露来源，永不回显 key
     enabled: !!(baseUrl && apiKey)
   };
 }
