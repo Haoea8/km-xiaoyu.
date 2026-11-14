@@ -678,33 +678,42 @@ module.exports = function register(route) {
   });
 
   /**
-   * 下载：计数 + 返回文件地址。
+   * 下载：计数 + 返回文件内容。
    *
-   * 返回的 url 优先是云存储 fileID（cloud://）：小程序端 wx.cloud.downloadFile
-   * 认这个，且不需要配置 downloadFile 合法域名。演示数据里的 /static/uploads/xxx
-   * 由 demo-files.js 在首次下载时上传到云存储再换回 fileID。
+   * 三种来源：
+   *   - 演示资料（/static/uploads/xxx）：文件以 base64 内置在 demo-files.js，
+   *     这里直接把内容塞进响应（`inline` 字段），**不往云存储写任何东西**，
+   *     小程序端写到本地临时目录再打开；
+   *   - 用户上传（cloud:// fileID）：原样返回，小程序端用 wx.cloud.downloadFile；
+   *   - 其它：返回原地址。
    *
-   * `?preview=1` 是「复制链接」用的：不计数、不通知，直接换成一个 https 临时地址，
-   * 这样粘贴到浏览器里能打开。
+   * `?preview=1` 是「复制链接」用的：不计数、不通知。用户上传的文件换 https 临时地址；
+   * 演示资料没有云存储实体，拿不到可分享的外链，返回 noLink 让前端给个提示。
    */
   route('POST', '/api/resources/:id/download', async (ctx) => {
     const me = needUser(ctx);
     const r = db.findById('resources', ctx.params.id);
     if (!r) fail('资料不存在', 404);
+    const fileName = r.fileName || r.title;
     const preview = ctx.query.get('preview') === '1';
-    if (!preview) {
-      r.downloads = (r.downloads || 0) + 1;
-      db.saveSoon();
-      if (r.uploaderId !== me.id) {
-        ws.notifyUser(r.uploaderId, '「' + me.nickname + '」下载了你分享的《' + r.title + '》');
-      }
+    const demo = demoFiles.inlineData(r.fileUrl);
+
+    if (preview) {
+      if (demo) return { url: '', fileName, downloads: r.downloads, noLink: true };
+      let url = r.fileUrl;
+      try { url = await demoFiles.toTempUrl(r.fileUrl); } catch (e) { /* 原样返回 */ }
+      return { url, fileName, downloads: r.downloads, noLink: false };
     }
-    let url = r.fileUrl;
-    try {
-      url = await demoFiles.resolveFileUrl(r.fileUrl);
-      if (preview) url = await demoFiles.toTempUrl(url);
-    } catch (e) { /* 换地址失败就返回原值，前端会提示下载失败 */ }
-    return { url, fileName: r.fileName || r.title, downloads: r.downloads };
+
+    r.downloads = (r.downloads || 0) + 1;
+    db.saveSoon();
+    if (r.uploaderId !== me.id) {
+      ws.notifyUser(r.uploaderId, '「' + me.nickname + '」下载了你分享的《' + r.title + '》');
+    }
+    if (demo) {
+      return { url: r.fileUrl, inline: demo.base64, fileName, downloads: r.downloads };
+    }
+    return { url: r.fileUrl, fileName, downloads: r.downloads };
   });
 
   route('POST', '/api/resources/:id/like', (ctx) => {

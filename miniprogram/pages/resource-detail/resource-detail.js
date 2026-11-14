@@ -53,9 +53,24 @@ Page({
     wx.showLoading({ title: '准备下载', mask: true });
     try {
       const res = await api.post('/api/resources/' + this.data.id + '/download', {}, { silent: true });
-      const url = api.abs(res.url);
       wx.hideLoading();
       wx.showLoading({ title: '下载中', mask: true });
+
+      /**
+       * 演示资料：服务端把文件内容（base64）直接放在 inline 里，不经过云存储，
+       * 这里写到本地临时目录再打开，避免在作者/使用者的存储桶里留文件。
+       */
+      if (res.inline) {
+        const ext = (String(res.fileName || '').match(/\.[A-Za-z0-9]+$/) || ['.bin'])[0];
+        const filePath = wx.env.USER_DATA_PATH + '/res_' + this.data.id + ext;
+        wx.getFileSystemManager().writeFileSync(filePath, res.inline, 'base64');
+        wx.hideLoading();
+        this.setData({ downloading: false, 'r.downloads': res.downloads });
+        this.openLocal(filePath);
+        return;
+      }
+
+      const url = api.abs(res.url);
       /**
        * 云存储文件走 wx.cloud.downloadFile：它认 cloud:// fileID，
        * 且不受「downloadFile 合法域名」限制。普通 http 地址才用 wx.downloadFile。
@@ -71,11 +86,7 @@ Page({
       task.then((r) => {
         wx.hideLoading();
         this.setData({ downloading: false, 'r.downloads': res.downloads });
-        wx.openDocument({
-          filePath: r.tempFilePath,
-          showMenu: true,
-          fail: () => wx.showToast({ title: '已下载，可在聊天中查看', icon: 'none' })
-        });
+        this.openLocal(r.tempFilePath);
       }).catch(() => {
         wx.hideLoading();
         this.setData({ downloading: false });
@@ -85,6 +96,15 @@ Page({
       wx.hideLoading();
       this.setData({ downloading: false });
     }
+  },
+
+  /** 打开本地文件；zip 这类 wx 不支持预览的格式给个明确提示 */
+  openLocal(filePath) {
+    wx.openDocument({
+      filePath,
+      showMenu: true,
+      fail: () => wx.showToast({ title: '该格式不支持预览，已保存到本地', icon: 'none' })
+    });
   },
 
   /**
@@ -101,6 +121,9 @@ Page({
     try {
       const res = await api.post('/api/resources/' + r.id + '/download?preview=1', {}, { silent: true });
       wx.hideLoading();
+      if (res.noLink || !res.url) {
+        return wx.showToast({ title: '演示资料不提供外链，请直接下载', icon: 'none' });
+      }
       wx.setClipboardData({
         data: res.url,
         success: () => wx.showToast({ title: '下载链接已复制', icon: 'none' })
