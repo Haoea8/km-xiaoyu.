@@ -115,7 +115,27 @@ function ensureInit() {
 function toFileId(v) {
   if (typeof v !== 'string' || !v) return null;
   if (v.indexOf('cloud://') === 0) return v;
-  if (v.indexOf('/static/') === 0) return 'cloud://' + CLOUD_ENV + '.' + CLOUD_BUCKET + v;
+  /**
+   * `/static/xxx` 原样透传，**不再拼成 cloud:// 去签名**。
+   *
+   * 背景（两次踩坑，改这里之前务必看完）：
+   *
+   * 1. 曾经把 `/static/img/p01.jpg` 拼成 `cloud://<env>.<bucket>/static/img/p01.jpg`
+   *    再由云存储换临时链接。这在**作者的**环境里能出图，因为图早就传进了他的桶；
+   *    但任何人用自己的 AppID + 自己的云环境跑起来时，他的桶里没有这些文件，
+   *    签名必然失败 → 真机表现为「98 件商品图全白」。种子图是随代码走的东西，
+   *    不该依赖某个特定环境的云存储。
+   *
+   * 2. 反过来只改这里、不改打包规则，会出更糟的结果：project.config.json 的
+   *    `ignoreUploadUnusedFiles` 若为 true，这批仅被数据库字段引用的图片会被判
+   *    「未被使用」而剔除出包，包内既没有文件、又不再走云存储 → 花屏。
+   *
+   * 因此本文件与 project.config.json 的那一项必须**成对修改**：
+   * 这里返回 null（走包内相对路径）+ 那边 `ignoreUploadUnusedFiles: false`（图进包）。
+   * 当前仓库两者已同时改好，总包体积约 1.88MB，仍在 2MB 主包上限内。
+   *
+   * 用户自己上传的图片是 `cloud://` 开头，走上一条分支照常签名，不受影响。
+   */
   return null;
 }
 
