@@ -13,6 +13,7 @@ const deco = require('./deco');
 const ws = require('./events');
 const group = require('./group');
 const it = require('./interactions');
+const demoFiles = require('./demo-files');
 
 function needUser(ctx) {
   if (!ctx.user) { const e = new Error('请先登录'); e.status = 401; throw e; }
@@ -676,17 +677,34 @@ module.exports = function register(route) {
     return { resource: decoResource(r, me), related };
   });
 
-  /** 下载：计数 + 返回文件地址 */
-  route('POST', '/api/resources/:id/download', (ctx) => {
+  /**
+   * 下载：计数 + 返回文件地址。
+   *
+   * 返回的 url 优先是云存储 fileID（cloud://）：小程序端 wx.cloud.downloadFile
+   * 认这个，且不需要配置 downloadFile 合法域名。演示数据里的 /static/uploads/xxx
+   * 由 demo-files.js 在首次下载时上传到云存储再换回 fileID。
+   *
+   * `?preview=1` 是「复制链接」用的：不计数、不通知，直接换成一个 https 临时地址，
+   * 这样粘贴到浏览器里能打开。
+   */
+  route('POST', '/api/resources/:id/download', async (ctx) => {
     const me = needUser(ctx);
     const r = db.findById('resources', ctx.params.id);
     if (!r) fail('资料不存在', 404);
-    r.downloads = (r.downloads || 0) + 1;
-    db.saveSoon();
-    if (r.uploaderId !== me.id) {
-      ws.notifyUser(r.uploaderId, '「' + me.nickname + '」下载了你分享的《' + r.title + '》');
+    const preview = ctx.query.get('preview') === '1';
+    if (!preview) {
+      r.downloads = (r.downloads || 0) + 1;
+      db.saveSoon();
+      if (r.uploaderId !== me.id) {
+        ws.notifyUser(r.uploaderId, '「' + me.nickname + '」下载了你分享的《' + r.title + '》');
+      }
     }
-    return { url: r.fileUrl, fileName: r.fileName || r.title, downloads: r.downloads };
+    let url = r.fileUrl;
+    try {
+      url = await demoFiles.resolveFileUrl(r.fileUrl);
+      if (preview) url = await demoFiles.toTempUrl(url);
+    } catch (e) { /* 换地址失败就返回原值，前端会提示下载失败 */ }
+    return { url, fileName: r.fileName || r.title, downloads: r.downloads };
   });
 
   route('POST', '/api/resources/:id/like', (ctx) => {

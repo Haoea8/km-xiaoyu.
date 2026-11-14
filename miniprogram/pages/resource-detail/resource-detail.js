@@ -56,23 +56,30 @@ Page({
       const url = api.abs(res.url);
       wx.hideLoading();
       wx.showLoading({ title: '下载中', mask: true });
-      wx.downloadFile({
-        url,
-        success: (r) => {
-          wx.hideLoading();
-          this.setData({ downloading: false, 'r.downloads': res.downloads });
-          if (r.statusCode !== 200) return wx.showToast({ title: '下载失败', icon: 'none' });
-          wx.openDocument({
-            filePath: r.tempFilePath,
-            showMenu: true,
-            fail: () => wx.showToast({ title: '已下载，可在聊天中查看', icon: 'none' })
-          });
-        },
-        fail: () => {
-          wx.hideLoading();
-          this.setData({ downloading: false });
-          wx.showToast({ title: '下载失败，请检查服务是否启动', icon: 'none' });
-        }
+      /**
+       * 云存储文件走 wx.cloud.downloadFile：它认 cloud:// fileID，
+       * 且不受「downloadFile 合法域名」限制。普通 http 地址才用 wx.downloadFile。
+       */
+      const isCloud = api.isCloudFile(url);
+      const task = isCloud
+        ? wx.cloud.downloadFile({ fileID: url })
+        : new Promise((resolve, reject) => wx.downloadFile({
+          url,
+          success: (r) => (r.statusCode === 200 ? resolve(r) : reject(new Error('HTTP ' + r.statusCode))),
+          fail: reject
+        }));
+      task.then((r) => {
+        wx.hideLoading();
+        this.setData({ downloading: false, 'r.downloads': res.downloads });
+        wx.openDocument({
+          filePath: r.tempFilePath,
+          showMenu: true,
+          fail: () => wx.showToast({ title: '已下载，可在聊天中查看', icon: 'none' })
+        });
+      }).catch(() => {
+        wx.hideLoading();
+        this.setData({ downloading: false });
+        wx.showToast({ title: '下载失败，请稍后重试', icon: 'none' });
       });
     } catch (e) {
       wx.hideLoading();
@@ -80,14 +87,27 @@ Page({
     }
   },
 
-  /** 预览（浏览器打开 / 复制链接） */
-  onPreview() {
+  /**
+   * 预览（复制链接）。
+   *
+   * 云存储文件没有永久地址，必须现换一个 https 临时链接，
+   * 复制 cloud:// 或包内路径粘到浏览器里都是打不开的。
+   * preview=1 不计数、不发通知。
+   */
+  async onPreview() {
     const r = this.data.r;
     if (!r) return;
-    wx.setClipboardData({
-      data: api.abs(r.fileUrl),
-      success: () => wx.showToast({ title: '下载链接已复制', icon: 'none' })
-    });
+    wx.showLoading({ title: '生成链接', mask: true });
+    try {
+      const res = await api.post('/api/resources/' + r.id + '/download?preview=1', {}, { silent: true });
+      wx.hideLoading();
+      wx.setClipboardData({
+        data: res.url,
+        success: () => wx.showToast({ title: '下载链接已复制', icon: 'none' })
+      });
+    } catch (e) {
+      wx.hideLoading();
+    }
   },
 
   async onLike() {

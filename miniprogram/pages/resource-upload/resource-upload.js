@@ -93,22 +93,13 @@ Page({
 
     wx.showLoading({ title: '上传中 0%', mask: true });
     try {
-      const fileUrl = await new Promise((resolve, reject) => {
-        wx.uploadFile({
-          url: api.base() + '/api/upload',
-          filePath: this.data.file.path,
-          name: 'file',
-          header: { Authorization: 'Bearer ' + api.token() },
-          success: (res) => {
-            try {
-              const body = JSON.parse(res.data);
-              if (body.code === 0 && body.data && body.data.url) resolve({ url: body.data.url, meta: body.data.file || {} });
-              else reject(new Error((body && body.message) || '上传失败'));
-            } catch (e) { reject(new Error('上传失败')); }
-          },
-          fail: () => reject(new Error('上传失败，请检查网络与服务'))
-        });
-      });
+      /**
+       * 云开发环境统一走 wx.cloud.uploadFile（api.upload）：
+       * 原来的 wx.uploadFile → /api/upload 在云端恒返回 400
+       * （云函数里那条路由写明「云开发环境请使用 wx.cloud.uploadFile」），
+       * 结果是「上传学习资料」在体验版必失败。
+       */
+      const fileId = await api.upload(this.data.file.path, 'resources');
 
       wx.showLoading({ title: '发布中', mask: true });
       const res = await api.post('/api/resources', {
@@ -117,10 +108,10 @@ Page({
         course: this.data.course,
         category: CATEGORIES[this.data.categoryIndex].code,
         tags: this.data.tags,
-        fileUrl: fileUrl.url,
+        fileUrl: fileId,
         fileName: this.data.file.name,
         fileSize: this.data.file.size,
-        fileExt: this.data.file.ext || (fileUrl.meta && fileUrl.meta.ext) || ''
+        fileExt: this.data.file.ext || ''
       }, { silent: true });
 
       wx.hideLoading();
