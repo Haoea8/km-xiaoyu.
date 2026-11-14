@@ -150,12 +150,13 @@ function resetAndSeed() {
   clearDirty();
   loaded = true;
   withPlainIds(() => {
-    // 优先使用真实运营数据（seed-real-data.json）；缺失时回退到程序化种子
+    // 1) 程序化种子：铺满全部集合（收藏 / 会话 / 消息 / 通知 / 举报 等辅助数据）
+    require('./seed').build();
+    // 2) 真实运营数据覆盖核心集合；数据文件缺失时保留上一步的程序化数据
     try {
       require('./seed-real').build();
-    } catch (e) {
-      require('./seed').build();
-    }
+    } catch (e) { /* seed-real-data.json 缺失，降级为程序化种子 */ }
+    // 3) 排在真实数据之后：校园墙/学习资源已有数据会跳过，拼团按真实商品生成
     require('./seed2').build();
   });
   snapshotBaseline();
@@ -1071,12 +1072,13 @@ async function initialize(deadline) {
   // 5) 生成种子数据（纯内存）
   try {
     withPlainIds(() => {
-      // 优先使用真实运营数据（seed-real-data.json）；缺失时回退到程序化种子
+      // 1) 程序化种子：铺满全部集合（收藏 / 会话 / 消息 / 通知 / 举报 等辅助数据）
+      require('./seed').build();
+      // 2) 真实运营数据覆盖核心集合；数据文件缺失时保留上一步的程序化数据
       try {
         require('./seed-real').build();
-      } catch (e) {
-        require('./seed').build();
-      }
+      } catch (e) { /* seed-real-data.json 缺失，降级为程序化种子 */ }
+      // 3) 排在真实数据之后：校园墙/学习资源已有数据会跳过，拼团按真实商品生成
       require('./seed2').build();
     });
   } catch (e) {
