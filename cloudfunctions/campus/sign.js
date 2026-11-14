@@ -53,7 +53,14 @@ const cache = new Map();
  * 比有效期短一点，保证发出去的链接一定还没过期。
  */
 const URL_MAX_AGE = 24 * 60 * 60;              // 秒
-const CACHE_MS = 23 * 60 * 60 * 1000;          // 毫秒
+const CACHE_MS = 5 * 60 * 1000;                // 毫秒，5 分钟
+/**
+ * 缓存必须**远短于**签名实际有效期。
+ *
+ * 取 23 小时（贴着 24 小时算）的后果：一旦签名实际只有 2 小时（SDK 忽略 maxAge 时的默认值），
+ * 就会有 21 小时持续返回已失效链接 —— 真机白块，且下拉刷新也救不回来（服务端直接返回缓存）。
+ * 取 5 分钟：无论签出来是 2 小时还是 24 小时，发出去的链接一定还有效。
+ */
 
 /**
  * 换签（带降级）。
@@ -64,27 +71,31 @@ const CACHE_MS = 23 * 60 * 60 * 1000;          // 毫秒
  */
 async function callSign(ids) {
   /**
-   * ⚠️ **fileList 必须是字符串数组**（踩过，且是线上事故）：
+   * ⚠️ 顺序很重要：**先不带 maxAge**，失败才退到带 maxAge。
    *
-   * 曾经为了把链接有效期拉长，写成 `fileList: [{ fileID, maxAge }]` —— 那是
-   * @cloudbase/node-sdk / Web SDK 的形态，wx-server-sdk 4.x **不认**。
-   * 它照样返回 fileList、tempFileURL 也非空，但签名是按错的东西算的：
-   * 线上每张图都变成 `...tcb.qcloud.la/...?sign=xxx&t=xxx` 然后**全部 403** ——
-   * 表现就是「首页有的图能看、有的图白的」── 其实能看的那些是客户端缓存。
+   * 原来反过来（先带 maxAge）。问题在于：maxAge 的单位各版本文档说法不一
+   * （示例写秒、本文件曾按毫秒传 86400000）。传错时 getTempFileURL **不报错**，
+   * 照样返回带 sign/t 的 URL，只是签名算错了 —— CDN 一律 403。
+   * 而这里只判断「有没有 tempFileURL」，看到非空就当成功，永远走不到降级分支。
+   * 真机表现：image 把 403 的 XML 当 JPEG 解 → 花屏条纹 + 绿块。
    *
-   * 正确写法：fileList 传字符串，有效期用**顶层** maxAge（单位毫秒）。
+   * 不带 maxAge 用微信默认有效期，签名参数一定正确，作为主路径最稳。
    */
   try {
-    const res = await cloud.getTempFileURL({ fileList: ids, maxAge: URL_MAX_AGE * 1000 });
+    const res = await cloud.getTempFileURL({ fileList: ids });
     const rows = (res && res.fileList) || [];
     if (rows.some((f) => f && f.tempFileURL)) return rows;
-  } catch (e) { /* 旧版 SDK 不认 maxAge → 退回最朴素的调用 */ }
-  const res2 = await cloud.getTempFileURL({ fileList: ids });
-  return (res2 && res2.fileList) || [];
+  } catch (e) { /* 主路径失败，退到带 maxAge 的调用 */ }
+  try {
+    const res2 = await cloud.getTempFileURL({ fileList: ids, maxAge: URL_MAX_AGE * 1000 });
+    return (res2 && res2.fileList) || [];
+  } catch (e2) {
+    return [];
+  }
 }
 
 /** 单次 getTempFileURL 的文件数上限 */
-const BATCH = 50;
+const BATCH = 20;
 
 let _inited = false;
 
@@ -203,15 +214,31 @@ async function signInto(ids) {
     }
     if (!miss.length) continue;
 
-    // 重试一次
+    // 整批重试一次
     try {
       // eslint-disable-next-line no-await-in-loop
       const rows2 = await callSign(miss);
-      const still = take(rows2);
-      failed += still.length;
-    } catch (e2) {
-      failed += miss.length;
+      miss = take(rows2);
+    } catch (e2) { /* 保持 miss，继续往下逐个签 */ }
+
+    if (!miss.length) continue;
+
+    /**
+     * 仍失败的逐个单独签：单张没有批量聚合的相互拖累，成功率明显更高。
+     * 上限 12 个，避免极端情况把云函数跑到超时（config.json 里 timeout=60s）。
+     */
+    const solo = miss.slice(0, 12);
+    for (let k = 0; k < solo.length; k++) {
+      try {
+        // eslint-disable-next-line no-await-in-loop
+        const rows3 = await callSign([solo[k]]);
+        const still = take(rows3);
+        if (still.length) failed++;
+      } catch (e3) {
+        failed++;
+      }
     }
+    failed += Math.max(0, miss.length - solo.length);
   }
 
   if (failed) {
