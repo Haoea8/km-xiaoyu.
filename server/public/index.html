@@ -708,8 +708,12 @@ const App = {
       '<div class="card">' + (d.list && d.list.length
         ? '<table><thead><tr><th>订单</th><th>买家</th><th>卖家</th><th>金额</th><th>状态</th><th>时间</th><th style="text-align:right">操作</th></tr></thead><tbody>' +
           d.list.map((o) =>
-            '<tr><td><div style="font-weight:500">' + esc((o.snapshot && o.snapshot.title) || '—') + '</div>' +
-            '<div class="muted mono" style="font-size:12px">' + esc(o.orderNo || '') + '</div></td>' +
+            '<tr><td><div style="display:flex;align-items:center;gap:10px">' +
+              (o.snapshot && o.snapshot.image
+                ? '<img class="thumb" src="' + esc(o.snapshot.image) + '" onerror="this.style.visibility=\'hidden\'">'
+                : '') +
+            '<div style="min-width:0"><div style="font-weight:500">' + esc((o.snapshot && o.snapshot.title) || '—') + '</div>' +
+            '<div class="muted mono" style="font-size:12px">' + esc(o.orderNo || '') + '</div></div></div></td>' +
             '<td>' + esc((o.buyer && o.buyer.nickname) || '—') + '</td>' +
             '<td>' + esc((o.seller && o.seller.nickname) || '—') + '</td>' +
             '<td class="mono" style="white-space:nowrap">' + yuan(o.payAmount) + '</td>' +
