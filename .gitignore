@@ -19,6 +19,8 @@ project.private.config.json
 # server/data/db.json 是本地 mock 服务的内存快照（含 session token、订单等），
 # 每次运行都会变，属于「状态」而非「源码」，入库只会产生无意义的大量 diff。
 server/data/
+# 例外：演示快照要入库 —— 评审拿不到云端环境时，靠它把后台跑起来看
+!server/data/db.demo.json
 
 # ---------- 云端凭据（务必忽略！）----------
 # server/.cloudbase.json 里是 CloudBase 的 API Key（管理员权限、长期有效），
