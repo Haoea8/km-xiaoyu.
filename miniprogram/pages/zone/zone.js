@@ -146,7 +146,10 @@ Page({
     if (!quiet) wx.showLoading({ title: 'AI 找货中', mask: true });
     try {
       const out = await api.post('/api/ai/search', { query: q }, { silent: true });
-      if (seq !== this._aiSeq) return;                 // 期间用户已换了搜索，这次结果作废
+      if (seq !== this._aiSeq) {                       // 期间用户已换了搜索，这次结果作废
+        this.setData({ aiBusy: false });               // 必须清 busy，否则按钮永久变灰
+        return;
+      }
       if (!quiet) wx.hideLoading();
       const items = (out.items || []).map(decoCard);
       /**
@@ -195,7 +198,7 @@ Page({
     const kw = String(e.detail.value || this.data.keyword || '').trim();
     // 换关键词时先收起上一轮的 AI 结果，避免「新查询 + 旧 AI 结论」并排出现
     this._aiSeq = (this._aiSeq || 0) + 1;      // 作废在途的 AI 请求，避免旧结果晚到盖住新列表
-    this.setData({ keyword: kw, list: [], aiOn: false, hideList: false, aiItems: [], aiSummary: '', zoneName: kw ? '搜索结果' : this.data.zoneName });
+    this.setData({ keyword: kw, list: [], aiOn: false, hideList: false, aiItems: [], aiSummary: '', aiBusy: false, zoneName: kw ? '搜索结果' : this.data.zoneName });
     if (kw) this.saveHistory(kw);
     this.fetch(true);
   },
