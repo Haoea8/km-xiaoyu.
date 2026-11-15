@@ -100,8 +100,16 @@ module.exports = function register(route) {
     if (status !== 'all') list = list.filter((l) => l.status === status);
     if (zone) list = list.filter((l) => l.zone === zone);
     if (kw) {
-      list = list.filter((l) => util.match(l.title, kw) || util.match(l.desc, kw) ||
-        (l.tags || []).some((t) => util.match(t, kw)));
+      /**
+       * 单字查询（如「车」「电」）只匹配标题与标签，不看描述。
+       *
+       * 单字在描述里命中的噪声太大：搜「车」会把描述写着「骑电动车上门」的
+       * 搬运服务、代拿快递全带出来（2026-11-15 反馈）。两个字以上才放开描述匹配。
+       */
+      const single = kw.length === 1;
+      list = list.filter((l) => util.match(l.title, kw) ||
+        (l.tags || []).some((t) => util.match(t, kw)) ||
+        (!single && util.match(l.desc, kw)));
     }
     /**
      * 已被「别人」拍下的单件商品不出现在列表/搜索结果里。

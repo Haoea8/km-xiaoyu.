@@ -65,8 +65,14 @@ module.exports = function register(route) {
     if (status !== 'all') list = list.filter((l) => l.status === status);
     if (zone) list = list.filter((l) => l.zone === zone);
     if (kw) {
-      list = list.filter((l) => util.match(l.title, kw) || util.match(l.desc, kw) ||
-        (l.tags || []).some((t) => util.match(t, kw)));
+      /**
+       * 单字查询只匹配标题与标签，不看描述。
+       * 单字在描述里命中噪声太大：搜「车」会把描述写「骑电动车上门」的搬运服务带出来。
+       */
+      const single = kw.length === 1;
+      list = list.filter((l) => util.match(l.title, kw) ||
+        (l.tags || []).some((t) => util.match(t, kw)) ||
+        (!single && util.match(l.desc, kw)));
     }
     /**
      * 已被拍下的单件商品不在列表/搜索里露出（拼团、服务除外；卖家看自己的不隐藏）。
