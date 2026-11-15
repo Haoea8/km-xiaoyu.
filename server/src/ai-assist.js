@@ -491,7 +491,8 @@ function recall(intent, limit) {
     let score = 0;
     let kwHit = false;
     for (const k of kws) {
-      if (hay.indexOf(String(k).toLowerCase()) > -1) { score += 3; kwHit = true; }
+      if (String(l.title || '').toLowerCase().indexOf(String(k).toLowerCase()) > -1) { score += 3; kwHit = true; }
+      else if (hay.indexOf(String(k).toLowerCase()) > -1) { score += 1; kwHit = true; }
     }
     const sim = vSim[String(l.id)] || 0;
     if (sim > simFloor) score += sim * 12;

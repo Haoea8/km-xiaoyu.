@@ -517,12 +517,16 @@ async function recall(intent, limit) {
   const simFloor = Math.max(0.06, topSim * 0.25);
 
   const scored = all.map((l) => {
+    const titleLow = String(l.title || '').toLowerCase();
     const hay = (String(l.title || '') + ' ' + String(l.desc || '') + ' ' +
       (l.tags || []).join(' ')).toLowerCase();
     let score = 0;
     let kwHit = false;
     for (const k of kws) {
-      if (hay.indexOf(String(k).toLowerCase()) > -1) { score += 3; kwHit = true; }
+      const kk = String(k).toLowerCase();
+      // 标题命中是硬信号，描述里蹭到只算半个：否则搜「电」会把描述含「电动车」的搬运服务顶上来
+      if (titleLow.indexOf(kk) > -1) { score += 3; kwHit = true; }
+      else if (hay.indexOf(kk) > -1) { score += 1; kwHit = true; }
     }
     const sim = vSim[String(l.id)] || 0;
     if (sim > simFloor) score += sim * 12;
