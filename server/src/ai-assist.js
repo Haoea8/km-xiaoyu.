@@ -473,13 +473,25 @@ function recall(intent, limit) {
     vSim = {};                                          // 索引失败就纯关键词，不影响可用性
   }
 
+  /**
+   * 自适应阈值：只认「跟本次查询最像的那件商品的 1/4 以上」。
+   *
+   * 固定阈值会在两种极端下出问题——查询很具体时（如「笔电」最高分 0.36），
+   * 0.07 这种「『笔记本』里的『笔记』二字撞上考研笔记」的噪声会被放进来；
+   * 而查询很泛时（如「鼠标」最高分 0.17），固定卡 0.1 又会把合理的相近商品误杀。
+   * 取相对值可以两头兼顾，下限 0.06 兜住「全是低分」的情况。
+   */
+  let topSim = 0;
+  Object.keys(vSim).forEach((k) => { if (vSim[k] > topSim) topSim = vSim[k]; });
+  const simFloor = Math.max(0.06, topSim * 0.25);
+
   const scored = all.map((l) => {
     const hay = (String(l.title || '') + ' ' + String(l.desc || '') + ' ' +
       (l.tags || []).join(' ')).toLowerCase();
     let score = 0;
     for (const k of kws) if (hay.indexOf(String(k).toLowerCase()) > -1) score += 3;
     const sim = vSim[String(l.id)] || 0;
-    if (sim > 0.06) score += sim * 12;                   // 阈值以下视为噪声，不计分
+    if (sim > simFloor) score += sim * 12;               // 阈值以下视为噪声，不计分
     if (kws.length === 0 && score === 0) score = 1;      // 没关键词：按热度/时间兜底
     return { l, score, sim };
   }).filter((x) => x.score > 0);
