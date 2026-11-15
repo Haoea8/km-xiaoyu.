@@ -41,10 +41,10 @@ const api = sandbox.module.exports;
 
 console.log('=== 1. 种子数据路径映射 ===');
 const cases = [
-  ['/static/img/p01.jpg', 'cloud://' + ENV + '.' + BUCKET + '/static/img/p01.jpg'],
-  ['/static/avatars/a01.jpg', 'cloud://' + ENV + '.' + BUCKET + '/static/avatars/a01.jpg'],
-  ['/static/img/p24.jpg', 'cloud://' + ENV + '.' + BUCKET + '/static/img/p24.jpg'],
-  ['/static/img/c01.jpg', 'cloud://' + ENV + '.' + BUCKET + '/static/img/c01.jpg']
+  ['/static/img/p01.jpg', '/static/img/p01.jpg'],   // 2026-10-23 起种子图打进小程序包，不再拼 cloud://
+  ['/static/avatars/a01.jpg', '/static/avatars/a01.jpg'],   // 2026-10-23 起种子图打进小程序包，不再拼 cloud://
+  ['/static/img/p24.jpg', '/static/img/p24.jpg'],   // 2026-10-23 起种子图打进小程序包，不再拼 cloud://
+  ['/static/img/c01.jpg', '/static/img/c01.jpg']   // 同上
 ];
 for (const [input, expect] of cases) {
   const got = api.abs(input);
@@ -73,11 +73,10 @@ for (const v of ['', null, undefined]) {
 
 console.log('\n=== 5. 逻辑自检：映射后的路径能对上云存储结构 ===');
 {
-  // 用户把 server/static 上传到云存储根目录后，实际路径应为 static/img/p01.jpg
+  // 2026-10-23 起种子图打进小程序包，abs 对 /static/* 原样返回，不再拼 cloud://
   const got = api.abs('/static/img/p01.jpg');
-  const cloudPath = got.replace('cloud://' + ENV + '.' + BUCKET + '/', '');
-  if (cloudPath === 'static/img/p01.jpg') ok('云存储内路径 = ' + cloudPath + '（对应上传 server/static 文件夹）');
-  else no('云存储内路径不对: ' + cloudPath);
+  if (got === '/static/img/p01.jpg') ok('包内路径原样返回 = ' + got + '（种子图已打进小程序包）');
+  else no('包内路径被改写: ' + got);
 }
 
 console.log('\n=== 6. 头像字段必须过 api.abs（源文件静态核对）===');

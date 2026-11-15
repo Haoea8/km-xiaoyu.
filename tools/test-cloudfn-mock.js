@@ -108,7 +108,8 @@ async function run() {
   }
 
   console.log('\n=== 3. 落库数据检查 ===');
-  const expect = { users: 9, listings: 49, posts: 16, groups: 4, walls: 10, resources: 10 };
+  // 2026-11 起本地默认载入 db.demo.json 真实快照（98 商品/33 账号），断言随实际数据同步
+  const expect = { users: 33, listings: 98, posts: 38, groups: 4, walls: 27, resources: 10 };
   for (const [name, want] of Object.entries(expect)) {
     const got = Object.keys(store[name] || {}).length;
     if (got === want) ok(name + ' = ' + got);

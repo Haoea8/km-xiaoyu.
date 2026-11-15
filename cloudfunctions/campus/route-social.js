@@ -346,7 +346,10 @@ module.exports = function register(route) {
     const p = f.doc;
     if (!p) fail('帖子不存在', 404);
     const content = util.clampText((ctx.body || {}).content, 300);
-    if (!content) fail('评论内容不能为空');
+    // 允许**纯图评论**：前端已有选图入口（post-detail 的 cImages），只发图不写字是正当用法
+    const imgs = Array.isArray((ctx.body || {}).images)
+      ? (ctx.body || {}).images.filter((x) => !!x).slice(0, 3) : [];
+    if (!content && !imgs.length) fail('评论内容或图片至少填一个');
 
     /**
      * 回复目标必须**真实存在且属于本帖**，所以要走直查兜底。
@@ -364,7 +367,7 @@ module.exports = function register(route) {
     }
 
     const c = db.insert('comments', {
-      postId: p.id, authorId: me.id, content, replyTo, createdAt: Date.now()
+      postId: p.id, authorId: me.id, content, images: imgs, replyTo, createdAt: Date.now()
     });
     /**
      * ⚠️ 这里**不能**再写 `db.find('comments', ...).length`。
@@ -378,7 +381,8 @@ module.exports = function register(route) {
      */
     p.commentCount = (p.commentCount || 0) + 1;
     db.saveSoon();
-    if (p.authorId !== me.id) ws.notifyUser(p.authorId, '「' + me.nickname + '」评论了你的帖子：' + content.slice(0, 30));
+    const brief = content || '[图片]';
+    if (p.authorId !== me.id) ws.notifyUser(p.authorId, '「' + me.nickname + '」评论了你的帖子：' + brief.slice(0, 30));
 
     /**
      * 互动消息（独立于上面的 AI 会话通知）。
@@ -391,13 +395,13 @@ module.exports = function register(route) {
      */
     it.add({
       toUserId: p.authorId, actorId: me.id, type: 'post_comment',
-      targetId: p.id, commentId: c.id, text: content,
+      targetId: p.id, commentId: c.id, text: brief,
       title: p.content, image: (p.images || [])[0] || ''
     });
     if (replyTo && target) {
       it.add({
         toUserId: target.authorId, actorId: me.id, type: 'comment_reply',
-        targetId: p.id, commentId: c.id, text: content,
+        targetId: p.id, commentId: c.id, text: brief,
         title: p.content, image: (p.images || [])[0] || ''
       });
     }

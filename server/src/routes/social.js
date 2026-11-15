@@ -216,7 +216,10 @@ module.exports = function register(route) {
     const p = db.findById('posts', ctx.params.id);
     if (!p) fail('帖子不存在', 404);
     const content = util.clampText((ctx.body || {}).content, 300);
-    if (!content) fail('评论内容不能为空');
+    // 允许纯图评论（与云函数一致）
+    const imgs = Array.isArray((ctx.body || {}).images)
+      ? (ctx.body || {}).images.filter((x) => !!x).slice(0, 3) : [];
+    if (!content && !imgs.length) fail('评论内容或图片至少填一个');
     // 校验 replyTo：必须存在、且属于同一个帖子。
     // 不校验就静默置空 → 前端「回复某人」会变成「直接回复帖子」（与云函数版一致）
     let replyTo = Number((ctx.body || {}).replyTo) || null;
@@ -226,7 +229,7 @@ module.exports = function register(route) {
       if (!target || target.postId !== p.id) { replyTo = null; target = null; }
     }
     const c = db.insert('comments', {
-      postId: p.id, authorId: me.id, content, replyTo, createdAt: Date.now()
+      postId: p.id, authorId: me.id, content, images: imgs, replyTo, createdAt: Date.now()
     });
     p.commentCount = db.find('comments', (x) => x.postId === p.id).length;
     db.saveSoon();

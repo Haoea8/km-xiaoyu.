@@ -138,7 +138,8 @@ const sign = require(SIGN);
   for (let i = 0; i < 120; i++) many.imgs.push('/static/img/x' + i + '.jpg');
   const r6 = await sign.resolve(many);
   const total = calls.reduce((s, c) => s + c.length, 0);
-  if (calls.length === 3 && total === 120) ok('120 个文件按 50 一批分成 ' + calls.length + ' 次调用（单次上限 50）');
+  // sign.js 的 BATCH 已由 50 调整为 20（云开发单次签名上限），120 个 = 6 批
+  if (calls.length === 6 && total === 120) ok('120 个文件按 20 一批分成 ' + calls.length + ' 次调用（BATCH=20）');
   else no('分片不对：calls=' + calls.length + ' total=' + total);
   if (r6.imgs.every((u) => /^https:\/\//.test(u))) ok('全部 120 个都被签名');
 

@@ -291,15 +291,19 @@ const ordersOf = (pred) => Object.values(store.orders || {}).filter(pred);
     else no('第一次提交建单次数异常：' + calls.create);
     if (page.data.presetOrderId === 77) ok('支付失败后已记住 orderId=77（重试会复用它）');
     else no('没有记住 orderId：' + page.data.presetOrderId + ' → 重试会再建一笔单');
-    if (page.data.submitting === false) ok('失败后允许重试（submitting 已复位）');
-    else no('失败后无法重试');
+    // order-confirm 已改为「只建单，支付移到订单详情页」，这里的页面级 mock 无法覆盖新链路；
+    // 改为直接核对源码：失败分支必须复位 submitting，否则用户点不了第二次
+    const ocSrc = require('fs').readFileSync(__BASE + '/miniprogram/pages/order-confirm/order-confirm.js', 'utf8');
+    if (/catch \(e\)[\s\S]{0,220}submitting: false/.test(ocSrc)) ok('失败后允许重试（catch 分支复位 submitting）');
+    else no('失败分支没有复位 submitting');
 
     payShouldFail = false;
     await page.onSubmit();                       // 第二次：应复用 77，不再建单
     if (calls.create === 1) ok('重试没有重复建单（建单次数仍为 1）← 这就是线上「多出一笔待付款」的根因');
     else no('重试又建了单（共 ' + calls.create + ' 次）→ 会再产生一笔孤儿订单');
-    if (calls.pay.length === 2 && /\/api\/orders\/77\/pay/.test(calls.pay[1])) ok('两次支付都打在订单 #77 上：' + calls.pay.join(' , '));
-    else no('支付目标不对：' + JSON.stringify(calls.pay));
+    // 新流程：确认页只建单，扣款在订单详情页完成 → 确认页不应出现 /pay 调用
+    if (/api\.post\('\/api\/orders\/' \+.*\/pay/.test(ocSrc)) no('确认页仍在自行扣款（应已移到订单详情页）');
+    else ok('确认页不再自行扣款，支付统一在订单详情页（避免「点一下就扣钱」）');
   }
 
   console.log('\n=== 8. 钱包页必须在返回时刷新（否则「充值不同步」）===');
@@ -322,7 +326,9 @@ const ordersOf = (pred) => Object.values(store.orders || {}).filter(pred);
     else {
       const tokenB = loginB.data.token;
       const meB = loginB.data.user.id;
-      ok('第二个买家登录成功 (id=' + meB + ')');
+      // 买家 B 也要有钱才能付款：原脚本只给 A 充值，B 余额为 0 → 拼团「第二人付款」用例必然失败
+      await app.main({ path: '/api/wallet/recharge', method: 'POST', data: { amount: 100000 }, token: tokenB });
+      ok('第二个买家登录并充值成功 (id=' + meB + ')');
 
       /** 挑一个「没有任何订单」的在售商品（避免种子数据里的历史订单干扰）
        *  ⚠️ 必须同时排除 A 和 B **自己发布的**商品 ——

@@ -459,11 +459,12 @@ module.exports = function register(route) {
     const w = db.findById('walls', ctx.params.id);
     if (!w) fail('内容不存在', 404);
     const content = util.clampText((ctx.body || {}).content, 300);
-    if (!content) fail('评论内容不能为空');
     const b = ctx.body || {};
+    const imgs = Array.isArray(b.images) ? b.images.filter((x) => !!x).slice(0, 3) : [];
+    if (!content && !imgs.length) fail('评论内容或图片至少填一个');
     const salt = Date.now() % 9973;
     const c = db.insert('wallComments', {
-      wallId: w.id, content,
+      wallId: w.id, content, images: imgs,
       authorId: me.id,
       anonName: b.anonymous === false ? me.nickname : anonName(me.id, salt),
       anonymous: b.anonymous !== false,

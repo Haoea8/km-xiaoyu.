@@ -35,14 +35,16 @@ console.log('=== 1. 种子路径 → fileID ===');
 const cases = ['/static/img/p01.jpg', '/static/avatars/a05.jpg', '/static/img/c02.jpg'];
 for (const input of cases) {
   const got = api.abs(input);
-  const want = 'cloud://' + ENV + '.' + BUCKET + input;
+  // 2026-10-23 起种子图打进小程序包：abs() 对 /static/* 原样返回，不再拼 cloud://
+  const want = input;
   if (got === want) ok(input + '\n      → ' + got);
   else { no(input + '\n      期望 ' + want + '\n      实际 ' + got); }
 }
 
 console.log('\n=== 2. fileID 结构校验（关键） ===');
 {
-  const got = api.abs('/static/img/p01.jpg');
+  // 喂一个真实 fileID：abs() 对 cloud:// 原样返回，这段验证「不破坏已有 fileID 结构」
+  const got = api.abs('cloud://' + ENV + '.' + BUCKET + '/static/img/p01.jpg');
   const body = got.replace('cloud://', '');
   const slash = body.indexOf('/');
   const host = body.slice(0, slash);
@@ -87,10 +89,10 @@ console.log('\n=== 3. 透传与边界 ===');
 
 console.log('\n=== 4. 与云存储实际结构对齐 ===');
 {
+  // 2026-10-23 起种子图在包内，abs 原样返回包内路径
   const got = api.abs('/static/img/p01.jpg');
-  const inBucket = got.replace('cloud://' + ENV + '.' + BUCKET + '/', '');
-  if (inBucket === 'static/img/p01.jpg') ok('云存储内路径 = ' + inBucket + '（与已上传的 37 个文件一致）');
-  else no('路径不对齐: ' + inBucket);
+  if (got === '/static/img/p01.jpg') ok('包内路径原样返回 = ' + got + '（种子图已打进小程序包）');
+  else no('路径被改写: ' + got);
 }
 
 console.log('\n' + (bad ? '❌ ' + bad + ' 项失败' : '✅ fileID 格式正确'));
