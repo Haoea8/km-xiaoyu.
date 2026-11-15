@@ -514,26 +514,33 @@ async function recall(intent, limit) {
    */
   let topSim = 0;
   Object.keys(vSim).forEach((k) => { if (vSim[k] > topSim) topSim = vSim[k]; });
-
-  /**
-   * 全库最高相似度都不到 0.15：说明库里根本没有相关商品。
-   * 此时宁可返回「没找到」，也不能把「最不相干里最相干的那几个」硬塞给用户——
-   * 搜「笔电」却列出几本考研教材，比空结果更像 bug。
-   */
-  if (topSim < 0.15) return { items: [], relaxed: false };
-
   const simFloor = Math.max(0.06, topSim * 0.25);
 
   const scored = all.map((l) => {
     const hay = (String(l.title || '') + ' ' + String(l.desc || '') + ' ' +
       (l.tags || []).join(' ')).toLowerCase();
     let score = 0;
-    for (const k of kws) if (hay.indexOf(String(k).toLowerCase()) > -1) score += 3;
+    let kwHit = false;
+    for (const k of kws) {
+      if (hay.indexOf(String(k).toLowerCase()) > -1) { score += 3; kwHit = true; }
+    }
     const sim = vSim[String(l.id)] || 0;
-    if (sim > simFloor) score += sim * 12;               // 阈值以下视为噪声，不计分
+    if (sim > simFloor) score += sim * 12;
+
+    /**
+     * 两条路各自成立即可：
+     *   - 关键词命中：字面证据，够硬，直接留；
+     *   - 关键词没命中：只能靠向量，此时相似度必须到 0.15 才算「真的相关」。
+     *     否则搜「笔电」会把「笔记本」里的「笔记」二字撞出来的几本考研教材也列出来。
+     *
+     * 注意这条判断**不能**做成「全库 topSim < 0.15 就整体返回空」——
+     * 那样「电」这种单字查询（关键词能命中十件商品、但向量几乎为零）会被整锅端掉。
+     */
+    if (kws.length && !kwHit && sim < 0.15) return null;
+
     if (kws.length === 0 && score === 0) score = 1;      // 没关键词：按热度/时间兜底
     return { l, score, sim };
-  }).filter((x) => x.score > 0);
+  }).filter((x) => x && x.score > 0);
 
   const inBudget = scored.filter((x) => {
     const p = Number(x.l.price) || 0;
