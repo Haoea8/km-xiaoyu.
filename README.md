@@ -189,7 +189,7 @@ node tools/start-admin.js        # 或 Windows 双击 start-admin.cmd
 | `LLM_API_KEY` | 空 | 否 | AI 能力；未配置时自动降级，功能不报错 |
 | `LLM_BASE_URL` / `LLM_MODEL` | 见 `ai.js` | 否 | 兼容 OpenAI 协议的任意服务 |
 
-> **两套数据的规模不同，这是有意的**：本地演示库（`server/data/db.json`）是精简版，9 个账号、49 件商品、7 笔订单，只用来离线跑通全部功能；线上体验版才是真实运营数据（33 天、32 个用户、98 件商品、40 笔订单），说明文档第 1 章列的数字指的是线上这套。想看线上规模：填 `CLOUDBASE_API_KEY` 后重启，后台会自动切到真实数据。
+> **本地演示库（`server/data/db.json`）与线上是同一份快照**：33 个账号、98 件商品、36 笔订单、38 条帖子、27 条墙贴，与线上体验版规模一致，离线也能看全量数据。但它是一份**静态快照**，你在小程序里发的新商品不会写进它；要前后台实时联动，填 `CLOUDBASE_API_KEY` 后重启，后台会自动切到线上真实数据。
 >
 > 凭据文件 `server/.cloudbase.json` 已被 `.gitignore` 排除，**不会**进入仓库。
 > 需要接线上数据时：复制 `server/.cloudbase.json.example` 并填入自己的 Key。
