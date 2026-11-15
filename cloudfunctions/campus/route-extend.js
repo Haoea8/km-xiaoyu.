@@ -237,11 +237,17 @@ async function recommendListings(user, limit, opts) {
   // 分档随机：按「名次」每组 4 个。
   // 用名次而不是分数阈值 —— 分数跨度大时阈值分档会让多数商品独占一档，shuffle 失效。
   // 档位之间的先后仍保持高分优先，只打散档内顺序，推荐质量不塌。
-  const GROUP = 4;
-  const ordered = [];
-  for (let i = 0; i < scored.length; i += GROUP) {
-    ordered.push(...seededShuffle(scored.slice(i, i + GROUP), seed + i));
-  }
+  /**
+   * 选片窗口：
+   *   - 首次进首页（没有 exclude）只取最高分的 limit 个，第一眼必须是最优结果；
+   *   - 换批时把窗口放大到 3 屏再整体随机，连续两批的期望重叠从 8/12 降到 4/12 左右。
+   *     只放大窗口、不改打分，所以推荐质量不会掉到「推不相关商品」那一步。
+   */
+  const cap = limit || 12;
+  const winSize = (exclude && exclude.size)
+    ? Math.min(scored.length, cap * 3)
+    : Math.min(scored.length, cap);
+  const ordered = seededShuffle(scored.slice(0, winSize), seed).concat(scored.slice(winSize));
 
   // 累计排除：优先给没看过的；已看过的排后面（候选耗尽时仍需填满一屏）
   const fresh = ordered.filter((s) => !exclude.has(s.l.id));
@@ -270,11 +276,15 @@ async function recommendListings(user, limit, opts) {
 
   // 候选池 = 所有「非自己发布的在售商品」
   const poolSize = cands.length;
+  const unseenLeft = Math.max(0, poolSize - exclude.size);
   return {
     items,
     poolSize,
-    /** 候选池里没被看过的还剩几件（0 表示该循环了） */
-    unseen: Math.max(0, poolSize - exclude.size)
+    /**
+     * 剩余不足一屏时直接报 0：前端随后会走「已看完全部，重新为你推荐」并重置 exclude。
+     * 否则最后一批只能从看过的商品里凑，重复率会飙到 6/12 以上——体验上不如早点重新开始。
+     */
+    unseen: unseenLeft < cap ? 0 : unseenLeft
   };
 }
 

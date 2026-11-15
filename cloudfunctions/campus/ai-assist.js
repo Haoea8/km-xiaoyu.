@@ -29,6 +29,7 @@ const https = require('https');
 const http = require('http');
 const { URL } = require('url');
 const db = require('./db');
+const vector = require('./text-vector');
 
 /* ============================ 0. 基础设施 ============================ */
 
@@ -484,13 +485,34 @@ async function recall(intent, limit) {
   }
 
   const kws = intent.keywords;
+
+  /**
+   * 向量召回（TF-IDF + 余弦相似度）。
+   *
+   * 为什么加这一层：纯子串匹配下，「笔电」永远搜不到「笔记本电脑」，
+   * 「四级」搜不到「四六级真题」——而这正是校园用户最常用的说法。
+   * 向量层只提供**额外加分**，不取代关键词分与预算过滤，
+   * 所以最坏情况（索引建不起来）也只是退回原来的行为，不会让搜索变差。
+   */
+  let vSim = {};
+  try {
+    const vIndex = vector.buildIndex(all);
+    vector.score(intent.raw, vIndex).forEach((x) => {
+      vSim[String(x.id)] = x.sim;
+    });
+  } catch (e) {
+    vSim = {};                                          // 索引失败就纯关键词，不影响可用性
+  }
+
   const scored = all.map((l) => {
     const hay = (String(l.title || '') + ' ' + String(l.desc || '') + ' ' +
       (l.tags || []).join(' ')).toLowerCase();
     let score = 0;
     for (const k of kws) if (hay.indexOf(String(k).toLowerCase()) > -1) score += 3;
-    if (kws.length === 0) score = 1;                     // 没关键词：按热度/时间兜底
-    return { l, score };
+    const sim = vSim[String(l.id)] || 0;
+    if (sim > 0.06) score += sim * 12;                   // 阈值以下视为噪声，不计分
+    if (kws.length === 0 && score === 0) score = 1;      // 没关键词：按热度/时间兜底
+    return { l, score, sim };
   }).filter((x) => x.score > 0);
 
   const inBudget = scored.filter((x) => {
