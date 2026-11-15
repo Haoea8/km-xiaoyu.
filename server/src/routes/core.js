@@ -16,6 +16,16 @@ function needUser(ctx) {
 function fail(message, status) { const e = new Error(message); e.status = status || 400; throw e; }
 
 module.exports = function register(route) {
+  /**
+   * 云端初始化接口的本地等价物。
+   *
+   * 小程序 onLaunch 会循环 POST /api/_setup 直到返回 done（最多 20 轮）——
+   * 那是给云函数分片建集合用的。本地 server 的数据由 db.demo.json / db.json 直接提供，
+   * 没有「建集合 + 灌种子」这一步，所以直接返回 done，
+   * 否则小程序会连打 20 次 404，控制台一片红。
+   */
+  route('POST', '/api/_setup', () => ({ done: true, verify: 'local-ready' }));
+
   /* ---------- 登录 / 会话 ---------- */
   route('POST', '/api/login', (ctx) => {
     const { nickname, avatar, testUserId } = ctx.body || {};
