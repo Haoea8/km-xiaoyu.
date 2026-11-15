@@ -137,3 +137,13 @@
 .skeleton-wrap { padding: 0 24rpx; }
 .sk-row { height: 244rpx; margin-bottom: 20rpx; border-radius: var(--radius); }
 .bottom-pad { height: calc(180rpx + env(safe-area-inset-bottom)); }
+
+/* AI 没结果时的空态 + 回列表出口 */
+.ai-empty { padding: 24rpx 0 8rpx; display: flex; flex-direction: column; align-items: center; gap: 18rpx; }
+.ai-empty-tx { font-size: 26rpx; color: #9AA0A6; }
+.ai-empty-btn {
+  padding: 16rpx 36rpx; border-radius: 999rpx; font-size: 26rpx;
+  color: #1FA45B; background: #EAF9F1; border: 1rpx solid rgba(31, 164, 91, 0.3);
+}
+.ai-empty-btn:active { opacity: 0.8; }
+

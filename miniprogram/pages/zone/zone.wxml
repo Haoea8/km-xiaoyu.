@@ -73,8 +73,8 @@
   </view>
 
   <!-- AI 找货结果：只有当用户点「AI 找货」（或关键词搜索 0 结果时自动触发）才出现。
-       与下面的普通列表并存：AI 给的是「按语义挑出来的几件 + 为什么推荐」，
-       普通列表仍是完整结果，用户两种口径都能看。 -->
+       点「AI 找货」= 切到 AI 模式：只看语义挑出来的几件 + 为什么推荐；
+       想看完整结果点卡片上的「收起」回到普通列表（2026-11-15 调整：两者不再并排）。 -->
   <view class="ai-panel" wx:if="{{aiOn}}">
     <view class="ai-head">
       <text class="ai-badge">AI</text>
@@ -82,6 +82,11 @@
       <text class="ai-close" bindtap="closeAi">收起</text>
     </view>
     <view class="ai-tip-line" wx:if="{{aiSource === 'rule'}}">离线规则引擎（大模型暂不可用，已自动降级）</view>
+    <!-- AI 没挑到东西时别让页面空着：给一条明确的回普通列表的出口 -->
+    <view class="ai-empty" wx:if="{{!aiItems.length && !aiBusy}}">
+      <text class="ai-empty-tx">AI 没读懂这句话</text>
+      <view class="ai-empty-btn" bindtap="closeAi">查看全部 {{total}} 件商品</view>
+    </view>
     <scroll-view class="ai-scroll" scroll-x enable-flex show-scrollbar="{{false}}">
       <view
         class="ai-card"
