@@ -28,6 +28,24 @@ function needUser(ctx) {
 }
 
 module.exports = (route) => {
+  /**
+   * 诊断：模型配置到底有没有生效。
+   *
+   * 只读、不需要登录，且**永不回显完整 key**（只给尾 6 位）。
+   * 用途：页面一直显示「离线规则引擎」时，先看一眼 source 是 env / db / builtin 哪一个，
+   * 就能判断是配置没生效、还是库里存了坏 key、还是根本没配。
+   */
+  route('GET', '/api/ai/debug', () => {
+    const c = ai.llmConfig();
+    return {
+      enabled: c.enabled,
+      source: c.source,                                  // env | db | builtin | none
+      baseUrl: c.baseUrl,
+      model: c.model,
+      keyTail: c.apiKey ? String(c.apiKey).slice(-6) : '',
+      keyLen: c.apiKey ? String(c.apiKey).length : 0
+    };
+  });
   /** 发布辅助 */
   route('POST', '/api/ai/listing-assist', async (ctx) => {
     needUser(ctx);

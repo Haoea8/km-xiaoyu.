@@ -71,18 +71,25 @@ function llmConfig() {
   const envUrl = String(env.AI_BASE_URL || '').trim();
   const envModel = String(env.AI_MODEL || '').trim();
 
-  const metaKey = String(meta.apiKey || '').trim();
-  const metaUrl = String(meta.baseUrl || '').trim();
-  const metaModel = String(meta.model || '').trim();
+  /**
+   * 数据库里的 key 只认「两段式」（智谱的 id.secret）。
+   *
+   * 现实中出过这个问题：后台配置页曾被填进一串 32 位无点的旧 key，
+   * 环境变量一清空就轮到它生效，结果每次调模型都失败，前端只能一直显示「离线规则引擎」。
+   * 这里直接跳过格式不对的库配置，落到下一层内置兜底——宁可回到能用的那套，也不要拿坏 key 顶着。
+   */
+  const metaKeyRaw = String(meta.apiKey || '').trim();
+  // 只排除「32 位纯十六进制」这种旧版格式；两段式、sk- 前缀等一律照用
+  const metaKey = /^[0-9a-f]{32}$/i.test(metaKeyRaw) ? '' : metaKeyRaw;
 
-  const baseUrl = envUrl || metaUrl || BUILTIN_FALLBACK.baseUrl;
-  const model = envModel || metaModel || BUILTIN_FALLBACK.model;
+  const baseUrl = envUrl || String(meta.baseUrl || '').trim() || BUILTIN_FALLBACK.baseUrl;
+  const model = envModel || String(meta.model || '').trim() || BUILTIN_FALLBACK.model;
   const apiKey = envKey || metaKey || BUILTIN_FALLBACK.apiKey;
 
   let source = 'none';
   if (envKey) source = 'env';
   else if (metaKey) source = 'db';
-  else if (apiKey) source = 'builtin';
+  else if (BUILTIN_FALLBACK.apiKey) source = 'builtin';
 
   return {
     baseUrl,
@@ -614,13 +621,14 @@ async function expandQuery(raw) {
   const out = await chat([
     {
       role: 'system',
-      content: '你是校园二手平台的检索助手。把用户想找的东西扩展成 3 到 5 个中文检索词，' +
+      content: '你是校园二手平台的检索助手。用户输入很口语，你要猜他真正想找的商品叫什么名字。' +
+        '输出 3 到 5 个最可能出现在商品标题里的**具体**词——不要「饮品」「数码」这种上位词，' +
+        '要「奶茶」「可乐」「笔记本」这种能被商品标题直接包含的词。' +
         '用空格分隔，只输出词，不要标点、不要编号、不要解释。' +
-        '要同时覆盖同义说法（笔电→笔记本）和上位品类（笔记本→电脑），' +
-        '但不要写价格、不要写「二手」「闲置」这类每个商品都有的词。'
+        '例：输入「喝的」→ 输出「饮料 奶茶 可乐 冰茶 矿泉水」。'
     },
     { role: 'user', content: String(raw || '').slice(0, 40) }
-  ], { temperature: 0.2, maxTokens: 40, timeout: 2500 });   // 只给 2.5 秒，超了就按原词搜
+  ], { temperature: 0.2, maxTokens: 40, timeout: 5000 });   // 云端到模型服务的往返比本地慢，给 5 秒；超时仍按原词搜
   if (!out) return [];
   const words = String(out)
     .replace(/[，,、；;。\n]/g, ' ')

@@ -43,6 +43,19 @@ const vector = require('./text-vector');
  * 而云函数环境变量只有函数自身与管理员可见，且不会随接口返回给前端。
  * 保留库配置是为了「没配环境变量时仍能用后台改」，否则会把现有部署一刀切断。
  */
+/**
+ * 内置兜底配置（第三层，最后才用）。
+ *
+ * 优先级：环境变量 > 数据库 meta.config.ai > 本常量。
+ * 目的：让克隆/解压本项目的人**不改任何配置**就能试出 AI 效果。
+ * 与云函数版 `cloudfunctions/campus/ai-assist.js` 里的 BUILTIN_FALLBACK 保持一致（同一把 key）。
+ */
+const BUILTIN_FALLBACK = {
+  baseUrl: 'https://open.bigmodel.cn/api/paas/v4',
+  model: 'glm-4-flash',
+  apiKey: '6c576fe3789444239bac699b50a7fb08.EhPpFFozQybOXXyK'
+};
+
 function llmConfig() {
   let meta = {};
   try {
@@ -55,18 +68,29 @@ function llmConfig() {
   const envUrl = String(env.AI_BASE_URL || '').trim();
   const envModel = String(env.AI_MODEL || '').trim();
 
-  const baseUrl = envUrl || String(meta.baseUrl || '').trim();
-  const model = envModel || String(meta.model || '').trim();
-  const apiKey = envKey || String(meta.apiKey || '').trim();
+  /**
+   * 数据库里的 key 只认「两段式」（智谱的 id.secret）。
+   * 环境变量一清空时，库里若存着一串 32 位无点的旧 key 就会被启用，
+   * 结果每次调模型都失败、前端只能一直显示「离线规则引擎」。这里直接跳过它，落到内置兜底。
+   */
+  const metaKeyRaw = String(meta.apiKey || '').trim();
+  // 只排除「32 位纯十六进制」这种旧版格式；两段式、sk- 前缀等一律照用
+  const metaKey = /^[0-9a-f]{32}$/i.test(metaKeyRaw) ? '' : metaKeyRaw;
+
+  const baseUrl = envUrl || String(meta.baseUrl || '').trim() || BUILTIN_FALLBACK.baseUrl;
+  const model = envModel || String(meta.model || '').trim() || BUILTIN_FALLBACK.model;
+  const apiKey = envKey || metaKey || BUILTIN_FALLBACK.apiKey;
 
   let source = 'none';
-  if (apiKey) source = envKey ? 'env' : 'db';
+  if (envKey) source = 'env';
+  else if (metaKey) source = 'db';
+  else if (BUILTIN_FALLBACK.apiKey) source = 'builtin';
 
   return {
     baseUrl,
     model,
     apiKey,
-    source,                       // env | db | none —— 只暴露来源，永不回显 key
+    source,                       // env | db | builtin | none —— 只暴露来源，永不回显 key
     enabled: !!(baseUrl && apiKey)
   };
 }
@@ -580,13 +604,14 @@ async function expandQuery(raw) {
   const out = await chat([
     {
       role: 'system',
-      content: '你是校园二手平台的检索助手。把用户想找的东西扩展成 3 到 5 个中文检索词，' +
+      content: '你是校园二手平台的检索助手。用户输入很口语，你要猜他真正想找的商品叫什么名字。' +
+        '输出 3 到 5 个最可能出现在商品标题里的**具体**词——不要「饮品」「数码」这种上位词，' +
+        '要「奶茶」「可乐」「笔记本」这种能被商品标题直接包含的词。' +
         '用空格分隔，只输出词，不要标点、不要编号、不要解释。' +
-        '要同时覆盖同义说法（笔电→笔记本）和上位品类（笔记本→电脑），' +
-        '但不要写价格、不要写「二手」「闲置」这类每个商品都有的词。'
+        '例：输入「喝的」→ 输出「饮料 奶茶 可乐 冰茶 矿泉水」。'
     },
     { role: 'user', content: String(raw || '').slice(0, 40) }
-  ], { temperature: 0.2, maxTokens: 40, timeout: 2500 });   // 只给 2.5 秒，超了就按原词搜
+  ], { temperature: 0.2, maxTokens: 40, timeout: 5000 });   // 云端到模型服务的往返比本地慢，给 5 秒；超时仍按原词搜
   if (!out) return [];
   const words = String(out)
     .replace(/[，,、；;。\n]/g, ' ')

@@ -108,7 +108,8 @@ const llmServer = http.createServer((req, res) => {
   console.log('=== A. 大模型配置：环境变量优先、key 不回显 ===');
   delete process.env.AI_API_KEY; delete process.env.AI_BASE_URL; delete process.env.AI_MODEL;
   let cfg = ai.llmConfig();
-  eq('无任何配置 → source=none, enabled=false', [cfg.source, cfg.enabled], ['none', false]);
+  // 有内置兜底 key：不配任何环境变量时落到 builtin 且 enabled=true（克隆即用，这是有意设计）
+  eq('无任何配置 → 落到内置兜底 builtin, enabled=true', [cfg.source, cfg.enabled], ['builtin', true]);
   truthy('返回对象里**没有** apiKey 明文字段以外的泄漏（只应有 key 本身供内部使用）', typeof cfg.apiKey === 'string');
 
   process.env.AI_BASE_URL = 'http://127.0.0.1:1/v1';

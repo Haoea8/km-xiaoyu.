@@ -23,6 +23,21 @@ function needUser(ctx) {
 }
 
 module.exports = (route) => {
+  /**
+   * 诊断：模型配置到底有没有生效（只读、不回显完整 key）。
+   * 与云函数版同路径同结构，便于本地和云端对照。
+   */
+  route('GET', '/api/ai/debug', () => {
+    const c = ai.llmConfig();
+    return {
+      enabled: c.enabled,
+      source: c.source,                                  // env | db | builtin | none
+      baseUrl: c.baseUrl,
+      model: c.model,
+      keyTail: c.apiKey ? String(c.apiKey).slice(-6) : '',
+      keyLen: c.apiKey ? String(c.apiKey).length : 0
+    };
+  });
   /** 发布辅助 */
   route('POST', '/api/ai/listing-assist', async (ctx) => {
     needUser(ctx);
