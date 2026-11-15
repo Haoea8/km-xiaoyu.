@@ -63,9 +63,41 @@ function toTempUrls(fileIDs) {
 }
 
 /* ---------------- 核心请求 ---------------- */
+/**
+ * 本地后台探测（开发者工具里自动连本机 server）。
+ *
+ * 规则：
+ *   1. config.LOCAL_API 显式填了地址 → 用它；
+ *   2. 没填且当前是「开发版」(envVersion === develop) → 试 http://127.0.0.1:3100；
+ *   3. 体验版 / 正式版 → 永不走本地，直接云函数。
+ * 探测失败（本机没起 server）会自动回退云函数，所以最坏情况与改动前一致。
+ * 结果缓存，一次会话只探一次。
+ */
+let _localBase = null;
+function checkLocal() {
+  if (_localBase !== null) return Promise.resolve(_localBase);
+  let base = LOCAL_API || '';
+  if (!base) {
+    try {
+      const env = wx.getAccountInfoSync().miniProgram.envVersion;
+      if (env === 'develop') base = 'http://127.0.0.1:3100';
+    } catch (e) { /* 低版本基础库拿不到，忽略 */ }
+  }
+  if (!base) { _localBase = ''; return Promise.resolve(''); }
+  return new Promise((resolve) => {
+    wx.request({
+      url: String(base).replace(/\/+$/, '') + '/api/ai/debug',
+      method: 'GET',
+      timeout: 900,
+      success: () => { _localBase = base; resolve(base); },
+      fail: () => { _localBase = ''; resolve('');  // 本机没起 server → 回退云函数
+      }
+    });
+  });
+}
 function request(method, path, data, opts) {
-  const o = opts || {};
-  return new Promise((resolve, reject) => {
+  return checkLocal().then((base) => new Promise((resolve, reject) => {
+    const o = opts || {};
     const t = token();
     if (o.loading) wx.showLoading({ title: o.loading === true ? '加载中' : o.loading, mask: true });
 
@@ -78,9 +110,9 @@ function request(method, path, data, opts) {
      * 不需要任何云开发账号。返回结构与云函数版保持一致（{code, data, message}），
      * 所以下面所有页面代码不需要改。
      */
-    if (LOCAL_API) {
+    if (base) {
       wx.request({
-        url: String(LOCAL_API).replace(/\/+$/, '') + path,
+        url: String(base).replace(/\/+$/, '') + path,
         method: String(method || 'GET').toUpperCase(),
         data: data || {},
         header: Object.assign(
@@ -163,7 +195,7 @@ function request(method, path, data, opts) {
         reject(e);
       }
     });
-  });
+  }));
 }
 
 /**
