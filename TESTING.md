@@ -219,7 +219,10 @@ ADMIN_PORT=3200 node tools/test-admin-content.js
 **2026-11-15 起全部为绿**：`node tools/test-*.js` 逐个跑，43 个全通过。
 此前长期红的 6 个已逐条对齐当前实现（不是放宽断言）：
 - `test-cloudfn-mock`：期望值改为 `db.demo.json` 真实快照规模（33 账号 / 98 商品 / 38 帖）
-- `test-fileid` / `test-image-path`：种子图自 2026-10-23 起打进小程序包，`abs()` 对 `/static/*` 原样返回
+- `test-fileid` / `test-image-path`：断言与当前实现对齐 —— 种子图**同时**存在于
+  `miniprogram/static/`（包内副本）与 `server/static/`（云存储源，第 3 步上传）；
+  `api.abs()` 对 `/static/*` 原样返回，`sign.js` 的 `toFileId()` 则把它拼成 `cloud://` 去签名。
+  注意 `ignoreUploadUnusedFiles: true` 会剔除包内副本，**所以第 3 步上传云存储不可省略**
 - `test-sign`：`BATCH` 由 50 调整为 20，断言随之分片数改为 6
 - `test-order-money`：买家 B 补充值；确认页改为「只建单、支付在详情页」后，改用源码断言
 - `test-comment-images`：**这条是真 bug**（纯图评论被 `if (!content) fail` 拦掉），已修服务端，
