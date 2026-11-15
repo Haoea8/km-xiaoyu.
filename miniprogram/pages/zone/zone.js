@@ -176,6 +176,13 @@ Page({
 
   onSearchInput(e) { this.setData({ keyword: e.detail.value }); },
 
+  /** 点「搜索」按钮：与软键盘回车走同一条逻辑 */
+  onSearchTap() {
+    const kw = String(this.data.keyword || '').trim();
+    if (!kw) return wx.showToast({ title: '输入想找的东西', icon: 'none' });
+    this.onSearchConfirm({ detail: { value: kw } });
+  },
+
   onSearchConfirm(e) {
     const kw = String(e.detail.value || this.data.keyword || '').trim();
     // 换关键词时先收起上一轮的 AI 结果，避免「新查询 + 旧 AI 结论」并排出现

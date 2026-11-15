@@ -16,6 +16,9 @@
         bindconfirm="onSearchConfirm" />
       <view wx:if="{{keyword}}" class="s-clear" bindtap="clearKeyword">×</view>
     </view>
+    <!-- 显式的「搜索」按钮：手机软键盘右下角那个「搜索」键不显眼，
+         用户看到旁边唯一的按钮是「AI 找货」，就会以为只能 AI 搜（2026-11-15 反馈）。 -->
+    <view class="s-go" bindtap="onSearchTap">搜索</view>
     <!-- 自然语言找货：把「200以内能打游戏的显示器」这种话交给后端解析 -->
     <view class="ai-find {{aiBusy ? 'busy' : ''}}" bindtap="onAiSearch">
       <text class="ai-spark">AI</text>找货
