@@ -162,7 +162,8 @@ Page({
       this.setData(Object.assign({
         aiBusy: false,
         aiOn: true,
-        aiSummary: out.summary || '',
+        // 静默兜底（quiet）时补一句说明，否则用户会奇怪「我没点，卡片怎么自己出来了」
+        aiSummary: quiet ? ('没搜到精确匹配，' + (out.summary || '')) : (out.summary || ''),
         aiItems: items,
         aiSource: out.source || 'rule'
       }, (!quiet && items.length) ? { total: items.length } : {}));
