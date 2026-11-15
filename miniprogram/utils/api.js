@@ -42,8 +42,11 @@ function abs(path) {
   return path;
 }
 
-/** 判断是否为云存储 fileID */
-function isCloudFile(p) { return typeof p === 'string' && p.startsWith('cloud://'); }
+/**
+ * 判断是否为云存储 fileID
+ * 同样避开 `typeof`（见下方 request 里的说明：SWC 会把它改写成缺失的 @swc/runtime 模块）
+ */
+function isCloudFile(p) { return !!p && String(p).indexOf('cloud://') === 0; }
 
 /**
  * 批量把 cloud:// fileID 换成可访问的临时链接（供 image 使用）
@@ -122,7 +125,14 @@ function request(method, path, data, opts) {
         success(res) {
           done();
           const body = res && res.data;
-          if (!body || typeof body !== 'object') {
+          /**
+           * ⚠️ 这里刻意不用 `typeof body !== 'object'`：
+           * 微信开发者工具的 SWC 编译会把 `typeof` 改写成 `@swc/runtime/_type_of.js`，
+           * 而基础库 3.8.12 下这个辅助模块有时不会被注入，
+           * 运行时报 `module '@swc/runtime/_type_of.js' is not defined`，整个小程序起不来。
+           * 换成「有没有业务字段」判断，效果等价且不触发该 bug。
+           */
+          if (!body || (body.code === undefined && body.message === undefined && body.data === undefined)) {
             if (!o.silent) wx.showToast({ title: '本地服务无返回', icon: 'none' });
             const e = new Error('本地服务无返回'); e.code = 0; return reject(e);
           }
