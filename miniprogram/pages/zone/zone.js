@@ -140,13 +140,13 @@ Page({
       const out = await api.post('/api/ai/search', { query: q }, { silent: true });
       if (!quiet) wx.hideLoading();
       const items = (out.items || []).map(decoCard);
-      this.setData({
+      this.setData(Object.assign({
         aiBusy: false,
         aiOn: true,
         aiSummary: out.summary || '',
         aiItems: items,
         aiSource: out.source || 'rule'
-      });
+      }, items.length ? { total: items.length } : {}));   // 有 AI 结果时顶部件数跟着走，不然显示 75 件却只有 1 张卡
     } catch (e) {
       if (!quiet) wx.hideLoading();
       this.setData({ aiBusy: false });
