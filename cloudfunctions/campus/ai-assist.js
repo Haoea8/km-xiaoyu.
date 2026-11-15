@@ -629,7 +629,7 @@ async function expandQuery(raw) {
         '例：输入「喝的」→ 输出「饮料 奶茶 可乐 冰茶 矿泉水」。'
     },
     { role: 'user', content: String(raw || '').slice(0, 40) }
-  ], { temperature: 0.2, maxTokens: 40, timeout: 5000 });   // 云端到模型服务的往返比本地慢，给 5 秒；超时仍按原词搜
+  ], { temperature: 0.2, maxTokens: 40, timeout: 3000 });   // 只产 5 个词，3 秒足够；超时直接按原词搜，不让用户干等
   if (!out) return [];
   const words = String(out)
     .replace(/[，,、；;。\n]/g, ' ')
@@ -648,17 +648,25 @@ async function smartSearch(query) {
    * 先让模型把查询摊开，再拿「原词 + 扩展词」一起检索。
    * 扩展失败就用原关键词，行为与改动前完全一致（不会更差）。
    */
-  let expanded = [];
-  try {
-    expanded = await expandQuery(intent.raw);
-  } catch (e) {
-    expanded = [];
+  /**
+   * 先按原关键词召回；**候选够用就不去扩展**。
+   *
+   * 扩展是一次额外的模型调用（1~2 秒），只有关键词明显搜不到东西时才值得付这个钱。
+   * 像搜「车」本来就有 2 件，直接重排即可，没必要再问一遍模型。
+   */
+  let rec = await recall(intent, 12);
+  if (rec.items.length < 2) {
+    let expanded = [];
+    try {
+      expanded = await expandQuery(intent.raw);
+    } catch (e) {
+      expanded = [];
+    }
+    if (expanded.length) {
+      const searchIntent = Object.assign({}, intent, { keywords: intent.keywords.concat(expanded) });
+      rec = await recall(searchIntent, 12);
+    }
   }
-  const searchIntent = expanded.length
-    ? Object.assign({}, intent, { keywords: intent.keywords.concat(expanded) })
-    : intent;
-
-  const rec = await recall(searchIntent, 12);
   const items = rec.items;
 
   const base = {
@@ -710,7 +718,7 @@ async function smartSearch(query) {
   const out = await chat([
     { role: 'system', content: sys },
     { role: 'user', content: intent.raw }
-  ], { temperature: 0.3, maxTokens: 600 });
+  ], { temperature: 0.3, maxTokens: 600, timeout: 6000 });   // 重排上限 6 秒，超时用规则排序兜底
 
   const j = parseJsonLoose(out);
   if (!j || !Array.isArray(j.picks) || !j.picks.length) return fallback;
