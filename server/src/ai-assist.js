@@ -429,7 +429,7 @@ function parseQuery(query) {
   // 这一步看起来琐碎，但实测就是它让关键词从 2 个噪声词变回 1 个有效词。
   const words = rest.split(' ').map((w) => w.trim())
     .map((w) => w.replace(/^[的了吗吧啊呀呢]+/, '').replace(/[的了]+$/, '').trim())
-    .filter((w) => w.length >= 2 && w.length <= 12);
+    .filter((w) => w.length >= 1 && w.length <= 12);   // 单字也保留：搜「车」「电」时不能把关键词整条丢掉
 
   // 品类词优先：散文式长句里挖出「显示器」这类真名词
   const cats = guessCategories(rest);

@@ -440,7 +440,7 @@ function parseQuery(query) {
   // 这一步看起来琐碎，但实测就是它让关键词从 2 个噪声词变回 1 个有效词。
   const words = rest.split(' ').map((w) => w.trim())
     .map((w) => w.replace(/^[的了吗吧啊呀呢]+/, '').replace(/[的了]+$/, '').trim())
-    .filter((w) => w.length >= 2 && w.length <= 12);
+    .filter((w) => w.length >= 1 && w.length <= 12);   // 单字也保留：搜「车」「电」时不能把关键词整条丢掉
 
   // 品类词优先：散文式长句里挖出「显示器」这类真名词
   const cats = guessCategories(rest);
@@ -533,7 +533,8 @@ async function recall(intent, limit) {
       const kk = String(k).toLowerCase();
       // 标题命中是硬信号，描述里蹭到只算半个：否则搜「电」会把描述含「电动车」的搬运服务顶上来
       if (titleLow.indexOf(kk) > -1) { score += 3; kwHit = true; }
-      else if (hay.indexOf(kk) > -1) { score += 1; kwHit = true; }
+      // 单字只在标题里算命中：描述里「骑电动车上门」这种蹭到的不算，否则搜「车」会混进搬运服务
+      else if (kk.length > 1 && hay.indexOf(kk) > -1) { score += 1; kwHit = true; }
     }
     const sim = vSim[String(l.id)] || 0;
     if (sim > simFloor) score += sim * 12;
