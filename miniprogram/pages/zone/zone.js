@@ -135,10 +135,18 @@ Page({
   async doAiSearch(quiet) {
     const q = String(this.data.keyword || '').trim();
     if (!q) return;
+    /**
+     * 请求代次：每次发起都自增，回来时对不上就丢弃。
+     *
+     * 不这么做会出现「列表已经有结果了，AI 卡片又自己弹出来」——
+     * 上一次搜索触发的兜底请求晚到，把 aiOn 重新置 true，盖在正确的列表上（2026-11-15 反馈）。
+     */
+    const seq = (this._aiSeq = (this._aiSeq || 0) + 1);
     this.setData({ aiBusy: true });
     if (!quiet) wx.showLoading({ title: 'AI 找货中', mask: true });
     try {
       const out = await api.post('/api/ai/search', { query: q }, { silent: true });
+      if (seq !== this._aiSeq) return;                 // 期间用户已换了搜索，这次结果作废
       if (!quiet) wx.hideLoading();
       const items = (out.items || []).map(decoCard);
       /**
@@ -186,6 +194,7 @@ Page({
   onSearchConfirm(e) {
     const kw = String(e.detail.value || this.data.keyword || '').trim();
     // 换关键词时先收起上一轮的 AI 结果，避免「新查询 + 旧 AI 结论」并排出现
+    this._aiSeq = (this._aiSeq || 0) + 1;      // 作废在途的 AI 请求，避免旧结果晚到盖住新列表
     this.setData({ keyword: kw, list: [], aiOn: false, hideList: false, aiItems: [], aiSummary: '', zoneName: kw ? '搜索结果' : this.data.zoneName });
     if (kw) this.saveHistory(kw);
     this.fetch(true);
