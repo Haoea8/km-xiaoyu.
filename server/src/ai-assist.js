@@ -483,6 +483,14 @@ function recall(intent, limit) {
    */
   let topSim = 0;
   Object.keys(vSim).forEach((k) => { if (vSim[k] > topSim) topSim = vSim[k]; });
+
+  /**
+   * 全库最高相似度都不到 0.15：说明库里根本没有相关商品。
+   * 此时宁可返回「没找到」，也不能把「最不相干里最相干的那几个」硬塞给用户——
+   * 搜「笔电」却列出几本考研教材，比空结果更像 bug。
+   */
+  if (topSim < 0.15) return { items: [], relaxed: false };
+
   const simFloor = Math.max(0.06, topSim * 0.25);
 
   const scored = all.map((l) => {
