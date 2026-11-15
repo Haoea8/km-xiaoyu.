@@ -397,8 +397,21 @@ module.exports = function register(route) {
     });
     bb.on('close', () => {
       done = true;
-      if (!urls.length) reject(Object.assign(new Error('未收到文件'), { status: 400 }));
-      else resolve({ urls, url: urls[0], files: metas, file: metas[0] });
+      /**
+       * ⚠️ busboy 的 close 只代表「请求体解析完毕」，不代表「文件已落盘」——
+       * 每个文件的 out.on('close') 是异步的，这里若立刻检查 urls 会经常为空，
+       * 误报「未收到文件」。所以等 pending 归零再收尾（同时加 3s 兜底，避免挂死）。
+       */
+      const started = Date.now();
+      const settle = () => {
+        if (pending > 0 && Date.now() - started < 3000) return setTimeout(settle, 10);
+        if (!urls.length) {
+          reject(Object.assign(new Error(pending > 0 ? '文件写入超时' : '未收到文件'), { status: 400 }));
+          return;
+        }
+        resolve({ urls, url: urls[0], files: metas, file: metas[0] });
+      };
+      settle();
     });
     bb.on('error', () => reject(Object.assign(new Error('上传失败'), { status: 500 })));
     ctx.req.pipe(bb);

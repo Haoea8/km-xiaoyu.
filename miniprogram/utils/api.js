@@ -199,24 +199,60 @@ function request(method, path, data, opts) {
 }
 
 /**
- * 文件上传 → 云存储
- * 返回 fileID（cloud://...），可直接用于 image 组件
+ * 文件上传
+ *  - 云函数模式：传云存储，返回 fileID（cloud://...）
+ *  - 本地模式：传本机 server 的 /api/upload，返回**完整 http 地址**
+ *    ⚠️ 必须返回绝对地址，不能返回 /static/uploads/xxx：
+ *    abs() 会把 /static/ 开头的路径当成「小程序包内文件」，而包内根本没有这张图，
+ *    结果就是灰块/花屏。这是之前踩过的坑，这里显式避开。
  */
 function upload(filePath, dir) {
-  const ext = (String(filePath).match(/\.[A-Za-z0-9]+$/) || [''])[0];
-  const name = Date.now() + '_' + Math.random().toString(36).slice(2, 8) + ext;
-  return new Promise((resolve, reject) => {
-    wx.cloud.uploadFile({
-      cloudPath: CLOUD_PATH + (dir || 'uploads') + '/' + name,
-      filePath,
-      success: (res) => {
-        if (res && res.fileID) return resolve(res.fileID);
-        reject(new Error('上传失败'));
-      },
-      fail: (err) => {
-        const raw = (err && err.errMsg) || '';
-        reject(new Error(/permission|denied/i.test(raw) ? '云存储权限不足，请在控制台开通' : '上传失败'));
-      }
+  return checkLocal().then((base) => {
+    if (base) {
+      const root = String(base).replace(/\/+$/, '');
+      const tk = token();
+      return new Promise((resolve, reject) => {
+        wx.uploadFile({
+          url: root + '/api/upload',
+          filePath: filePath,
+          name: 'file',
+          header: tk ? { Authorization: 'Bearer ' + tk } : {},
+          formData: { dir: dir || 'uploads' },
+          success(res) {
+            let body = null;
+            try { body = JSON.parse(res.data || '{}'); } catch (e) { body = null; }
+            if (body && body.code === 0) {
+              const d = body.data || {};
+              const u = d.url || (d.urls && d.urls[0]) || '';
+              return resolve(u ? root + u : '');
+            }
+            reject(new Error((body && body.message) || '上传失败'));
+          },
+          fail(err) {
+            const raw = (err && err.errMsg) || '';
+            reject(new Error(/url not in domain list|合法域名/i.test(raw)
+              ? '请勾选「不校验合法域名」（详情 → 本地设置）'
+              : '本地服务未启动，先双击 start-admin.cmd'));
+          }
+        });
+      });
+    }
+
+    const ext = (String(filePath).match(/\.[A-Za-z0-9]+$/) || [''])[0];
+    const name = Date.now() + '_' + Math.random().toString(36).slice(2, 8) + ext;
+    return new Promise((resolve, reject) => {
+      wx.cloud.uploadFile({
+        cloudPath: CLOUD_PATH + (dir || 'uploads') + '/' + name,
+        filePath,
+        success: (res) => {
+          if (res && res.fileID) return resolve(res.fileID);
+          reject(new Error('上传失败'));
+        },
+        fail: (err) => {
+          const raw = (err && err.errMsg) || '';
+          reject(new Error(/permission|denied/i.test(raw) ? '云存储权限不足，请在控制台开通' : '上传失败'));
+        }
+      });
     });
   });
 }
