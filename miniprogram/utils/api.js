@@ -8,7 +8,7 @@
  * 内部把「REST 路径 + 方法 + body」打包成一次云函数调用：
  *   wx.cloud.callFunction({ name: 'campus', data: { path, method, data, token, scope } })
  */
-const { CLOUD_ENV, CLOUD_BUCKET, CLOUD_FN, CLOUD_PATH } = require('./config');
+const { CLOUD_ENV, CLOUD_BUCKET, CLOUD_FN, CLOUD_PATH, LOCAL_API } = require('./config');
 
 let ready = false;
 
@@ -70,6 +70,51 @@ function request(method, path, data, opts) {
     if (o.loading) wx.showLoading({ title: o.loading === true ? '加载中' : o.loading, mask: true });
 
     const done = () => { if (o.loading) wx.hideLoading(); };
+
+    /**
+     * 本地 REST 模式（config.LOCAL_API 填了地址时启用）。
+     *
+     * 目的：评委/开发者在本机跑起 server 后，小程序与后台共享同一份数据，
+     * 不需要任何云开发账号。返回结构与云函数版保持一致（{code, data, message}），
+     * 所以下面所有页面代码不需要改。
+     */
+    if (LOCAL_API) {
+      wx.request({
+        url: String(LOCAL_API).replace(/\/+$/, '') + path,
+        method: String(method || 'GET').toUpperCase(),
+        data: data || {},
+        header: Object.assign(
+          { 'Content-Type': 'application/json' },
+          t ? { Authorization: 'Bearer ' + t } : {}
+        ),
+        success(res) {
+          done();
+          const body = res && res.data;
+          if (!body || typeof body !== 'object') {
+            if (!o.silent) wx.showToast({ title: '本地服务无返回', icon: 'none' });
+            const e = new Error('本地服务无返回'); e.code = 0; return reject(e);
+          }
+          if (body.code === 0) return resolve(body.data || {});
+          const msg = body.message || '请求失败';
+          if (body.code === 401) clearToken();
+          if (!o.silent) wx.showToast({ title: msg, icon: 'none', duration: 2000 });
+          const e = new Error(msg); e.code = body.code; reject(e);
+        },
+        fail(err) {
+          done();
+          const raw = (err && err.errMsg) || '';
+          let msg = '连不上本地服务';
+          if (/url not in domain list|合法域名/i.test(raw)) {
+            msg = '请勾选「不校验合法域名」（详情 → 本地设置）';
+          } else if (/fail/i.test(raw)) {
+            msg = '本地服务未启动，先运行 node server/src/index.js';
+          }
+          if (!o.silent) wx.showToast({ title: msg, icon: 'none', duration: 2500 });
+          const e = new Error(msg); e.code = -1; reject(e);
+        }
+      });
+      return;
+    }
 
     wx.cloud.callFunction({
       name: CLOUD_FN,
