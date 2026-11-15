@@ -94,10 +94,9 @@
     </scroll-view>
   </view>
 
-  <!-- 列表：AI 有结果时先让位给上面那张 AI 卡片，避免下面又铺一堆关键词噪声
-       （搜「吃的」时关键词会把「证件照精修」「山地车」也列出来）。
-       想回到全部商品，点 AI 卡片上的「收起」即可。 -->
-  <view class="list" wx:if="{{!(aiOn && aiItems.length)}}">
+  <!-- 列表：只有用户主动点「AI 找货」且拿到结果时才让位（hideList）；
+       普通搜索、关键词兜底、AI 无结果时都要正常显示，否则用户就没法浏览全部商品了。 -->
+  <view class="list" wx:if="{{!hideList}}">
     <view class="l-card" wx:for="{{list}}" wx:key="id" data-id="{{item.id}}" bindtap="goDetail">
       <!-- 封面：失败时自动重试一次，仍失败才显示占位文字。
            原来只写了 lazy-load —— 真机上一旦某张图没触发加载/解码失败，就是一块纯灰，

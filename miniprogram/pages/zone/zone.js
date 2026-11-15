@@ -51,11 +51,12 @@ Page({
     total: 0,
 
     /* ---- AI 找货 ---- */
-    aiOn: false,
+    aiOn: false, hideList: false,
     aiBusy: false,
     aiSummary: '',
     aiItems: [],
-    aiSource: ''
+    aiSource: '',
+    hideList: false
   },
 
   onLoad(opts) {
@@ -140,13 +141,21 @@ Page({
       const out = await api.post('/api/ai/search', { query: q }, { silent: true });
       if (!quiet) wx.hideLoading();
       const items = (out.items || []).map(decoCard);
+      /**
+       * hideList 只在「用户主动点 AI 找货」时为 true。
+       *
+       * quiet=true 表示搜索后自动兜底跑的，那种情况关键词列表必须保留——
+       * 用户是来浏览全部商品的，不能被 AI 卡片顶掉（2026-11-15 反馈：改成一律隐藏后
+       * 普通搜索也看不到列表了，"只能 AI 找货"）。
+       */
       this.setData(Object.assign({
         aiBusy: false,
         aiOn: true,
         aiSummary: out.summary || '',
         aiItems: items,
-        aiSource: out.source || 'rule'
-      }, items.length ? { total: items.length } : {}));   // 有 AI 结果时顶部件数跟着走，不然显示 75 件却只有 1 张卡
+        aiSource: out.source || 'rule',
+        hideList: !quiet && items.length > 0
+      }, (!quiet && items.length) ? { total: items.length } : {}));
     } catch (e) {
       if (!quiet) wx.hideLoading();
       this.setData({ aiBusy: false });
@@ -154,7 +163,7 @@ Page({
     }
   },
 
-  closeAi() { this.setData({ aiOn: false, aiSummary: '', aiItems: [] }); },
+  closeAi() { this.setData({ aiOn: false, aiSummary: '', aiItems: [], hideList: false }); },
 
   loadMore() {
     if (!this.data.hasMore || this.data.loadingMore) return;
@@ -170,7 +179,7 @@ Page({
   onSearchConfirm(e) {
     const kw = String(e.detail.value || this.data.keyword || '').trim();
     // 换关键词时先收起上一轮的 AI 结果，避免「新查询 + 旧 AI 结论」并排出现
-    this.setData({ keyword: kw, list: [], aiOn: false, aiItems: [], aiSummary: '', zoneName: kw ? '搜索结果' : this.data.zoneName });
+    this.setData({ keyword: kw, list: [], aiOn: false, hideList: false, aiItems: [], aiSummary: '', zoneName: kw ? '搜索结果' : this.data.zoneName });
     if (kw) this.saveHistory(kw);
     this.fetch(true);
   },
@@ -195,7 +204,7 @@ Page({
 
   tapWord(e) {
     const kw = e.currentTarget.dataset.w;
-    this.setData({ keyword: kw, zoneName: '搜索结果', list: [], aiOn: false, aiItems: [], aiSummary: '' });
+    this.setData({ keyword: kw, zoneName: '搜索结果', list: [], aiOn: false, hideList: false, aiItems: [], aiSummary: '' });
     this.saveHistory(kw);
     this.fetch(true);
   },
@@ -209,7 +218,7 @@ Page({
       zoneName: z ? z.name : '全部好物',
       zoneColor: z ? z.color : '#1FA45B',
       list: [],
-      aiOn: false, aiItems: [], aiSummary: ''
+      aiOn: false, hideList: false, aiItems: [], aiSummary: ''
     });
     this.fetch(true);
   },
@@ -222,7 +231,7 @@ Page({
   },
 
   clearKeyword() {
-    this.setData({ keyword: '', aiOn: false, aiItems: [], aiSummary: '' });
+    this.setData({ keyword: '', aiOn: false, hideList: false, aiItems: [], aiSummary: '' });
     this.fetch(true);
   },
 
