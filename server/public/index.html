@@ -1168,14 +1168,22 @@ const App = {
           ? '<div class="muted" style="font-size:12.5px;margin-bottom:10px">' +
               '同一 WiFi 下的手机 / 平板 / 另一台电脑，用下面的地址就能打开后台（不用装任何东西）。</div>' +
             '<div class="row" style="flex-wrap:wrap;gap:8px">' +
-              (SITE_INFO.lanUrls || []).map((u) =>
-                '<code style="background:#F3F4F6;padding:6px 10px;border-radius:8px;font-size:13px">' + esc(u) + '</code>'
-              ).join('') +
+              (SITE_INFO.lanUrls || []).map((u) => {
+                // 192.168.137.1 是 Windows「移动热点」的默认网关，没开热点时这个地址无效
+                const isHotspot = /192\.168\.137\.1/.test(u);
+                return '<code style="background:#F3F4F6;padding:6px 10px;border-radius:8px;font-size:13px">' +
+                  esc(u) +
+                  (isHotspot ? ' <span style="color:#9CA3AF;font-size:11px">移动热点</span>' : '') +
+                  '</code>';
+              }).join('') +
               ((SITE_INFO.lanUrls || []).length ? '' : '<span class="muted">没检测到局域网地址（本机可能没连 WiFi）</span>') +
             '</div>' +
             '<div class="muted" style="font-size:12.5px;margin-top:10px">' +
               '当前你用的是：<code>' + esc(location.origin) + '</code>' +
-              '（<code>127.0.0.1</code> / <code>localhost</code> 只有本机能打开，别人要用上面那串 IP 地址）</div>'
+              '（<code>127.0.0.1</code> / <code>localhost</code> 只有本机能打开，别人要用上面那串 IP 地址）</div>' +
+            '<div class="muted" style="font-size:12.5px;margin-top:4px">' +
+              '优先用你电脑 <b>WLAN（无线网卡）</b> 对应的那个地址；标「移动热点」的是 Windows 热点网关，只在开了热点时有效。' +
+              '打不开就先确认：服务窗口还开着、手机和电脑连的是同一个 WiFi。</div>'
           : '<div class="muted" style="font-size:12.5px">' +
               '当前后台只监听本机（<code>127.0.0.1</code>），其它设备打不开。' +
               '要允许同一 WiFi 下的设备访问：去掉环境变量 <code>ADMIN_HOST=127.0.0.1</code> 后重启（默认就是开放的）。</div>') +

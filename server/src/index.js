@@ -28,17 +28,32 @@ const ADMIN_HOST = process.env.ADMIN_HOST || '0.0.0.0';
 
 /** 列出本机所有可用的局域网 IPv4 地址（用于启动时打印「手机怎么打开」） */
 function lanUrls(port) {
-  const out = [];
+  const list = [];
   const ifs = require('os').networkInterfaces();
+  /**
+   * 虚拟网卡黑名单：这些网卡的地址手机永远连不上，打出来只会误导人。
+   *  · vgate / tun / tap / utun —— VPN 客户端创建的
+   *  · VMware / VirtualBox / vEthernet —— 虚拟机与 Hyper-V
+   *  · docker / br- / veth —— 容器
+   *  · Loopback / 蓝牙 —— 非局域网
+   */
+  const VIRTUAL = /^(vgate|vmware|virtualbox|vethernet|hyper-v|docker|br-|veth|tun|tap|utun|loopback|蓝牙|bluetooth)/i;
   for (const name of Object.keys(ifs)) {
+    if (VIRTUAL.test(name)) continue;
     for (const it of ifs[name] || []) {
-      // 跳过 169.254.x.x（没拿到 DHCP 时的自分配地址）与回环
-      if (it.family === 'IPv4' && !it.internal && !/^169\.254\./.test(it.address)) {
-        out.push('http://' + it.address + ':' + port);
-      }
+      if (it.family !== 'IPv4' || it.internal) continue;
+      if (/^169\.254\./.test(it.address)) continue;      // 没拿到 DHCP 时的自分配地址
+      if (/^172\.(1[6-9]|2\d|3[01])\./.test(it.address)) continue; // 云主机/VPN 内网段，家用很少见
+      list.push({ url: 'http://' + it.address + ':' + port, addr: it.address, name });
     }
   }
-  return out;
+  // 真实家庭/校园 WiFi（192.168.*）排前面，评委一眼就能看到该用哪个
+  list.sort((a, b) => {
+    const wa = /^192\.168\./.test(a.addr) ? 0 : 1;
+    const wb = /^192\.168\./.test(b.addr) ? 0 : 1;
+    return wa - wb;
+  });
+  return list.map((x) => x.url);
 }
 const STATIC_DIR = path.join(__dirname, '..', 'static');
 const PUBLIC_DIR = path.join(__dirname, '..', 'public');
