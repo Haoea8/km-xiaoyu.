@@ -65,6 +65,15 @@ function matchRoute(method, pathname, scope) {
   return null;
 }
 
+/**
+ * 云端初始化接口的本地等价物 —— 与 cloudfunctions/campus/index.js 里的 /api/_setup 对应。
+ *
+ * 小程序 onLaunch 会循环 POST /api/_setup 直到返回 done（最多 20 轮），那是给云函数
+ * 分片建集合用的。本地数据由 db.demo.json / db.json 直接提供，没有这一步，
+ * 所以直接回 done；否则连打 20 次 404，初始化标志一直 false，页面等不到「数据就绪」就不刷新。
+ */
+route('POST', '/api/_setup', () => ({ done: true, verify: 'local-ready' }));
+
 require('./routes/core')(route);
 require('./routes/trade')(route);
 require('./routes/social')(route);
