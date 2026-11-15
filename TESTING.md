@@ -184,6 +184,36 @@ node tools/pack-for-share.js --out <输出路径>.zip
 改 `project.config.json` 的 `appid`，然后在自己云开发里建环境、部署云函数、上传图片。
 **云开发数据不共享** —— 只适合完全独立的二次开发，不适合一起测同一份数据。
 
+### 跑测试前须知：三个脚本需要先起服务
+
+`tools/` 下的测试分两类：
+
+| 类型 | 脚本 | 要求 |
+|---|---|---|
+| **纯离线**（42 个） | `test-ai`、`test-refresh-*`、`test-publish-*` 等 | 直接 `node tools/xxx.js` 就能跑，不依赖任何服务 |
+| **打后台接口**（3 个） | `test-admin-content`、`test-admin-password`、`test-admin-ui` | **必须先启动管理后台**，否则会报 `ECONNREFUSED` 看着像失败 |
+
+所以全量跑的时候，正确顺序是：
+
+```bash
+# 1. 先起服务（另开一个终端，别关）
+node server/src/index.js
+
+# 2. 再跑测试
+node tools/test-admin-content.js    # 打 3100 端口
+node tools/test-admin-ui.js
+node tools/test-admin-password.js
+```
+
+端口不是 3100 时，用 `ADMIN_PORT` 同时指定给服务与测试：
+
+```bash
+ADMIN_PORT=3200 node server/src/index.js
+ADMIN_PORT=3200 node tools/test-admin-content.js
+```
+
+**历史遗留的 6 个红**（`test-cloudfn-mock`、`test-comment-images`、`test-fileid`、`test-image-path`、`test-order-money`、`test-sign`）是开发过程中留下的一致性缺口——测试期望与当前实现或数据规模不同步，不影响运行。已知并记录，尚未修的都在各自脚本头部写了原因。
+
 ### 提交约定
 
 - 改完先跑相关测试（`node tools/test-xxx.js`）；不确定就全量跑一遍 `tools/` 下的

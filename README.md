@@ -189,6 +189,8 @@ node tools/start-admin.js        # 或 Windows 双击 start-admin.cmd
 | `LLM_API_KEY` | 空 | 否 | AI 能力；未配置时自动降级，功能不报错 |
 | `LLM_BASE_URL` / `LLM_MODEL` | 见 `ai.js` | 否 | 兼容 OpenAI 协议的任意服务 |
 
+> **两套数据的规模不同，这是有意的**：本地演示库（`server/data/db.json`）是精简版，9 个账号、49 件商品、7 笔订单，只用来离线跑通全部功能；线上体验版才是真实运营数据（33 天、32 个用户、98 件商品、40 笔订单），说明文档第 1 章列的数字指的是线上这套。想看线上规模：填 `CLOUDBASE_API_KEY` 后重启，后台会自动切到真实数据。
+>
 > 凭据文件 `server/.cloudbase.json` 已被 `.gitignore` 排除，**不会**进入仓库。
 > 需要接线上数据时：复制 `server/.cloudbase.json.example` 并填入自己的 Key。
 > 云函数侧的 AI Key 配在云开发控制台「云函数 → 配置 → 环境变量」，不要写进代码。
