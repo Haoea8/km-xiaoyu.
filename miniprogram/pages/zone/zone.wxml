@@ -73,8 +73,8 @@
   </view>
 
   <!-- AI 找货结果：只有当用户点「AI 找货」（或关键词搜索 0 结果时自动触发）才出现。
-       点「AI 找货」= 切到 AI 模式：只看语义挑出来的几件 + 为什么推荐；
-       想看完整结果点卡片上的「收起」回到普通列表（2026-11-15 调整：两者不再并排）。 -->
+       与下面的普通列表并存：AI 给「按语义挑出来的几件 + 为什么推荐」，
+       列表仍是完整结果，两种口径都能看；点「收起」只关 AI 卡片，列表不受影响。 -->
   <view class="ai-panel" wx:if="{{aiOn}}">
     <view class="ai-head">
       <text class="ai-badge">AI</text>
@@ -82,10 +82,8 @@
       <text class="ai-close" bindtap="closeAi">收起</text>
     </view>
     <view class="ai-tip-line" wx:if="{{aiSource === 'rule'}}">离线规则引擎（大模型暂不可用，已自动降级）</view>
-    <!-- AI 没挑到东西时别让页面空着：给一条明确的回普通列表的出口 -->
     <view class="ai-empty" wx:if="{{!aiItems.length && !aiBusy}}">
-      <text class="ai-empty-tx">AI 没读懂这句话</text>
-      <view class="ai-empty-btn" bindtap="closeAi">查看全部 {{total}} 件商品</view>
+      <text class="ai-empty-tx">AI 没读懂这句话，可以换个说法</text>
     </view>
     <scroll-view class="ai-scroll" scroll-x enable-flex show-scrollbar="{{false}}">
       <view
@@ -102,9 +100,10 @@
     </scroll-view>
   </view>
 
-  <!-- 列表：只有用户主动点「AI 找货」且拿到结果时才让位（hideList）；
-       普通搜索、关键词兜底、AI 无结果时都要正常显示，否则用户就没法浏览全部商品了。 -->
-  <view class="list" wx:if="{{!hideList}}">
+  <!-- 列表：始终显示。
+       AI 卡片是「在普通结果之上的补充」，不是替代——用户先精确搜了「车」，
+       再点 AI 找货，应该还能看到原来那两件（2026-11-15 确认：两者共存）。 -->
+  <view class="list">
     <view class="l-card" wx:for="{{list}}" wx:key="id" data-id="{{item.id}}" bindtap="goDetail">
       <!-- 封面：失败时自动重试一次，仍失败才显示占位文字。
            原来只写了 lazy-load —— 真机上一旦某张图没触发加载/解码失败，就是一块纯灰，

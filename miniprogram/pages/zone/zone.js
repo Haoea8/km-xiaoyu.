@@ -164,8 +164,7 @@ Page({
         aiOn: true,
         aiSummary: out.summary || '',
         aiItems: items,
-        aiSource: out.source || 'rule',
-        hideList: !quiet
+        aiSource: out.source || 'rule'
       }, (!quiet && items.length) ? { total: items.length } : {}));
     } catch (e) {
       if (!quiet) wx.hideLoading();
