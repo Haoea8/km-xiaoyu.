@@ -557,9 +557,65 @@ function intentText(intent, relaxed) {
  * 它拿到的候选集来自真实库，返回的 id 必须能在候选集里找到，否则丢弃。
  * 这样即便模型幻觉，也不会把不存在的商品摆到用户面前。
  */
+/**
+ * 查询扩展：让模型把用户的口语说法摊成几个检索词。
+ *
+ * 为什么必须加这一步：TF-IDF 只认字面重叠，同义词表又是人工枚举——
+ * 用户说「笔电」「能打游戏的本子」时，靠一张固定词表永远补不全。
+ * 交给模型现场扩展，才能做到「换个说法也搜得到」。
+ *
+ * 失败、超时、返回空一律视为「没有扩展」，调用方按原关键词继续检索，不阻塞搜索。
+ */
+/** 查询扩展的内存缓存：同一句话 10 分钟内只问模型一次 */
+const EXPAND_CACHE = {};
+const EXPAND_TTL = 10 * 60 * 1000;
+
+async function expandQuery(raw) {
+  const key = String(raw || '').trim();
+  if (!key) return [];
+  const hit = EXPAND_CACHE[key];
+  const now = Date.now();
+  if (hit && now - hit.t < EXPAND_TTL) return hit.v;
+
+  const out = await chat([
+    {
+      role: 'system',
+      content: '你是校园二手平台的检索助手。把用户想找的东西扩展成 3 到 5 个中文检索词，' +
+        '用空格分隔，只输出词，不要标点、不要编号、不要解释。' +
+        '要同时覆盖同义说法（笔电→笔记本）和上位品类（笔记本→电脑），' +
+        '但不要写价格、不要写「二手」「闲置」这类每个商品都有的词。'
+    },
+    { role: 'user', content: String(raw || '').slice(0, 40) }
+  ], { temperature: 0.2, maxTokens: 40, timeout: 2500 });   // 只给 2.5 秒，超了就按原词搜
+  if (!out) return [];
+  const words = String(out)
+    .replace(/[，,、；;。\n]/g, ' ')
+    .split(/\s+/)
+    .map((w) => w.trim().replace(/^[「『"'（(]+|[」』"'）)]+$/g, ''))
+    .filter((w) => w && w.length <= 8 && w !== raw && w !== '二手' && w !== '闲置')
+    .slice(0, 5);
+  EXPAND_CACHE[key] = { v: words, t: now };
+  return words;
+}
+
 async function smartSearch(query) {
   const intent = parseQuery(query);
-  const rec = recall(intent, 12);
+
+  /**
+   * 先让模型把查询摊开，再拿「原词 + 扩展词」一起检索。
+   * 扩展失败就用原关键词，行为与改动前完全一致（不会更差）。
+   */
+  let expanded = [];
+  try {
+    expanded = await expandQuery(intent.raw);
+  } catch (e) {
+    expanded = [];
+  }
+  const searchIntent = expanded.length
+    ? Object.assign({}, intent, { keywords: intent.keywords.concat(expanded) })
+    : intent;
+
+  const rec = recall(searchIntent, 12);
   const items = rec.items;
 
   const base = {
